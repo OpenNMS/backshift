@@ -1,0 +1,21 @@
+{
+  "name": "backshift",
+  "version": "0.0.1",
+  "devDependencies": {
+    "grunt": "~0.4.4",
+    "grunt-contrib-jshint": "~0.10.0",
+    "grunt-contrib-nodeunit": "~0.3.3",
+    "grunt-contrib-uglify": "~0.4.0",
+    "grunt-contrib-copy": "~0.5.0",
+    "karma": "~0.12.3",
+    "karma-jasmine": "~0.2.2",
+    "karma-phantomjs-launcher": "~0.1.4",
+    "grunt-contrib-concat": "~0.4.0",
+    "grunt-jsdoc": "~0.5.4",
+    "JSV": "~4.0.2"
+  },
+  "scripts": {
+    "test": "./node_modules/karma/bin/karma start --single-run --browsers PhantomJS",
+    "schema": "node ./schema/validate.js"
+  }
+}

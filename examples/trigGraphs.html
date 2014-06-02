@@ -1,0 +1,147 @@
+
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<head>
+    <link rel="stylesheet" type="text/css" href="../vendor/rickshaw.min.css">
+    <link rel="stylesheet" type="text/css" href="../vendor/jquery.datetimepicker.css">
+    <link rel="stylesheet" type="text/css" href="../vendor/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="../vendor/bootstrap/css/bootstrap-theme.min.css">
+
+    <script src="../vendor/d3.min.js"></script>
+    <script src="../vendor/jquery.min.js"></script>
+    <script src="../vendor/jquery-ui.min.js"></script>
+    <script src="../vendor/jquery.datetimepicker.js"></script>
+    <script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script src="../vendor/rickshaw.js"></script>
+    <script src="../src/Compat.js"></script>
+    <script src="../src/Backshift.js"></script>
+    <script src="../src/Backshift.Class.js"></script>
+    <script src="../src/Backshift.Class.Configurable.js"></script>
+    <script src="../src/Backshift.Math.js"></script>
+    <script src="../src/Backshift.Utilities.Url.js"></script>
+    <script src="../src/Backshift.Data.js"></script>
+    <script src="../src/Backshift.Data.Newts.js"></script>
+    <script src="../src/Backshift.Data.Mock.js"></script>
+    <script src="../src/Backshift.Data.Mock.TrigFnFactory.js"></script>
+    <script src="../src/Backshift.Data.Mock.Trig.js"></script>
+    <script src="../src/Backshift.Data.Factory.js"></script>
+    <script src="../src/Backshift.Graph.js"></script>
+    <script src="../src/Backshift.Graph.Matrix.js"></script>
+    <script src="../src/Backshift.Graph.Rickshaw.js"></script>
+</head>
+
+<body>
+
+    <div id="graph1"></div>
+
+    <br/>
+
+    <div id="graph2"></div>
+
+    <br />
+
+    <div id="graph3"></div>
+
+    <script type="text/javascript">
+        var model1 = {
+            dataProcessor: {
+                type: "trig"
+            },
+            sources: [
+                {
+                    name: "sinWave",
+                    type: "sin",
+                    amplitude: 5,
+                    hshift: 5,
+                    period: 32 * Math.PI
+                }
+            ],
+            series: [
+                {
+                    name: "Sin Wave",
+                    source: "sinWave",
+                    type: "line"
+                }
+            ],
+            preview: true
+        };
+
+        var graph1 = new Backshift.Graph.Rickshaw({
+            model: model1,
+            element: document.querySelector("#graph1"),
+            width: 320,
+            height: 240,
+            last: 15*60,
+            refreshRate: 1000
+        });
+
+        graph1.render();
+
+        var model2 = {
+            dataProcessor: {
+                type: "trig"
+            },
+            sources: [
+                {
+                    name: "sinWave",
+                    type: "sin",
+                    amplitude: 1,
+                    vshift: 1,
+                    period: 32 * Math.PI
+                }
+            ],
+            series: [
+                {
+                    name: "Sin Wave",
+                    source: "sinWave",
+                    type: "area"
+                }
+            ]
+        };
+
+        var graph2 = new Backshift.Graph.Rickshaw({
+            model: model2,
+            element: document.querySelector("#graph2"),
+            start: 1400000000,
+            end: 1400001000,
+            width: 200,
+            height: 200
+        });
+
+        graph2.render();
+
+        var model3 = {
+            dataProcessor: {
+                type: "trig"
+            },
+            sources: [
+                {
+                    name: "sinWave",
+                    type: "sin",
+                    amplitude: 1,
+                    vshift: 1,
+                    period: 32 * Math.PI
+                }
+            ],
+            series: [
+                {
+                    name: "Sin Wave",
+                    source: "sinWave",
+                    type: "area"
+                }
+            ]
+        };
+
+        var graph3 = new Backshift.Graph.Matrix({
+            model: model3,
+            element: document.querySelector("#graph3"),
+            last: 5,
+            width: 5,
+            height: 200
+        });
+
+        graph3.render();
+    </script>
+
+</body>
