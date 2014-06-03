@@ -68,3 +68,7 @@ Backshift.fail = function(msg) {
         message: msg
     };
 };
+
+Backshift.clone = function(obj) {
+    return JSON.parse(JSON.stringify(obj));
+};

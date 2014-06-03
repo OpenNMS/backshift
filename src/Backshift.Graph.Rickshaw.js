@@ -20,6 +20,7 @@ Backshift.Graph.Rickshaw  = Backshift.Class.create( Backshift.Graph, {
         }
 
         this.previewDiv = null;
+        this.legendDiv = null;
     },
 
     updateSeriesData: function (dp) {
@@ -59,10 +60,20 @@ Backshift.Graph.Rickshaw  = Backshift.Class.create( Backshift.Graph, {
         }
     },
 
+    getSeriesColor: function(series, fallback) {
+        if (series.color !== undefined) {
+            return series.color;
+        } else {
+            return fallback;
+        }
+    },
+
     onRender: function() {
         var container = d3.select(this.element);
 
-        var chartDiv = container.append("div");
+        this.chartDiv = container.append("div");
+        this.previewDiv = container.append("div");
+        this.legendDiv = container.append("div");
 
         var palette = new Rickshaw.Color.Palette( { scheme: 'classic9' } );
 
@@ -73,18 +84,19 @@ Backshift.Graph.Rickshaw  = Backshift.Class.create( Backshift.Graph, {
             rickshawSeries.push({
                 name: series.name,
                 data: this.seriesData[series.name],
-                color: palette.color(),
+                color: this.getSeriesColor(series, palette.color()),
                 renderer: series.type
             });
         }
 
         this.graph = new Rickshaw.Graph( {
-            element: chartDiv.node(),
+            element: this.chartDiv.node(),
             renderer: 'multi',
             width: this.width,
             height: this.height,
             min: 'auto',
-            series: rickshawSeries
+            series: rickshawSeries,
+            padding: {top: 0.02, left: 0.02, right: 0.02, bottom: 0.02}
         } );
 
         this.graph.render();
@@ -103,12 +115,22 @@ Backshift.Graph.Rickshaw  = Backshift.Class.create( Backshift.Graph, {
 
         yAxis.render();
 
-        new Rickshaw.Graph.HoverDetail( {
+        this.legendDiv.node().style.paddingTop = '10px';
+        this.legend = new Backshift.Legend.Rickshaw( {
+            model: this.model,
+            graph: this.graph,
+            element: this.legendDiv.node(),
+            dataProcessor: this.dp
+        } );
+
+        this.legend.render();
+
+        /* var hoverDetail = */ new Rickshaw.Graph.HoverDetail( {
             graph: this.graph,
             xFormatter: function(x) {
                 return new Date(x * 1000).toString();
             }
-        }  );
+        } );
     },
 
     onFetchSuccess: function(dp) {
@@ -118,9 +140,7 @@ Backshift.Graph.Rickshaw  = Backshift.Class.create( Backshift.Graph, {
         // it fails to load intermittently otherwise
         var container = d3.select(this.element);
 
-        if (this.model.preview && this.previewDiv === null) {
-            this.previewDiv = container.append("div");
-
+        if (this.model.preview) {
             var preview = new Rickshaw.Graph.RangeSlider.Preview( {
                 graph: this.graph,
                 element: this.previewDiv.node()
@@ -128,6 +148,9 @@ Backshift.Graph.Rickshaw  = Backshift.Class.create( Backshift.Graph, {
 
             preview.render();
         }
+
+        // Update the legend with the latest values
+        this.legend.render(this.dp);
     }
 
 });

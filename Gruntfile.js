@@ -6,6 +6,7 @@ module.exports = function(grunt) {
       'src/Backshift.Class.js',
       'src/Backshift.Class.Configurable.js',
       'src/Backshift.Math.js',
+      'src/Backshift.Stats.js',
       'src/Backshift.Utilities.Url.js',
       'src/Backshift.Graph.js',
       'src/Backshift.Data.js',
@@ -14,6 +15,8 @@ module.exports = function(grunt) {
       'src/Backshift.Data.Mock.Trig.js',
       'src/Backshift.Data.Newts.js',
       'src/Backshift.Data.Factory.js',
+      'src/Backshift.Legend.js',
+      'src/Backshift.Legend.Rickshaw.js',
       'src/Backshift.Graph.js',
       'src/Backshift.Graph.Matrix.js',
       'src/Backshift.Graph.Rickshaw.js'
