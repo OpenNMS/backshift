@@ -59,7 +59,7 @@ describe('Backshift.Legend', function () {
             legend.render();
 
             var html = "" + div.node().innerHTML;
-            expect( html ).toBe("Sin Wave Avg: 1.5 Min: 0 Max: 3");
+            expect( html ).toBe("<pre>Sin Wave Avg: 1.5 Min: 0 Max: 3</pre>");
         });
     });
 });
