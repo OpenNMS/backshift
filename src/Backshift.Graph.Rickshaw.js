@@ -115,7 +115,6 @@ Backshift.Graph.Rickshaw  = Backshift.Class.create( Backshift.Graph, {
 
         yAxis.render();
 
-        this.legendDiv.node().style.paddingTop = '10px';
         this.legend = new Backshift.Legend.Rickshaw( {
             model: this.model,
             graph: this.graph,
