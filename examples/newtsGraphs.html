@@ -93,10 +93,15 @@
                 csFunc: "AVERAGE",
                 step: step,
                 heartbeat: heartbeat
+            },
+            {
+                name: "spread",
+                resource: resource,
+                expression: "ask - bid"
             }
         ],
         series: [
-            {
+            /*{
                 name: "Bid",
                 source: "bid",
                 type: "line"
@@ -115,6 +120,11 @@
                 name: "Low",
                 source: "low",
                 type: "line"
+            }, */
+            {
+                name: "Spread",
+                source: "spread",
+                type: "area"
             }
         ],
         legend: "{{series}}{{swatch}}{{name}} Avg: {{avg|fix>2}} Min: {{min|fix>2}} Max: {{max|fix>2}}<br/>{{/series}}",

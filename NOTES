@@ -1,1 +1,2 @@
 -The multi-renderer in Rickshaw does not support different strokeWidths for different series
+-In the Newts data provider, expressions cannot use metrics across resources.

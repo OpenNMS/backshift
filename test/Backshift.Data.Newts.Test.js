@@ -52,8 +52,15 @@ describe('Backshift.Data.Newts.Test', function () {
                     heartbeat : 600
                 }
             ],
+            expressions: [
+                {
+                    label: "ds1-2x",
+                    expression: "2 * ds1"
+                }
+            ],
             exports: [
-                "ds1"
+                "ds1",
+                "ds1-2x"
             ]
         };
 
@@ -78,6 +85,11 @@ describe('Backshift.Data.Newts.Test', function () {
                     csFunc: "AVERAGE",
                     step: 300,
                     heartbeat: 600
+                },
+                {
+                    name: "ds1-2x",
+                    resource: "localhost",
+                    expression: "2 * ds1"
                 }
             ],
             onFetchSuccess: function(dp) {

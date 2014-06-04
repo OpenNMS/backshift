@@ -28,6 +28,11 @@ Backshift.Data.Newts = Backshift.Class.create( Backshift.Data, {
         this.step_sizes = {};
         Backshift.keys(this.sources).forEach( function(sourceName) {
             var source = this.sources[sourceName].def;
+            // Skip sources without a step, i.e. expressions
+            if (source.step === undefined) {
+                return;
+            }
+
             if (source.step in this.step_sizes) {
                 this.step_sizes[source.step] += 1;
             } else {
@@ -102,8 +107,9 @@ Backshift.Data.Newts = Backshift.Class.create( Backshift.Data, {
         }
 
         var report = {
-            interval: sources[0].step,
+            interval: NaN,
             datasources: [],
+            expressions: [],
             exports: []
         };
 
@@ -111,18 +117,33 @@ Backshift.Data.Newts = Backshift.Class.create( Backshift.Data, {
         for (i = 0; i < n; i++) {
             var source = sources[i];
 
-            if (report.interval !== source.step) {
-                throw "All of the steps must match for a given resource: " + report.interval + " vs " + source.step;
+            if (source.step !== undefined) {
+                if (isNaN(report.interval)) {
+                    report.interval = source.step;
+                } else if (report.interval !== source.step) {
+                    throw "All of the steps must match for a given resource: " + report.interval + " vs " + source.step;
+                }
             }
 
-            report.datasources.push(
-                {
-                    label     : source.name,
-                    source    : source.dsName,
-                    function  : source.csFunc,
-                    heartbeat : source.heartbeat
-                }
-            );
+            if (source.expression === undefined) {
+                // Assume its a data-source
+                report.datasources.push(
+                    {
+                        label     : source.name,
+                        source    : source.dsName,
+                        function  : source.csFunc,
+                        heartbeat : source.heartbeat
+                    }
+                );
+            } else {
+                // It's an expression
+                report.expressions.push(
+                    {
+                        label     : source.name,
+                        expression: source.expression
+                    }
+                );
+            }
 
             report.exports.push(source.name);
         }
