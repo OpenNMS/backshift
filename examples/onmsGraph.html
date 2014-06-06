@@ -69,13 +69,17 @@
                 },
                 context: $(this)
             }).done(function(graph) {
+                console.log("Graph: ", JSON.stringify(graph, null, 2));
+
                 // Replace the resource name, which points to the RRD file, with the resource id
                 for (var i = 0; i < graph.model.sources.length; i++) {
                     graph.model.sources[i].resource = resource;
                 }
 
-                console.log("Graph: ", JSON.stringify(graph, null, 2));
+                // Use the default legend
+                graph.model.legend =  "{{series}}{{ if name|more>1 }}{{swatch}}{{name}} Avg: {{avg|fix>2}} Min: {{min|fix>2}} Max: {{max|fix>2}}<br/>{{/if}}{{/series}}";
 
+                // Render the graph
                 var bsGraph = new Backshift.Graph.Rickshaw({
                     model: graph.model,
                     element: $(this)[0],
@@ -86,6 +90,7 @@
                 });
                 bsGraph.render();
 
+                // Pull in the RRD graph for comparison
                 var rrdGraphImageUrl = "http://127.0.0.1:8980/opennms/graph/graph.png?resourceId=" + resource +
                         "&report=" + encodeURIComponent(report) +
                         "&start=" + graph.start +
