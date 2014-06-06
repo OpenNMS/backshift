@@ -5,7 +5,6 @@
 Backshift.namespace('Backshift.Graph.Rickshaw');
 
 /** A graph implementation that uses Rickshaw */
-
 Backshift.Graph.Rickshaw  = Backshift.Class.create( Backshift.Graph, {
 
     onInit: function() {
@@ -69,11 +68,44 @@ Backshift.Graph.Rickshaw  = Backshift.Class.create( Backshift.Graph, {
     },
 
     onRender: function() {
-        var container = d3.select(this.element);
+        var yAxisWidth = 30;
+        var legendLeftMargin = Math.floor(yAxisWidth / 2);
 
-        this.chartDiv = container.append("div");
-        this.previewDiv = container.append("div");
-        this.legendDiv = container.append("div");
+        var containerDiv = d3.select(this.element);
+        var containerEl = containerDiv.node();
+        containerEl.style.width = (this.width + yAxisWidth) + "px";
+
+        this.yAxisDiv = containerDiv.append("div");
+        var yAxisEl = this.yAxisDiv.node();
+        yAxisEl.style.width = yAxisWidth + "px";
+        yAxisEl.style.height = this.height + "px";
+        yAxisEl.style.float = "left";
+
+        this.chartDiv = containerDiv.append("div");
+        var chartEl = this.chartDiv.node();
+        chartEl.style.width = this.width + "px";
+        chartEl.style.height = this.height + "px";
+        chartEl.style.float = "left";
+
+        /*
+         var xAxisHeight = 30;
+        this.xAxisDiv = containerDiv.append("div");
+        var xAxisEl = this.xAxisDiv.node();
+        xAxisEl.style.width = this.width + "px";
+        xAxisEl.style.height = xAxisHeight + "px";
+        xAxisEl.style.marginLeft = yAxisWidth + "px";
+        chartEl.style.float = "left";
+        */
+
+        this.legendDiv = containerDiv.append("div");
+        var legendEl = this.legendDiv.node();
+        console.log(this.width + yAxisWidth);
+        legendEl.style.width = (this.width + yAxisWidth - legendLeftMargin) + "px";
+        legendEl.style.paddingTop = "10px";
+        legendEl.style.marginLeft = legendLeftMargin + "px";
+        legendEl.style.clear = "both";
+
+        //this.previewDiv = containerDiv.append("div");
 
         var palette = new Rickshaw.Color.Palette( { scheme: 'classic9' } );
 
@@ -90,7 +122,7 @@ Backshift.Graph.Rickshaw  = Backshift.Class.create( Backshift.Graph, {
         }
 
         this.graph = new Rickshaw.Graph( {
-            element: this.chartDiv.node(),
+            element: chartEl,
             renderer: 'multi',
             width: this.width,
             height: this.height,
@@ -103,6 +135,8 @@ Backshift.Graph.Rickshaw  = Backshift.Class.create( Backshift.Graph, {
 
         var xAxis = new Rickshaw.Graph.Axis.Time({
             graph: this.graph,
+            orientation: 'bottom',
+            /* element: xAxisEl, */
             timeFixture: new Rickshaw.Fixtures.Time.Local()
         });
 
@@ -110,6 +144,8 @@ Backshift.Graph.Rickshaw  = Backshift.Class.create( Backshift.Graph, {
 
         var yAxis = new Rickshaw.Graph.Axis.Y({
             graph: this.graph,
+            orientation: 'left',
+            element: yAxisEl,
             tickFormat: Rickshaw.Fixtures.Number.formatKMBT
         });
 
@@ -139,6 +175,7 @@ Backshift.Graph.Rickshaw  = Backshift.Class.create( Backshift.Graph, {
         // it fails to load intermittently otherwise
         var container = d3.select(this.element);
 
+        /*
         if (this.model.preview) {
             var preview = new Rickshaw.Graph.RangeSlider.Preview( {
                 graph: this.graph,
@@ -147,9 +184,9 @@ Backshift.Graph.Rickshaw  = Backshift.Class.create( Backshift.Graph, {
 
             preview.render();
         }
+        */
 
         // Update the legend with the latest values
         this.legend.render(this.dp);
     }
-
 });

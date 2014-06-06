@@ -59,8 +59,6 @@ Backshift.Legend  = Backshift.Class.create( Backshift.Class.Configurable, {
             context.series.push(context[k]);
         }
 
-        this.element.style.width = this.width + 'px';
-        this.element.style.paddingTop = '10px';
         var result = Mark.up(this.template, context);
         if (result.length > 0) {
             this.element.innerHTML = "<pre>" + result + "</pre>";
