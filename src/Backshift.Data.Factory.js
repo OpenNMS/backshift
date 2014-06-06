@@ -27,3 +27,7 @@ Backshift.Data.Factory.trig = function(args) {
 Backshift.Data.Factory.newts = function(args) {
     return new Backshift.Data.Newts(args);
 };
+
+Backshift.Data.Factory.onmsrrd = function(args) {
+    return new Backshift.Data.OnmsRRD(args);
+};

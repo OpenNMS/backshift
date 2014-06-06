@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <link rel="stylesheet" type="text/css" href="../vendor/rickshaw.min.css">
+
+    <script src="../vendor/d3.min.js"></script>
+    <script src="../vendor/jquery.min.js"></script>
+    <script src="../vendor/rickshaw.js"></script>
+    <script src="../vendor/markup.min.js"></script>
+    <script src="../src/Compat.js"></script>
+    <script src="../src/Backshift.js"></script>
+    <script src="../src/Backshift.Class.js"></script>
+    <script src="../src/Backshift.Class.Configurable.js"></script>
+    <script src="../src/Backshift.Math.js"></script>
+    <script src="../src/Backshift.Stats.js"></script>
+    <script src="../src/Backshift.Utilities.Url.js"></script>
+    <script src="../src/Backshift.Data.js"></script>
+    <script src="../src/Backshift.Data.Newts.js"></script>
+    <script src="../src/Backshift.Data.Mock.js"></script>
+    <script src="../src/Backshift.Data.Mock.TrigFnFactory.js"></script>
+    <script src="../src/Backshift.Data.Mock.Trig.js"></script>
+    <script src="../src/Backshift.Data.OnmsRRD.js"></script>
+    <script src="../src/Backshift.Data.Factory.js"></script>
+    <script src="../src/Backshift.Legend.js"></script>
+    <script src="../src/Backshift.Legend.Rickshaw.js"></script>
+    <script src="../src/Backshift.Graph.js"></script>
+    <script src="../src/Backshift.Graph.Matrix.js"></script>
+    <script src="../src/Backshift.Graph.Rickshaw.js"></script>
+</head>
+<body>
+
+<div></div>
+<div title="Resource graph: Context" data-graph-report="netsnmp.hrSystemProcesses" data-graph-resource="node[1].nodeSnmp[]"></div>
+
+<br/>
+<img src="http://127.0.0.1:8980/opennms/graph/graph.png?resourceId=node%5b1%5d.nodeSnmp%5b%5d&report=netsnmp.hrSystemProcesses&start=1401996309763&end=1402082709763&width=480&height=320" alt="Resource graph: Number of Processes (Net-SNMP)" />
+
+<script type="text/javascript">
+    function getBaseHref() {
+        return "http://127.0.0.1:8980";
+    }
+
+    $( document ).ready(function() {
+        $("div[data-graph-report]").each(function() {
+            var report = $(this).data('graph-report');
+            var resource = $(this).data('graph-resource');
+            var start = $(this).data('graph-start');
+            var end = $(this).data('graph-end');
+
+            var url = getBaseHref() + '/opennms/rest/graphs/' + encodeURIComponent(report) +
+                    '/resource/' + encodeURIComponent(resource);
+            if (start !== undefined && end !== undefined) {
+                url += '/start/' + encodeURIComponent(start) +
+                        '/end/' + encodeURIComponent(end);
+            }
+
+            console.log('Requesting graph definition from ' + url);
+
+            $.ajax({
+                url: url,
+                username: 'admin',
+                password: 'admin',
+                dataType: 'json',
+                xhrFields: {
+                    withCredentials: true
+                },
+                beforeSend: function(xhr) {
+                    xhr.setRequestHeader("Authentication", "Basic " + "YWRtaW46YWRtaW4="); //May need to use "Authorization" instead
+                },
+                context: $(this)
+            }).done(function(graph) {
+                // Replace the resource name, which points to the RRD file, with the resource id
+                for (var i = 0; i < graph.model.sources.length; i++) {
+                    graph.model.sources[i].resource = resource;
+                }
+
+                console.log("Graph: ", JSON.stringify(graph, null, 2));
+
+                var bsGraph = new Backshift.Graph.Rickshaw({
+                    model: graph.model,
+                    element: $(this)[0],
+                    width: 600,
+                    height: 400,
+                    start: Math.floor(Number(graph.start) / 1000),
+                    end: Math.floor(Number(graph.end) / 1000)
+                });
+                bsGraph.render();
+            });
+        });
+    });
+</script>
+</body>
+</html>

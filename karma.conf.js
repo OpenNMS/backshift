@@ -32,6 +32,7 @@ module.exports = function(config) {
             'src/Backshift.Data.Mock.TrigFnFactory.js',
             'src/Backshift.Data.Mock.Trig.js',
             'src/Backshift.Data.Newts.js',
+            'src/Backshift.Data.OnmsRRD.js',
             'src/Backshift.Data.Factory.js',
             'src/Backshift.Legend.js',
             'src/Backshift.Legend.Rickshaw.js',

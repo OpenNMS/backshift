@@ -27,6 +27,7 @@
     <script src="../src/Backshift.Data.Mock.js"></script>
     <script src="../src/Backshift.Data.Mock.TrigFnFactory.js"></script>
     <script src="../src/Backshift.Data.Mock.Trig.js"></script>
+    <script src="../src/Backshift.Data.OnmsRRD.js"></script>
     <script src="../src/Backshift.Data.Factory.js"></script>
     <script src="../src/Backshift.Legend.js"></script>
     <script src="../src/Backshift.Legend.Rickshaw.js"></script>
@@ -101,7 +102,7 @@
             }
         ],
         series: [
-            /*{
+            {
                 name: "Bid",
                 source: "bid",
                 type: "line"
@@ -120,12 +121,12 @@
                 name: "Low",
                 source: "low",
                 type: "line"
-            }, */
+            }/*,
             {
                 name: "Spread",
                 source: "spread",
                 type: "area"
-            }
+            }*/
         ],
         legend: "{{series}}{{swatch}}{{name}} Avg: {{avg|fix>2}} Min: {{min|fix>2}} Max: {{max|fix>2}}<br/>{{/series}}",
         preview: false
