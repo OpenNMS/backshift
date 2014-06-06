@@ -29,11 +29,11 @@
 </head>
 <body>
 
-<div></div>
 <div title="Resource graph: Context" data-graph-report="netsnmp.hrSystemProcesses" data-graph-resource="node[1].nodeSnmp[]"></div>
 
 <br/>
-<img src="http://127.0.0.1:8980/opennms/graph/graph.png?resourceId=node%5b1%5d.nodeSnmp%5b%5d&report=netsnmp.hrSystemProcesses&start=1401996309763&end=1402082709763&width=480&height=320" alt="Resource graph: Number of Processes (Net-SNMP)" />
+
+<div id="rrdGraph"></div>
 
 <script type="text/javascript">
     function getBaseHref() {
@@ -85,6 +85,13 @@
                     end: Math.floor(Number(graph.end) / 1000)
                 });
                 bsGraph.render();
+
+                var rrdGraphImageUrl = "http://127.0.0.1:8980/opennms/graph/graph.png?resourceId=" + resource +
+                        "&report=" + encodeURIComponent(report) +
+                        "&start=" + graph.start +
+                        "&end=" + graph.end +
+                        "&width=480&height=320";
+                $('#rrdGraph').prepend('<img src="' + rrdGraphImageUrl + '" />');
             });
         });
     });
