@@ -97,15 +97,18 @@ Backshift.Graph.Rickshaw  = Backshift.Class.create( Backshift.Graph, {
         chartEl.style.float = "left";
         */
 
+        this.previewDiv = containerDiv.append("div");
+        var previewEl = this.previewDiv.node();
+        previewEl.style.width = this.width + "px";
+        previewEl.style.marginLeft = yAxisWidth + "px";
+        previewEl.style.float = "left";
+
         this.legendDiv = containerDiv.append("div");
         var legendEl = this.legendDiv.node();
-        console.log(this.width + yAxisWidth);
         legendEl.style.width = (this.width + yAxisWidth - legendLeftMargin) + "px";
         legendEl.style.paddingTop = "10px";
         legendEl.style.marginLeft = legendLeftMargin + "px";
         legendEl.style.clear = "both";
-
-        //this.previewDiv = containerDiv.append("div");
 
         var palette = new Rickshaw.Color.Palette( { scheme: 'classic9' } );
 
@@ -173,9 +176,6 @@ Backshift.Graph.Rickshaw  = Backshift.Class.create( Backshift.Graph, {
 
         // Render the preview pane once the graph has data,
         // it fails to load intermittently otherwise
-        var container = d3.select(this.element);
-
-        /*
         if (this.model.preview) {
             var preview = new Rickshaw.Graph.RangeSlider.Preview( {
                 graph: this.graph,
@@ -184,7 +184,6 @@ Backshift.Graph.Rickshaw  = Backshift.Class.create( Backshift.Graph, {
 
             preview.render();
         }
-        */
 
         // Update the legend with the latest values
         this.legend.render(this.dp);

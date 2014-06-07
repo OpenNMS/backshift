@@ -16,7 +16,7 @@ module.exports = function(config) {
         files: [
             'vendor/d3.min.js',
             'vendor/jquery.min.js',
-            'vendor/jquery-ui.min.js',
+            //'vendor/jquery-ui.min.js',
             'vendor/rickshaw.js',
             'vendor/markup.min.js',
             'src/Compat.js',

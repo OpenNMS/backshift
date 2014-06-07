@@ -79,6 +79,9 @@
                 // Use the default legend
                 graph.model.legend =  "{{series}}{{ if name|more>1 }}{{swatch}}{{name}} Avg: {{avg|fix>2}} Min: {{min|fix>2}} Max: {{max|fix>2}}<br/>{{/if}}{{/series}}";
 
+                // Enable the preview pane
+                graph.model.preview = true;
+
                 // Render the graph
                 var bsGraph = new Backshift.Graph.Rickshaw({
                     model: graph.model,
