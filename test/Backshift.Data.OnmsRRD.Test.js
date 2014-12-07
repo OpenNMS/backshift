@@ -5,19 +5,14 @@
 describe('Backshift.Data.OnmsRRD.Test', function () {
     it('should work', function(done) {
         var results = {
-            "@start": "0",
-            "@end": "1000",
-            "@step": "1",
+            "start": "0",
+            "end": "1000",
+            "step": "1",
             "metrics": [
                 {
-                    "@timestamp": "0",
+                    "timestamp": "0",
                     "values": {
-                        "entry": [
-                            {
-                                "key": "context",
-                                "value": "1"
-                            }
-                        ]
+                        "context": "1"
                     }
                 }
             ]
@@ -25,7 +20,7 @@ describe('Backshift.Data.OnmsRRD.Test', function () {
 
         var expectedQueryRequest = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
             "<query-request start=\"0\" end=\"1\" step=\"1\">" +
-            "<series><entry><key>context</key><value attribute=\"SysRawContext\" resource=\"node[1].nodeSnmp[]\" aggregation=\"AVERAGE\"/></entry></series>" +
+            "<source aggregation=\"AVERAGE\" attribute=\"SysRawContext\" label=\"context\" resource=\"node[1].nodeSnmp[]\" />" +
             "</query-request>";
 
         spyOn(jQuery, "ajax").and.callFake(function (params) {

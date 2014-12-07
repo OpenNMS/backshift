@@ -36,8 +36,13 @@
 <div id="rrdGraph"></div>
 
 <script type="text/javascript">
+    var onmsHost = "127.0.0.1",
+        onmsPort = 18980,
+        onmsUsername = 'admin',
+        onmsPassword = 'admin';
+
     function getBaseHref() {
-        return "http://127.0.0.1:8980";
+        return "http://" + onmsHost + ":" + onmsPort;
     }
 
     $( document ).ready(function() {
@@ -58,18 +63,20 @@
 
             $.ajax({
                 url: url,
-                username: 'admin',
-                password: 'admin',
+                username: onmsUsername,
+                password: onmsPassword,
                 dataType: 'json',
                 xhrFields: {
                     withCredentials: true
                 },
-                beforeSend: function(xhr) {
-                    xhr.setRequestHeader("Authentication", "Basic " + "YWRtaW46YWRtaW4="); //May need to use "Authorization" instead
-                },
                 context: $(this)
             }).done(function(graph) {
                 console.log("Graph: ", JSON.stringify(graph, null, 2));
+
+                // Point to the REST service
+                graph.model.dataProcessor.url = getBaseHref() + "/opennms/rest/rrd";
+                graph.model.dataProcessor.username = onmsUsername;
+                graph.model.dataProcessor.password = onmsPassword;
 
                 // Replace the resource name, which points to the RRD file, with the resource id
                 for (var i = 0; i < graph.model.sources.length; i++) {
@@ -93,9 +100,8 @@
                 });
                 bsGraph.render();
 
-
                 // Pull in the RRD graph for comparison
-                var rrdGraphImageUrl = "http://127.0.0.1:8980/opennms/graph/graph.png?resourceId=" + resource +
+                var rrdGraphImageUrl = "http://" + onmsHost + ":" + onmsPort + "/opennms/graph/graph.png?resourceId=" + resource +
                         "&report=" + encodeURIComponent(report) +
                         "&start=" + graph.start +
                         "&end=" + graph.end +

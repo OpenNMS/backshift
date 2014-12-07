@@ -7,7 +7,9 @@ Backshift.namespace('Backshift.Data.OnmsRRD');
 Backshift.Data.OnmsRRD = Backshift.Class.create( Backshift.Data, {
     defaults: function($super) {
         return Backshift.extend( $super(), {
-            url: "http://127.0.0.1:8980/opennms/rest/rrd"
+            url: "http://127.0.0.1:8980/opennms/rest/rrd",
+            username: "admin",
+            password: "admin"
         } );
     },
 
@@ -25,11 +27,9 @@ Backshift.Data.OnmsRRD = Backshift.Class.create( Backshift.Data, {
             self.resizeTo(n);
 
             for (var i = 0; i < n; i++) {
-                self.timestamps[i] = Number(metrics[i]["@timestamp"]);
-                var m = metrics[i].values.entry.length;
-                for (var j = 0; j < m; j++) {
-                    var entry = metrics[i].values.entry[j];
-                    self.sources[entry.key].values[i] = Number(entry.value);
+                self.timestamps[i] = Number(metrics[i]["timestamp"]);
+                for (var key in metrics[i].values) {
+                    self.sources[key].values[i] = Number(metrics[i].values[key]);
                 }
             }
 
@@ -49,9 +49,7 @@ Backshift.Data.OnmsRRD = Backshift.Class.create( Backshift.Data, {
     getQueryRequest: function(start, end, resolution) {
         var xmlTemplate = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
             "<query-request start=\"{{start}}\" end=\"{{end}}\" step=\"{{step}}\">" +
-            "<series>" +
-            "{{sources}}<entry><key>{{name}}</key><value attribute=\"{{dsName}}\" resource=\"{{resource}}\" aggregation=\"{{csFunc}}\"/></entry>{{/sources}}" +
-            "</series>" +
+                "{{sources}}<source aggregation=\"{{csFunc}}\" attribute=\"{{dsName}}\" label=\"{{name}}\" resource=\"{{resource}}\" />{{/sources}}" +
             "</query-request>";
 
         var nonExpressionSources = [];
@@ -75,13 +73,10 @@ Backshift.Data.OnmsRRD = Backshift.Class.create( Backshift.Data, {
     getResults: function(queryRequest, onSuccess, onError) {
         jQuery.ajax({
             url: this.url,
-            username: 'admin',
-            password: 'admin',
+            username: this.username,
+            password: this.password,
             xhrFields: {
                 withCredentials: true
-            },
-            beforeSend: function(xhr) {
-                xhr.setRequestHeader("Authentication", "Basic " + "YWRtaW46YWRtaW4="); //May need to use "Authorization" instead
             },
             type: "POST",
             data: queryRequest,
