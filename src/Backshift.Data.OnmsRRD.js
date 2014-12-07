@@ -50,13 +50,17 @@ Backshift.Data.OnmsRRD = Backshift.Class.create( Backshift.Data, {
         var xmlTemplate = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
             "<query-request start=\"{{start}}\" end=\"{{end}}\" step=\"{{step}}\">" +
                 "{{sources}}<source aggregation=\"{{csFunc}}\" attribute=\"{{dsName}}\" label=\"{{name}}\" resource=\"{{resource}}\" />{{/sources}}" +
+                "{{expressions}}<expression label=\"{{name}}\">{{expression}}</expression>{{/expressions}}" +
             "</query-request>";
 
         var nonExpressionSources = [];
+        var expressionSources = [];
         Backshift.keys(this.sources).forEach( function(key) {
             var source = this.sources[key];
             if (source.def.dsName !== undefined) {
                 nonExpressionSources.push(source.def);
+            } else {
+                expressionSources.push(source.def);
             }
         }, this );
 
@@ -64,7 +68,8 @@ Backshift.Data.OnmsRRD = Backshift.Class.create( Backshift.Data, {
             "start": start,
             "end": end,
             "step": Math.floor((end - start) / resolution),
-            "sources": nonExpressionSources
+            "sources": nonExpressionSources,
+            "expressions": expressionSources
         };
 
         return Mark.up(xmlTemplate, context);
