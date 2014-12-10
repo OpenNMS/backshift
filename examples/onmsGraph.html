@@ -2,7 +2,6 @@
 <html>
 <head lang="en">
     <link rel="stylesheet" type="text/css" href="../vendor/rickshaw.min.css">
-
     <script src="../vendor/d3.min.js"></script>
     <script src="../vendor/jquery.min.js"></script>
     <script src="../vendor/rickshaw.js"></script>
@@ -52,10 +51,13 @@
 
     <div class="row">
         <div class="col-md-4">
-            <div data-graph-report="netsnmp.hrMemory" data-graph-resource="node[1].nodeSnmp[]" data-original-graph="rrd2"></div>
+            <div data-graph-report="netsnmp.hrMemory" data-graph-resource="node[1].nodeSnmp[]" data-original-graph="rrd2" data-graph-model="graph2"></div>
         </div>
         <div class="col-md-4">
             <div id="rrd2"></div>
+        </div>
+        <div class="col-md-4">
+            <div id="graph2"></div>
         </div>
     </div>
 
@@ -97,10 +99,13 @@
 
     <div class="row">
         <div class="col-md-4">
-            <div data-graph-report="mib2.HCbits" data-graph-resource="node[1].interfaceSnmp[eth0-0800279114ca]" data-original-graph="rrd7"></div>
+            <div data-graph-report="mib2.HCbits" data-graph-resource="node[1].interfaceSnmp[eth0-0800279114ca]" data-original-graph="rrd7" data-graph-model="graph7"></div>
         </div>
         <div class="col-md-4">
             <div id="rrd7"></div>
+        </div>
+        <div class="col-md-4">
+            <div id="graph7"></div>
         </div>
     </div>
 
@@ -115,10 +120,13 @@
 
     <div class="row">
         <div class="col-md-4">
-            <div data-graph-report="onms.collectd.threadpool" data-graph-resource="node[1].interfaceSnmp[opennms-jvm]" data-original-graph="rrd9"></div>
+            <div data-graph-report="onms.collectd.threadpool" data-graph-resource="node[1].interfaceSnmp[opennms-jvm]" data-original-graph="rrd9" data-graph-model="graph9"></div>
         </div>
         <div class="col-md-4">
             <div id="rrd9"></div>
+        </div>
+        <div class="col-md-4">
+            <div id="graph9"></div>
         </div>
     </div>
 
@@ -153,7 +161,7 @@
 
 <script type="text/javascript">
     var onmsHost = "127.0.0.1",
-        onmsPort = 18980,
+        onmsPort = 28980,
         onmsUsername = 'admin',
         onmsPassword = 'admin';
 
@@ -225,6 +233,9 @@
                         "&end=" + graph.end +
                         "&width=480&height=320";
                 $('#'+ $(this).data('original-graph')).prepend('<img src="' + rrdGraphImageUrl + '" />');
+
+                $('#'+ $(this).data('graph-model')).prepend("<pre>" + JSON.stringify(graph, null, 2) + "</pre>");
+
             });
         });
     });

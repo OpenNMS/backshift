@@ -67,6 +67,14 @@ Backshift.Graph.Rickshaw  = Backshift.Class.create( Backshift.Graph, {
         }
     },
 
+    getSeriesType: function(series) {
+        var type = series.type;
+        if (type === "area") {
+            type = "stack";
+        }
+        return type;
+    },
+
     onRender: function() {
         var yAxisWidth = 30;
         var legendLeftMargin = Math.floor(yAxisWidth / 2);
@@ -120,7 +128,7 @@ Backshift.Graph.Rickshaw  = Backshift.Class.create( Backshift.Graph, {
                 name: series.name,
                 data: this.seriesData[series.name],
                 color: this.getSeriesColor(series, palette.color()),
-                renderer: series.type
+                renderer: this.getSeriesType(series)
             });
         }
 
