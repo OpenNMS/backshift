@@ -31,10 +31,25 @@ Backshift.Graph.Rickshaw  = Backshift.Class.create( Backshift.Graph, {
     updateSeriesData: function (dp) {
         var timestamps = dp.getTimestamps();
 
-        var n = this.model.series.length;
-        for (var i = 0; i < n; i++) {
-            var series = this.model.series[i];
-            var values = dp.getValues(series.source);
+        var series, values, i, j, n, m;
+        n = this.model.series.length;
+
+        // Collect the indices of NaNs in all of the series
+        var nans = {};
+        for (i = 0; i < n; i++) {
+            series = this.model.series[i];
+            values = dp.getValues(series.source);
+            m = values.length;
+            for (j = 0; j < m; j++) {
+                if (isNaN(values[j])) {
+                    nans[j] = 1;
+                }
+            }
+        }
+
+        for (i = 0; i < n; i++) {
+            series = this.model.series[i];
+            values = dp.getValues(series.source);
             var store = this.seriesData[series.name];
 
             // Clear the store
@@ -43,10 +58,10 @@ Backshift.Graph.Rickshaw  = Backshift.Class.create( Backshift.Graph, {
             }
 
             // Push in the values
-            var m = values.length;
-            for (var j = 0; j < m; j++) {
+            m = values.length;
+            for (j = 0; j < m; j++) {
                 // Skip NaNs
-                if (isNaN(values[j])) {
+                if (j in nans) {
                     continue;
                 }
                 store.push({
