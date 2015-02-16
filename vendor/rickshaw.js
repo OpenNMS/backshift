@@ -3570,6 +3570,7 @@
 
                     var defaults = [ this.defaults(), renderer.defaults(), this.config, this.graph ];
                     defaults.forEach(function(d) { Rickshaw.extend(config, d) });
+                    config.unstack = true;
 
                     renderer.configure(config);
 
