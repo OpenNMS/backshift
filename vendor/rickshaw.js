@@ -1,4 +1,3 @@
-/* Rickshaw v1.5.0 */
 (function (root, factory) {
     if (typeof define === 'function' && define.amd) {
         define(['d3'], function (d3) {
@@ -268,20 +267,20 @@
                     , elemCtrProto = (view.HTMLElement || view.Element)[protoProp]
                     , objCtr = Object
                     , strTrim = String[protoProp].trim || function () {
-                        return this.replace(/^\s+|\s+$/g, "");
-                    }
-                    , arrIndexOf = Array[protoProp].indexOf || function (item) {
-                        var
-                            i = 0
-                            , len = this.length
-                            ;
-                        for (; i < len; i++) {
-                            if (i in this && this[i] === item) {
-                                return i;
-                            }
+                            return this.replace(/^\s+|\s+$/g, "");
                         }
-                        return -1;
-                    }
+                    , arrIndexOf = Array[protoProp].indexOf || function (item) {
+                            var
+                                i = 0
+                                , len = this.length
+                                ;
+                            for (; i < len; i++) {
+                                if (i in this && this[i] === item) {
+                                    return i;
+                                }
+                            }
+                            return -1;
+                        }
                 // Vendors: please allow content code to instantiate DOMExceptions
                     , DOMEx = function (type, message) {
                         this.name = type;
@@ -467,7 +466,7 @@
 
                     if (typeof x != 'number' || ( typeof y != 'number' && y !== null ) ) {
                         throw "x and y properties of points should be numbers instead of " +
-                            (typeof x) + " and " + (typeof y);
+                        (typeof x) + " and " + (typeof y);
                     }
                 }
 
@@ -607,7 +606,7 @@
 
                 if (pointsCount && s.data.length != pointsCount) {
                     throw "stacked series cannot have differing numbers of points: " +
-                        pointsCount + " vs " + s.data.length + "; see Rickshaw.Series.fill()";
+                    pointsCount + " vs " + s.data.length + "; see Rickshaw.Series.fill()";
                 }
 
             }, this );
@@ -1795,8 +1794,8 @@
         var activeLine = null;
 
         var disabledColor = args.disabledColor || function(seriesColor) {
-            return d3.interpolateRgb(seriesColor, d3.rgb('#d8d8d8'))(0.8).toString();
-        };
+                return d3.interpolateRgb(seriesColor, d3.rgb('#d8d8d8'))(0.8).toString();
+            };
 
         this.addHighlightEvents = function (l) {
 
@@ -1932,6 +1931,8 @@
                     line.element.classList.add('disabled');
                 }
 
+                self.graph.update();
+
             }.bind(this);
 
             var label = line.element.getElementsByTagName('span')[0];
@@ -1977,6 +1978,8 @@
 
                 }
 
+                self.graph.update();
+
             };
 
         };
@@ -2018,12 +2021,10 @@
                     }
 
                     s.disabled = true;
-                    self.graph.update();
                 };
 
                 s.enable = function() {
                     s.disabled = false;
-                    self.graph.update();
                 };
             } );
         };
@@ -2120,8 +2121,8 @@
                 var value = data[dataIndex];
 
                 var distance = Math.sqrt(
-                        Math.pow(Math.abs(graph.x(value.x) - eventX), 2) +
-                        Math.pow(Math.abs(graph.y(value.y + value.y0) - eventY), 2)
+                    Math.pow(Math.abs(graph.x(value.x) - eventX), 2) +
+                    Math.pow(Math.abs(graph.y(value.y + value.y0) - eventY), 2)
                 );
 
                 var xFormatter = series.xFormatter || this.xFormatter;
@@ -3128,17 +3129,17 @@
                     Rickshaw.keys(this.defaults()[key]).forEach( function(k) {
 
                         this[key][k] =
-                                args[key][k] !== undefined ? args[key][k] :
+                            args[key][k] !== undefined ? args[key][k] :
                                 this[key][k] !== undefined ? this[key][k] :
-                            this.defaults()[key][k];
+                                    this.defaults()[key][k];
                     }, this );
 
                 } else {
                     this[key] =
-                            args[key] !== undefined ? args[key] :
+                        args[key] !== undefined ? args[key] :
                             this[key] !== undefined ? this[key] :
-                            this.graph[key] !== undefined ? this.graph[key] :
-                        this.defaults()[key];
+                                this.graph[key] !== undefined ? this.graph[key] :
+                                    this.defaults()[key];
                 }
 
             }, this );
@@ -3760,7 +3761,6 @@
                         max: 100,
                         slide: function( event, ui ) {
                             self.setScale(ui.value);
-                            self.graph.update();
                         }
                     } );
                 } );
