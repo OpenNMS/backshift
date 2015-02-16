@@ -148,6 +148,8 @@ Backshift.Graph.Rickshaw  = Backshift.Class.create( Backshift.Graph, {
             width: this.width,
             height: this.height,
             min: 'auto',
+            preserve: this.model.preview, // Always preserve the data when using the preview pane
+            // Maybe this should be done in the preview pane instead?
             series: rickshawSeries,
             padding: {top: 0.02, left: 0.02, right: 0.02, bottom: 0.02}
         } );
