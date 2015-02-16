@@ -3054,6 +3054,13 @@
                 yMax += (yMax - yMin) * this.padding.top;
             }
 
+            // HACK: Add a range if y is constant
+            if (yMin == yMax) {
+                yMin = 0.8 * yMax;
+                yMax = 1.1 * yMax;
+            }
+
+
             return { x: [xMin, xMax], y: [yMin, yMax] };
         },
 
