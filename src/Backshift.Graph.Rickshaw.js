@@ -15,6 +15,12 @@ Backshift.Graph.Rickshaw  = Backshift.Class.create( Backshift.Graph, {
         var n = this.model.series.length;
         for (var i = 0; i < n; i++) {
             var series = this.model.series[i];
+
+            // HACK: Always set a name, must be unique
+            if (series.name === undefined || series.name === "") {
+                series.name = "series" + i;
+            }
+
             this.seriesData[series.name] = [];
         }
 
