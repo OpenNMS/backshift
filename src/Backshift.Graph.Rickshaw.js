@@ -67,12 +67,15 @@ Backshift.Graph.Rickshaw  = Backshift.Class.create( Backshift.Graph, {
         }
     },
 
-    getSeriesType: function(series) {
-        var type = series.type;
-        if (type === "area") {
-            type = "stack";
+    getSeriesType: function(series, k) {
+        // If there's stack following the area, set the area to stack
+        var n = series.length;
+        for (var i = k; i < n; i++) {
+            if (series[i].type === "stack") {
+                return "stack";
+            }
         }
-        return type;
+        return series[k].type;
     },
 
     onRender: function() {
@@ -124,11 +127,12 @@ Backshift.Graph.Rickshaw  = Backshift.Class.create( Backshift.Graph, {
         var n = this.model.series.length;
         for (var i = 0; i < n; i++) {
             var series = this.model.series[i];
+
             rickshawSeries.push({
                 name: series.name,
                 data: this.seriesData[series.name],
                 color: this.getSeriesColor(series, palette.color()),
-                renderer: this.getSeriesType(series)
+                renderer: this.getSeriesType(this.model.series, i)
             });
         }
 
