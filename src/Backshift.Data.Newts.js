@@ -46,7 +46,9 @@ Backshift.Data.Newts = Backshift.Class.create( Backshift.Data, {
 
     defaults: function($super) {
         return Backshift.extend( $super(), {
-            url: "http://127.0.0.1:8000/"
+            url: "http://127.0.0.1:8000/",
+            username: "newts",
+            password: "newts"
         } );
     },
 
@@ -173,6 +175,11 @@ Backshift.Data.Newts = Backshift.Class.create( Backshift.Data, {
     getMeasurements: function(url, report, onSuccess, onError) {
         jQuery.ajax({
             url: url,
+            username: this.username,
+            password: this.password,
+            xhrFields: {
+                withCredentials: true
+            },
             type: "POST",
             data: report,
             contentType: "application/json; charset=utf-8",
