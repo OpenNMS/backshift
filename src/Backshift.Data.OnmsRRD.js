@@ -21,16 +21,11 @@ Backshift.Data.OnmsRRD = Backshift.Class.create( Backshift.Data, {
         var self = this;
 
         var onSuccess = function (data) {
-            // (Re)build the store measurements
-            var metrics = data.metrics;
-            var n = metrics.length;
-            self.resizeTo(n);
+            var k = data.labels.length;
 
-            for (var i = 0; i < n; i++) {
-                self.timestamps[i] = Number(metrics[i]["timestamp"]);
-                for (var key in metrics[i].values) {
-                    self.sources[key].values[i] = Number(metrics[i].values[key]);
-                }
+            self.timestamps = data.timestamps;
+            for (var i = 0; i < k; i++) {
+              self.sources[data.labels[i]].values = data.columns[i].values;
             }
 
             self.onFetchSuccess(self, args);
@@ -47,32 +42,43 @@ Backshift.Data.OnmsRRD = Backshift.Class.create( Backshift.Data, {
     },
 
     getQueryRequest: function(start, end, resolution) {
-        var xmlTemplate = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-            "<query-request start=\"{{start}}\" end=\"{{end}}\" step=\"{{step}}\">" +
-                "{{sources}}<source aggregation=\"{{csFunc}}\" attribute=\"{{dsName}}\" label=\"{{name}}\" resource=\"{{resource}}\" />{{/sources}}" +
-                "{{expressions}}<expression label=\"{{name}}\">{{expression}}</expression>{{/expressions}}" +
-            "</query-request>";
+      var queryRequest = {
+        "start": start * 1000,
+        "end": end * 1000,
+        "step": Math.floor((end - start) / resolution),
+        "source": [],
+        "expression": []
+      };
 
-        var nonExpressionSources = [];
-        var expressionSources = [];
-        Backshift.keys(this.sources).forEach( function(key) {
-            var source = this.sources[key];
-            if (source.def.dsName !== undefined) {
-                nonExpressionSources.push(source.def);
-            } else {
-                expressionSources.push(source.def);
-            }
-        }, this );
+      var qrSource;
+      Backshift.keys(this.sources).forEach( function(key) {
+          var source = this.sources[key];
+          if (source.def.resourceId !== undefined) {
+            qrSource = {
+              aggregation: source.def.aggregation,
+              attribute: source.def.attribute,
+              label: source.def.name,
+              resourceId: source.def.resourceId
+            };
+            queryRequest.source.push(qrSource);
+          } else {
+            qrSource = {
+              value: source.def.expression,
+              label: source.def.name
+            };
+            queryRequest.expression.push(qrSource);
+          }
+      }, this );
 
-        var context = {
-            "start": start,
-            "end": end,
-            "step": Math.floor((end - start) / resolution),
-            "sources": nonExpressionSources,
-            "expressions": expressionSources
-        };
+      if (queryRequest.source.length === 0) {
+        delete queryRequest.source;
+      }
 
-        return Mark.up(xmlTemplate, context);
+      if (queryRequest.expression.length === 0) {
+        delete queryRequest.expression;
+      }
+
+      return queryRequest;
     },
 
     getResults: function(queryRequest, onSuccess, onError) {
@@ -84,8 +90,8 @@ Backshift.Data.OnmsRRD = Backshift.Class.create( Backshift.Data, {
                 withCredentials: true
             },
             type: "POST",
-            data: queryRequest,
-            contentType: "application/xml; charset=utf-8",
+            data: JSON.stringify(queryRequest),
+            contentType: "application/json",
             dataType: "json",
             success: onSuccess,
             error:  onError

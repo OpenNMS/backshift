@@ -5,40 +5,50 @@
 describe('Backshift.Data.OnmsRRD.Test', function () {
     it('should work', function(done) {
         var results = {
-            "start": "0",
-            "end": "1000",
-            "step": "1",
-            "metrics": [
-                {
-                    "timestamp": "0",
-                    "values": {
-                        "context": "1"
-                    }
-                }
-            ]
+          "start": 0,
+          "end": 1000,
+          "step": 1,
+          "timestamps": [0],
+          "labels": ["context"],
+          "columns":[
+            {
+              "values": [
+                1
+              ]
+            }
+          ]
         };
 
-        var expectedQueryRequest = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-            "<query-request start=\"0\" end=\"1\" step=\"1\">" +
-            "<source aggregation=\"AVERAGE\" attribute=\"SysRawContext\" label=\"context\" resource=\"node[1].nodeSnmp[]\" />" +
-            "</query-request>";
+        var expectedQueryRequest = {
+          "start": 0,
+          "end": 1000,
+          "step": 1,
+          "source": [
+            {
+              "aggregation": "AVERAGE",
+              "attribute": "SysRawContext",
+              "label": "context",
+              "resourceId": "node[1].nodeSnmp[]"
+            }
+          ]
+        };
 
         spyOn(jQuery, "ajax").and.callFake(function (params) {
             // Verify the POSTed request
-            expect( params.data ).toBe( expectedQueryRequest );
+            expect( params.data ).toBe( JSON.stringify(expectedQueryRequest) );
 
             // Return the fixed results
             params.success(results);
         });
 
-        var dataProvider = new Backshift.Data.OnmsRRD({
+      var dataProvider = new Backshift.Data.OnmsRRD({
             url: "http://127.0.0.1:9000/",
             sources: [
                 {
-                    name: "context",
-                    resource: "node[1].nodeSnmp[]",
-                    csFunc: "AVERAGE",
-                    dsName: "SysRawContext"
+                  aggregation: "AVERAGE",
+                  attribute: "SysRawContext",
+                  name: "context",
+                  resourceId: "node[1].nodeSnmp[]"
                 }
             ],
             onFetchSuccess: function(dp) {

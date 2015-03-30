@@ -26,6 +26,7 @@ module.exports = function(config) {
             'src/Backshift.Math.js',
             'src/Backshift.Stats.js',
             'src/Backshift.Utilities.Url.js',
+            'src/Backshift.Utilities.RrdGraphVisitor.js',
             'src/Backshift.Utilities.RrdGraphConverter.js',
             'src/Backshift.Graph.js',
             'src/Backshift.Data.js',

@@ -13,6 +13,7 @@
     <script src="../src/Backshift.Math.js"></script>
     <script src="../src/Backshift.Stats.js"></script>
     <script src="../src/Backshift.Utilities.Url.js"></script>
+    <script src="../src/Backshift.Utilities.RrdGraphVisitor.js"></script>
     <script src="../src/Backshift.Utilities.RrdGraphConverter.js"></script>
     <script src="../src/Backshift.Data.js"></script>
     <script src="../src/Backshift.Data.Newts.js"></script>
@@ -100,49 +101,6 @@
 
     <div class="row">
         <div class="col-md-4">
-            <div data-graph-report="mib2.HCbits" data-graph-resource="node[1].interfaceSnmp[eth0-0800279114ca]" data-original-graph="rrd7" data-graph-model="graph7"></div>
-        </div>
-        <div class="col-md-4">
-            <div id="rrd7"></div>
-        </div>
-        <div class="col-md-4">
-            <div id="graph7"></div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-4">
-            <div data-graph-report="mib2.HCtraffic-inout" data-graph-resource="node[1].interfaceSnmp[eth0-0800279114ca]" data-original-graph="rrd8"></div>
-        </div>
-        <div class="col-md-4">
-            <div id="rrd8"></div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-4">
-            <div data-graph-report="onms.collectd.threadpool" data-graph-resource="node[1].interfaceSnmp[opennms-jvm]" data-original-graph="rrd9" data-graph-model="graph9"></div>
-        </div>
-        <div class="col-md-4">
-            <div id="rrd9"></div>
-        </div>
-        <div class="col-md-4">
-            <div id="graph9"></div>
-        </div>
-    </div>
-
-
-    <div class="row">
-        <div class="col-md-4">
-            <div data-graph-report="jvm.mempool.eden" data-graph-resource="node[1].interfaceSnmp[opennms-jvm]" data-original-graph="rrd10"></div>
-        </div>
-        <div class="col-md-4">
-            <div id="rrd10"></div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-4">
             <div data-graph-report="icmp" data-graph-resource="node[1].responseTime[127.0.0.1]" data-original-graph="rrd11"></div>
         </div>
         <div class="col-md-4">
@@ -150,34 +108,24 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-4">
-            <div data-graph-report="ssh" data-graph-resource="node[1].responseTime[127.0.0.1]" data-original-graph="rrd12"></div>
-        </div>
-        <div class="col-md-4">
-            <div id="rrd12"></div>
-        </div>
-    </div>
 </div>
 
 <script type="text/javascript">
     var onmsHost = "127.0.0.1",
         onmsPort = 8980,
         onmsUsername = 'admin',
-        onmsPassword = 'admin';
+        onmsPassword = 'admin',
+        end = Date.now(),
+        start = end - (4 * 60 * 60 * 1000);
 
     function getBaseHref() {
         return "http://" + onmsHost + ":" + onmsPort;
     }
 
-    var rrdGraphConverter = new Backshift.Utilities.RrdGraphConverter();
-
     $( document ).ready(function() {
         $("div[data-graph-report]").each(function() {
             var report = $(this).data('graph-report');
             var resource = $(this).data('graph-resource');
-            var start = $(this).data('graph-start');
-            var end = $(this).data('graph-end');
 
             var url = getBaseHref() + '/opennms/rest/graphs/' + encodeURIComponent(report);
             console.log('Requesting graph definition from ' + url);
@@ -191,10 +139,12 @@
                     withCredentials: true
                 },
                 context: $(this)
-            }).done(function(graph) {
-                console.log("Graph: ", JSON.stringify(graph, null, 2));
-
-                var model = rrdGraphConverter.convert(graph);
+            }).done(function(graphDef) {
+                var rrdGraphConverter = new Backshift.Utilities.RrdGraphConverter({
+                    graphDef: graphDef,
+                    resourceId: resource
+                });
+                var model = rrdGraphConverter.model;
 
                 // Point to the REST service
                 model.dataProcessor = {};
@@ -204,10 +154,10 @@
                 model.dataProcessor.password = onmsPassword;
 
                 // Use the default legend
-                //graph.model.legend =  "{{series}}{{ if name|more>1 }}{{swatch}}{{name}} Avg: {{avg|fix>2}} Min: {{min|fix>2}} Max: {{max|fix>2}}<br/>{{/if}}{{/series}}";
+                model.legend =  "{{series}}{{ if name|more>1 }}{{swatch}}{{name}} Avg: {{avg|fix>2}} Min: {{min|fix>2}} Max: {{max|fix>2}}<br/>{{/if}}{{/series}}";
 
                 // Enable the preview pane
-                //graph.model.preview = true;
+                model.preview = true;
 
                 // Render the graph
                 var bsGraph = new Backshift.Graph.Rickshaw({
@@ -215,8 +165,8 @@
                     element: $(this)[0],
                     width: 600,
                     height: 400,
-                    start: Math.floor(Number(graph.start) / 1000),
-                    end: Math.floor(Number(graph.end) / 1000)
+                    start: Math.floor(Number(start) / 1000),
+                    end: Math.floor(Number(end) / 1000)
                 });
                 bsGraph.render();
 
@@ -225,12 +175,12 @@
                 // Pull in the RRD graph for comparison
                 var rrdGraphImageUrl = "http://" + onmsHost + ":" + onmsPort + "/opennms/graph/graph.png?resourceId=" + resource +
                         "&report=" + encodeURIComponent(report) +
-                        "&start=" + graph.start +
-                        "&end=" + graph.end +
+                        "&start=" + start +
+                        "&end=" + end +
                         "&width=480&height=320";
                 $('#'+ $(this).data('original-graph')).prepend('<img src="' + rrdGraphImageUrl + '" />');
 
-                $('#'+ $(this).data('graph-model')).prepend("<pre>" + JSON.stringify(graph, null, 2) + "</pre>");
+                $('#'+ $(this).data('graph-model')).prepend("<pre>" + JSON.stringify(model, null, 2) + "</pre>");
             });
         });
     });
