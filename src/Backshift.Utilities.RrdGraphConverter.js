@@ -14,7 +14,32 @@ Backshift.Utilities.RrdGraphConverter  = Backshift.Class.create( Backshift.Utili
       series: []
     };
 
-    this._visit(this.graphDef, this.resourceId);
+    this.rpnConverter = new Backshift.Utilities.RpnToJexlConverter();
+
+    // Replace strings.properties tokens
+    var propertyValue, i, n = this.graphDef.propertiesValues.length;
+    for (i = 0; i < n; i++) {
+      propertyValue = this.graphDef.propertiesValues[i];
+      var re = new RegExp("\\{" + propertyValue + "}", "g");
+      this.graphDef.command = this.graphDef.command.replace(re, propertyValue);
+    }
+
+    this._visit(this.graphDef);
+
+    // Determine the set of source names that are used in the series / legends
+    var nonTransientSources = {};
+    n = this.model.series.length;
+    for (i = 0; i < n; i++) {
+      nonTransientSources[this.model.series[i].source] = 1;
+    }
+
+    // Mark all other sources as transient - if we don't use their values, then don't return them
+    var source;
+    n = this.model.sources.length;
+    for (i = 0; i < n; i++) {
+      source = this.model.sources[i];
+      source.transient = !(source.name in nonTransientSources);
+    }
   },
 
   _onDEF: function(name, path, dsName, consolFun) {
@@ -32,7 +57,7 @@ Backshift.Utilities.RrdGraphConverter  = Backshift.Class.create( Backshift.Utili
   _onCDEF: function(name, rpnExpression) {
     this.model.sources.push({
       name: name,
-      expression: this._rpnToJexl(rpnExpression)
+      expression: this.rpnConverter.convert(rpnExpression)
     });
   },
 
@@ -49,13 +74,17 @@ Backshift.Utilities.RrdGraphConverter  = Backshift.Class.create( Backshift.Utili
     this.model.series.push({
       name: legend,
       source: srcName,
-      type: "stack",
+      type: "area",
       color: color
     });
   },
 
-  _rpnToJexl: function(rpnExpression) {
-    return "1.0";
+  _onStack: function(srcName, color, legend) {
+    this.model.series.push({
+      name: legend,
+      source: srcName,
+      type: "stack",
+      color: color
+    });
   }
-
 } );

@@ -9,7 +9,7 @@ Backshift.Utilities.RrdGraphVisitor  = Backshift.Class.create( {
     // Defined by subclasses
   },
 
-  _visit: function(graphDef, resourceId) {
+  _visit: function(graphDef) {
     // Inspired from http://krasimirtsonev.com/blog/article/Simple-command-line-parser-in-JavaScript
     var CommandLineParser = (function() {
         var parse = function(str, lookForQuotes) {
@@ -70,6 +70,12 @@ Backshift.Utilities.RrdGraphVisitor  = Backshift.Class.create( {
         color = '#' + subParts[1];
         legend = args[2];
         this._onArea(srcName, color, legend);
+      } else if (command === "STACK") {
+        subParts = args[1].split("#");
+        srcName = subParts[0];
+        color = '#' + subParts[1];
+        legend = args[2];
+        this._onStack(srcName, color, legend);
       }
     }
   },
@@ -83,6 +89,9 @@ Backshift.Utilities.RrdGraphVisitor  = Backshift.Class.create( {
 
   },
   _onArea: function(srcName, color, legend) {
+
+  },
+  _onStack: function(srcName, color, legend) {
 
   }
 } );

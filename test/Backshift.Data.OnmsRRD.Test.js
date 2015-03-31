@@ -8,7 +8,7 @@ describe('Backshift.Data.OnmsRRD.Test', function () {
           "start": 0,
           "end": 1000,
           "step": 1,
-          "timestamps": [0],
+          "timestamps": [1000],
           "labels": ["context"],
           "columns":[
             {
@@ -30,6 +30,13 @@ describe('Backshift.Data.OnmsRRD.Test', function () {
               "label": "context",
               "resourceId": "node[1].nodeSnmp[]"
             }
+          ],
+          "expression": [
+            {
+              "value": "1 * 2.0",
+              "label": "expr",
+              "transient": true
+            }
           ]
         };
 
@@ -49,13 +56,18 @@ describe('Backshift.Data.OnmsRRD.Test', function () {
                   attribute: "SysRawContext",
                   name: "context",
                   resourceId: "node[1].nodeSnmp[]"
+                },
+                {
+                  name: "expr",
+                  expression: "1 * 2.0",
+                  transient: true
                 }
             ],
             onFetchSuccess: function(dp) {
                 // Verify the timestamps
                 var ts = dp.getTimestamps();
                 expect( ts.length ).toBe( 1 );
-                expect( ts[0] ).toBe( 0 );
+                expect( ts[0] ).toBe( 1 );
 
                 // And the values - all ones in this case
                 ts = dp.getValues("context");

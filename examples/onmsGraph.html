@@ -13,6 +13,7 @@
     <script src="../src/Backshift.Math.js"></script>
     <script src="../src/Backshift.Stats.js"></script>
     <script src="../src/Backshift.Utilities.Url.js"></script>
+    <script src="../src/Backshift.Utilities.RpnToJexlConverter.js"></script>
     <script src="../src/Backshift.Utilities.RrdGraphVisitor.js"></script>
     <script src="../src/Backshift.Utilities.RrdGraphConverter.js"></script>
     <script src="../src/Backshift.Data.js"></script>
@@ -44,10 +45,13 @@
     <h2>Backshift vs RRD Graphs</h2>
     <div class="row">
         <div class="col-md-4">
-            <div data-graph-report="netsnmp.memStats" data-graph-resource="node[1].nodeSnmp[]" data-original-graph="rrd1"></div>
+            <div data-graph-report="netsnmp.memStats" data-graph-resource="node[1].nodeSnmp[]" data-original-graph="rrd1" data-graph-model="graph1"></div>
         </div>
         <div class="col-md-4">
             <div id="rrd1"></div>
+        </div>
+        <div class="col-md-4">
+            <div id="graph1"></div>
         </div>
     </div>
 

@@ -21,10 +21,15 @@ Backshift.Data.OnmsRRD = Backshift.Class.create( Backshift.Data, {
         var self = this;
 
         var onSuccess = function (data) {
-            var k = data.labels.length;
-
+            var i, k = data.timestamps.length;
             self.timestamps = data.timestamps;
-            for (var i = 0; i < k; i++) {
+            for (i = 0; i < k; i++) {
+              // Convert ms to secs
+              self.timestamps[i] /= 1000;
+            }
+
+            k = data.labels.length;
+            for (i = 0; i < k; i++) {
               self.sources[data.labels[i]].values = data.columns[i].values;
             }
 
@@ -50,6 +55,8 @@ Backshift.Data.OnmsRRD = Backshift.Class.create( Backshift.Data, {
         "expression": []
       };
 
+      var timeDeltaInSeconds = end - start;
+
       var qrSource;
       Backshift.keys(this.sources).forEach( function(key) {
           var source = this.sources[key];
@@ -58,14 +65,17 @@ Backshift.Data.OnmsRRD = Backshift.Class.create( Backshift.Data, {
               aggregation: source.def.aggregation,
               attribute: source.def.attribute,
               label: source.def.name,
-              resourceId: source.def.resourceId
+              resourceId: source.def.resourceId,
+              transient: source.def.transient
             };
             queryRequest.source.push(qrSource);
           } else {
             qrSource = {
               value: source.def.expression,
-              label: source.def.name
+              label: source.def.name,
+              transient: source.def.transient
             };
+            qrSource.value = qrSource.value.replace("{diffTime}", timeDeltaInSeconds);
             queryRequest.expression.push(qrSource);
           }
       }, this );
