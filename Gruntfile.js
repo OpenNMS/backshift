@@ -24,7 +24,8 @@ module.exports = function(grunt) {
       'src/Backshift.Graph.js',
       'src/Backshift.Graph.Matrix.js',
       'src/Backshift.Graph.Flot.js',
-      'src/Backshift.Graph.Rickshaw.js'
+      'src/Backshift.Graph.Rickshaw.js',
+      'src/Backshift.Graph.C3.js'
   ];
 
   // Project configuration.

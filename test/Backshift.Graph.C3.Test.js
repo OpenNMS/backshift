@@ -2,7 +2,7 @@
  * Created by jwhite on 5/22/14.
  */
 
-describe('Backshift.Graph.Flot.Test', function () {
+describe('Backshift.Graph.C3.Test', function () {
     var div;
 
     beforeEach(function () {
@@ -36,7 +36,7 @@ describe('Backshift.Graph.Flot.Test', function () {
             ]
         };
 
-        var graph = new Backshift.Graph.Flot({
+        var graph = new Backshift.Graph.C3({
             model: model,
             element: div.node(),
             width: 640,
@@ -48,6 +48,6 @@ describe('Backshift.Graph.Flot.Test', function () {
         graph.render();
 
         var html = "" + div.node().innerHTML;
-        expect( html ).toContain("canvas");
+        expect( html ).toContain("svg");
     });
 });

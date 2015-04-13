@@ -21,6 +21,7 @@ module.exports = function(config) {
             'vendor/markup.min.js',
             'vendor/flot/jquery.flot.min.js',
             'vendor/flot/jquery.flot.time.min.js',
+            'vendor/c3.min.js',
             'src/Compat.js',
             'src/Backshift.js',
             'src/Backshift.Class.js',
@@ -45,6 +46,7 @@ module.exports = function(config) {
             'src/Backshift.Graph.Matrix.js',
             'src/Backshift.Graph.Rickshaw.js',
             'src/Backshift.Graph.Flot.js',
+            'src/Backshift.Graph.C3.js',
             'test/*.Test.js'
         ],
 
