@@ -170,7 +170,7 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
         "CDEF:usedBytes=memtotalrealBytes,membufferBytes,-,memcachedBytes,-,memsharedBytes,-,memavailrealBytes,- " +
         "CDEF:minUsedBytes=minMemtotalrealBytes,minMembufferBytes,-,minMemcachedBytes,-,minMemsharedBytes,-,minMemavailrealBytes,- " +
         "CDEF:maxUsedBytes=maxMemtotalrealBytes,maxMembufferBytes,-,maxMemcachedBytes,-,maxMemsharedBytes,-,maxMemavailrealBytes,- " +
-        "AREA:usedBytes#c17d11:\"Used (Other)\" " +
+        "AREA:usedBytes#c17d11:\"  Used (Other)\"  " +
         "GPRINT:usedBytes:AVERAGE:\"    Avg  \\: %8.2lf %s\" " +
         "GPRINT:usedBytes:MIN:\"Min  \\: %8.2lf %s\" " +
         "GPRINT:usedBytes:MAX:\"Max  \\: %8.2lf %s\\n\" " +
@@ -219,6 +219,44 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
       var model = rrdGraphConverter.model;
       expect(model.sources.length).toBe(39);
       expect(model.series.length).toBe(7);
+
+
+      expect(model.series[0].name).toBe("Used (Other)");
     });
+
+
+
+    it('should convert graphs', function () {
+      var lmsensors_temp = {
+        "name": "lmsensors.temp",
+        "title": "lmSensors Temperature Sensor",
+        "columns": [
+          "lms-temp"
+        ],
+        "command": "--title=\"Temperature on {lms-tempdevice}\" DEF:dtemp={rrd1}:lms-temp:AVERAGE DEF:minDtemp={rrd1}:lms-temp:MIN DEF:maxDtemp={rrd1}:lms-temp:MAX CDEF:btemp=dtemp,1024,/ CDEF:minBtemp=minDtemp,1024,/ CDEF:maxBtemp=maxDtemp,1024,/ AREA:btemp#fcaf3e LINE1:btemp#f57900:\"Temperature\\:\" GPRINT:btemp:AVERAGE:\" Avg  \\: %8.2lf %s\" GPRINT:btemp:MIN:\"Min  \\: %8.2lf %s\" GPRINT:btemp:MAX:\"Max  \\: %8.2lf %s\\n\" ",
+        "externalValues": [],
+        "propertiesValues": [
+          "lms-tempdevice"
+        ],
+        "order": 58631,
+        "types": [
+          "lmTempIndex"
+        ],
+        "description": null,
+        "width": null,
+        "height": null,
+        "suppress": []
+      };
+
+      var rrdGraphConverter = new Backshift.Utilities.RrdGraphConverter({
+        graphDef: lmsensors_temp,
+        resourceId: 'node[1].nodeSnmp[]'
+      });
+      var model = rrdGraphConverter.model;
+      expect(model.sources.length).toBe(6);
+      expect(model.series.length).toBe(2);
+      expect(model.series[1].name).toBe("Temperature");
+    });
+
   });
 });

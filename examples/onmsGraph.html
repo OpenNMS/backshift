@@ -6,6 +6,13 @@
     <script src="../vendor/jquery.min.js"></script>
     <script src="../vendor/rickshaw.js"></script>
     <script src="../vendor/markup.min.js"></script>
+
+    <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="../vendor/flot/excanvas.min.js"></script><![endif]-->
+    <script language="javascript" type="text/javascript" src="../vendor/flot/jquery.flot.js"></script>
+    <script language="javascript" type="text/javascript" src="../vendor/flot/jquery.flot.time.js"></script>
+    <script language="javascript" type="text/javascript" src="../vendor/flot/jquery.flot.selection.js"></script>
+    <script language="javascript" type="text/javascript" src="../vendor/flot/jquery.flot.stack.js"></script>
+
     <script src="../src/Compat.js"></script>
     <script src="../src/Backshift.js"></script>
     <script src="../src/Backshift.Class.js"></script>
@@ -28,6 +35,7 @@
     <script src="../src/Backshift.Graph.js"></script>
     <script src="../src/Backshift.Graph.Matrix.js"></script>
     <script src="../src/Backshift.Graph.Rickshaw.js"></script>
+    <script src="../src/Backshift.Graph.Flot.js"></script>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
@@ -164,7 +172,7 @@
                 model.preview = true;
 
                 // Render the graph
-                var bsGraph = new Backshift.Graph.Rickshaw({
+                var bsGraph = new Backshift.Graph.Flot({
                     model: model,
                     element: $(this)[0],
                     width: 600,

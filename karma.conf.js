@@ -19,6 +19,8 @@ module.exports = function(config) {
             //'vendor/jquery-ui.min.js',
             'vendor/rickshaw.js',
             'vendor/markup.min.js',
+            'vendor/flot/jquery.flot.min.js',
+            'vendor/flot/jquery.flot.time.min.js',
             'src/Compat.js',
             'src/Backshift.js',
             'src/Backshift.Class.js',
@@ -42,6 +44,7 @@ module.exports = function(config) {
             'src/Backshift.Graph.js',
             'src/Backshift.Graph.Matrix.js',
             'src/Backshift.Graph.Rickshaw.js',
+            'src/Backshift.Graph.Flot.js',
             'test/*.Test.js'
         ],
 

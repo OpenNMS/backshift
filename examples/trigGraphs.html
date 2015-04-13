@@ -15,6 +15,13 @@
     <script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
     <script src="../vendor/rickshaw.js"></script>
     <script src="../vendor/markup.min.js"></script>
+
+    <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="../vendor/flot/excanvas.min.js"></script><![endif]-->
+    <script language="javascript" type="text/javascript" src="../vendor/flot/jquery.flot.js"></script>
+    <script language="javascript" type="text/javascript" src="../vendor/flot/jquery.flot.time.js"></script>
+    <script language="javascript" type="text/javascript" src="../vendor/flot/jquery.flot.selection.js"></script>
+    <script language="javascript" type="text/javascript" src="../vendor/flot/jquery.flot.stack.js"></script>
+
     <script src="../src/Compat.js"></script>
     <script src="../src/Backshift.js"></script>
     <script src="../src/Backshift.Class.js"></script>
@@ -33,6 +40,7 @@
     <script src="../src/Backshift.Graph.js"></script>
     <script src="../src/Backshift.Graph.Matrix.js"></script>
     <script src="../src/Backshift.Graph.Rickshaw.js"></script>
+    <script src="../src/Backshift.Graph.Flot.js"></script>
 </head>
 
 <body>
@@ -71,7 +79,7 @@
             preview: true
         };
 
-        var graph1 = new Backshift.Graph.Rickshaw({
+        var graph1 = new Backshift.Graph.Flot({
             model: model1,
             element: document.querySelector("#graph1"),
             width: 320,

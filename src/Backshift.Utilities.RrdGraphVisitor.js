@@ -62,19 +62,19 @@ Backshift.Utilities.RrdGraphVisitor  = Backshift.Class.create( {
         subParts = args[1].split("#");
         srcName = subParts[0];
         color = '#' + subParts[1];
-        legend = args[2];
+        legend = this._displayString(args[2]);
         this._onLine(srcName, color, legend, width);
       } else if (command === "AREA") {
         subParts = args[1].split("#");
         srcName = subParts[0];
         color = '#' + subParts[1];
-        legend = args[2];
+        legend = this._displayString(args[2]);
         this._onArea(srcName, color, legend);
       } else if (command === "STACK") {
         subParts = args[1].split("#");
         srcName = subParts[0];
         color = '#' + subParts[1];
-        legend = args[2];
+        legend = this._displayString(args[2]);
         this._onStack(srcName, color, legend);
       }
     }
@@ -93,5 +93,19 @@ Backshift.Utilities.RrdGraphVisitor  = Backshift.Class.create( {
   },
   _onStack: function(srcName, color, legend) {
 
+  },
+  _displayString: function(string) {
+    if (string === undefined) {
+      return string;
+    }
+    // Remove any quotes
+    string = string.replace(/"/g, '');
+    // Remove any newlines
+    string = string.replace("\\n", '');
+    // Remove trailing slashes
+    string = string.replace(/(.*)(\\)/, '$1');
+    // Remove any leading/trailing whitespace
+    string = string.trim();
+    return string;
   }
 } );
