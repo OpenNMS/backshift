@@ -49,6 +49,8 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
       var model = rrdGraphConverter.model;
       expect(model.sources.length).toBe(7);
       expect(model.series.length).toBe(4);
+
+      expect(model.title).toBe("TCP Open Connections");
     });
 
     it('should convert graphs', function () {
@@ -220,8 +222,9 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
       expect(model.sources.length).toBe(39);
       expect(model.series.length).toBe(7);
 
-
       expect(model.series[0].name).toBe("Used (Other)");
+
+      expect(model.title).toBe("System Memory Stats");
     });
 
 
@@ -256,6 +259,8 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
       expect(model.sources.length).toBe(6);
       expect(model.series.length).toBe(2);
       expect(model.series[1].name).toBe("Temperature");
+
+      expect(model.title).toBe("Temperature on lms-tempdevice");
     });
 
   });

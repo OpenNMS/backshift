@@ -38,11 +38,19 @@ Backshift.Utilities.RrdGraphVisitor  = Backshift.Class.create( {
       }
     })();
 
-    var i, command, name, path, dsName, consolFun, rpnExpression, subParts, width, srcName, color, legend;
+    var i, args, command, name, path, dsName, consolFun, rpnExpression, subParts, width, srcName, color, legend;
     var parts = CommandLineParser.parse(graphDef.command, true);
     var n = parts.length;
     for (i = 0; i < n; i++) {
-      var args = parts[i].split(":");
+      if (parts[0].indexOf("--") === 0) {
+        args = /--(.*)=(.*)/.exec(parts[0]);
+
+        if (args[1] === "title") {
+          this._onTitle(this._displayString(args[2]));
+        }
+      }
+
+      args = parts[i].split(":");
       command = args[0];
 
       if (command === "DEF") {
@@ -78,6 +86,9 @@ Backshift.Utilities.RrdGraphVisitor  = Backshift.Class.create( {
         this._onStack(srcName, color, legend);
       }
     }
+  },
+  _onTitle: function(title) {
+
   },
   _onDEF: function(name, path, dsName, consolFun) {
 

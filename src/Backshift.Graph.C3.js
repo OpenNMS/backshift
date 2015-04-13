@@ -7,7 +7,6 @@ Backshift.namespace('Backshift.Graph.C3');
 /**
  * C3 Notes:
  *   - Identify regions with NaNs: http://c3js.org/samples/region_timeseries.html
- *
  */
 
 /** A graph implementation that uses C3 */
@@ -86,18 +85,6 @@ Backshift.Graph.C3  = Backshift.Class.create( Backshift.Graph, {
         }
 
         this.typeMap[columnName] = shouldStack ? "area" : series.type;
-        /*
-        this.c3Series[i] = {
-          data: xy,
-          label: series.name,
-          color: series.color,
-          stack: this._shouldStack(this.model.series, i),
-          lines: {
-            show: true,
-            fill: series.type === "stack" || series.type === "area",
-            fillColor: series.color
-          }
-        };*/
       }
 
       this._updatePlot();
@@ -105,14 +92,16 @@ Backshift.Graph.C3  = Backshift.Class.create( Backshift.Graph, {
 
     _onRendered: function() {
       var svg = d3.select(this.element).select("svg");
-      svg.select("#chart-title").remove();
-      svg.append('text')
-        .attr("id", "chart-title")
-        .attr('x', svg.node().getBoundingClientRect().width / 2)
-        .attr('y', 16)
-        .attr('text-anchor', 'middle')
-        .style('font-size', '1.4em')
-        .text('Title of this chart')
+      if (this.model.title !== undefined) {
+        svg.select("#chart-title").remove();
+        svg.append('text')
+          .attr("id", "chart-title")
+          .attr('x', svg.node().getBoundingClientRect().width / 2)
+          .attr('y', 16)
+          .attr('text-anchor', 'middle')
+          .style('font-size', '1.4em')
+          .text(this.model.title)
+      }
     },
 
     _updatePlot: function() {
