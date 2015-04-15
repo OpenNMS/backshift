@@ -52,7 +52,7 @@ Backshift.Graph.C3  = Backshift.Class.create( Backshift.Graph, {
 
     _getName: function(name) {
       if (name === undefined || name === null) {
-        return null;
+        return " ";
       } else {
         return name;
       }
@@ -145,13 +145,13 @@ Backshift.Graph.C3  = Backshift.Class.create( Backshift.Graph, {
             tick: {
               format: d3.format("s")
             }
-          },
+          }/*,
           y2: {
             show: true,
             tick: {
               format: d3.format("e")
             }
-          }
+          }*/
         },
         point: {
           show: false
