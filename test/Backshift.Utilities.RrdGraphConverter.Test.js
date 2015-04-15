@@ -51,6 +51,7 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
       expect(model.series.length).toBe(4);
 
       expect(model.title).toBe("TCP Open Connections");
+      expect(model.verticalLabel).toBe("TCP Opens Per Second");
     });
 
     it('should convert graphs', function () {
@@ -225,6 +226,7 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
       expect(model.series[0].name).toBe("Used (Other)");
 
       expect(model.title).toBe("System Memory Stats");
+      expect(model.verticalLabel).toBe("Bytes");
     });
 
 

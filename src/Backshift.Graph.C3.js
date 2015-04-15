@@ -121,6 +121,7 @@ Backshift.Graph.C3  = Backshift.Class.create( Backshift.Graph, {
             type: 'timeseries'
           },
           y : {
+            label: this.model.verticalLabel,
             tick: {
               format: d3.format("s")
             }

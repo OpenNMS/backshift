@@ -46,6 +46,10 @@ Backshift.Utilities.RrdGraphConverter  = Backshift.Class.create( Backshift.Utili
     this.model.title = title;
   },
 
+  _onVerticalLabel: function(label) {
+    this.model.verticalLabel = label;
+  },
+
   _onDEF: function(name, path, dsName, consolFun) {
     var columnIndex = parseInt(/\{rrd(\d+)}/.exec(path)[1]) - 1;
     var attribute = this.graphDef.columns[columnIndex];

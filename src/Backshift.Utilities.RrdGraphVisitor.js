@@ -42,11 +42,16 @@ Backshift.Utilities.RrdGraphVisitor  = Backshift.Class.create( {
     var parts = CommandLineParser.parse(graphDef.command, true);
     var n = parts.length;
     for (i = 0; i < n; i++) {
-      if (parts[0].indexOf("--") === 0) {
-        args = /--(.*)=(.*)/.exec(parts[0]);
+      if (parts[i].indexOf("--") === 0) {
+        args = /--(.*)=(.*)/.exec(parts[i]);
+        if (args === null) {
+          continue;
+        }
 
         if (args[1] === "title") {
           this._onTitle(this._displayString(args[2]));
+        } else if (args[1] === "vertical-label") {
+          this._onVerticalLabel(this._displayString(args[2]));
         }
       }
 
@@ -88,6 +93,9 @@ Backshift.Utilities.RrdGraphVisitor  = Backshift.Class.create( {
     }
   },
   _onTitle: function(title) {
+
+  },
+  _onVerticalLabel: function(label) {
 
   },
   _onDEF: function(name, path, dsName, consolFun) {
