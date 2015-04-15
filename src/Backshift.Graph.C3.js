@@ -114,7 +114,8 @@ Backshift.Graph.C3  = Backshift.Class.create( Backshift.Graph, {
           types: this.typeMap,
           names: this.nameMap,
           colors: this.colorMap,
-          groups: this.groups
+          groups: this.groups,
+          order: null // stack order by data definition
         },
         axis: {
           x: {
