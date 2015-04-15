@@ -9,7 +9,8 @@ Backshift.namespace('Backshift.Graph.C3');
  *   - All of the columns appear in the legend, we only want to display those with name != undefined
  *
  * Features to add:
- *   - Identify regions with NaNs: http://c3js.org/samples/region_timeseries.html
+ *   - Identify outages with regions: http://c3js.org/samples/region_timeseries.html
+ *   - Identify events with grid lines: http://c3js.org/samples/grid_x_lines.html
  *
  * Notes:
  *   - Opacity for the area can be set with:
@@ -138,7 +139,12 @@ Backshift.Graph.C3  = Backshift.Class.create( Backshift.Graph, {
         },
         axis: {
           x: {
-            type: 'timeseries'
+            type: 'timeseries'/*,
+            lines: [
+              {value: 1, text: 'Lable 1'},
+              {value: 3, text: 'Lable 3', position: 'middle'},
+              {value: 4.5, text: 'Lable 4.5', position: 'start'}
+            ]*/
           },
           y : {
             label: this.model.verticalLabel,
