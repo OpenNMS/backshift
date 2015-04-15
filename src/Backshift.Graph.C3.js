@@ -5,7 +5,11 @@
 Backshift.namespace('Backshift.Graph.C3');
 
 /**
- * C3 Notes:
+ * Current issues:
+ *   - All of the columns apear in the legend, we only want to display those with name != undefined
+ *   - The color/opacity of the areas fills are off
+ *
+ * Features to add:
  *   - Identify regions with NaNs: http://c3js.org/samples/region_timeseries.html
  */
 
@@ -37,6 +41,14 @@ Backshift.Graph.C3  = Backshift.Class.create( Backshift.Graph, {
         }
       }
       return series[k].type === "stack";
+    },
+
+    _getName: function(name) {
+      if (name === undefined || name === null) {
+        return null;
+      } else {
+        return name;
+      }
     },
 
     onFetchSuccess: function(dp) {
@@ -74,7 +86,7 @@ Backshift.Graph.C3  = Backshift.Class.create( Backshift.Graph, {
         this.columns[i+1] = Y;
 
         this.colorMap[columnName] = series.color;
-        this.nameMap[columnName] = series.name;
+        this.nameMap[columnName] = this._getName(series.name);
 
         // Determine if this series should be stacked
         shouldStack = this._shouldStack(this.model.series, i);

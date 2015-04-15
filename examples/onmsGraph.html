@@ -151,6 +151,7 @@
             var url = getBaseHref() + '/opennms/rest/graphs/' + encodeURIComponent(report);
             console.log('Requesting graph definition from ' + url);
 
+            // Pull in the graph definition
             $.ajax({
                 url: url,
                 username: onmsUsername,
@@ -161,37 +162,28 @@
                 },
                 context: $(this)
             }).done(function(graphDef) {
+                // Convert the graph definition to a Backshift model
                 var rrdGraphConverter = new Backshift.Utilities.RrdGraphConverter({
                     graphDef: graphDef,
                     resourceId: resource
                 });
                 var model = rrdGraphConverter.model;
 
-                // Point to the REST service
+                // Update the model to use OpenNMS' ReST Measurements API
                 model.dataProcessor = {};
                 model.dataProcessor.type = 'onmsrrd';
                 model.dataProcessor.url = getBaseHref() + "/opennms/rest/measurements";
                 model.dataProcessor.username = onmsUsername;
                 model.dataProcessor.password = onmsPassword;
 
-                // Use the default legend
-                model.legend =  "{{series}}{{ if name|more>1 }}{{swatch}}{{name}} Avg: {{avg|fix>2}} Min: {{min|fix>2}} Max: {{max|fix>2}}<br/>{{/if}}{{/series}}";
-
-                // Enable the preview pane
-                model.preview = true;
-
                 // Render the graph
                 var bsGraph = new Backshift.Graph.C3({
                     model: model,
                     element: $(this)[0],
-                    width: 600,
-                    height: 400,
                     start: Math.floor(Number(start) / 1000),
                     end: Math.floor(Number(end) / 1000)
                 });
                 bsGraph.render();
-
-                $(this).append();
 
                 // Pull in the RRD graph for comparison
                 var rrdGraphImageUrl = "http://" + onmsHost + ":" + onmsPort + "/opennms/graph/graph.png?resourceId=" + resource +
@@ -201,6 +193,7 @@
                         "&width=480&height=320";
                 $('#'+ $(this).data('original-graph')).prepend('<img src="' + rrdGraphImageUrl + '" />');
 
+                // Show the resulting model if the div is defined
                 $('#'+ $(this).data('graph-model')).prepend("<pre>" + JSON.stringify(model, null, 2) + "</pre>");
             });
         });
