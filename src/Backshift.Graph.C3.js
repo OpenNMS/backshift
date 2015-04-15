@@ -6,11 +6,18 @@ Backshift.namespace('Backshift.Graph.C3');
 
 /**
  * Current issues:
- *   - All of the columns apear in the legend, we only want to display those with name != undefined
- *   - The color/opacity of the areas fills are off
+ *   - All of the columns appear in the legend, we only want to display those with name != undefined
  *
  * Features to add:
  *   - Identify regions with NaNs: http://c3js.org/samples/region_timeseries.html
+ *
+ * Notes:
+ *   - Opacity for the area can be set with:
+ *     .c3-area {
+            stroke-width: 0;
+            opacity: 1.0;
+        }
+ *
  */
 
 /** A graph implementation that uses C3 */

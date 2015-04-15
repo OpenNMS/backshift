@@ -33,6 +33,10 @@
         .row {
             margin-top: 25px;
         }
+        .c3-area {
+            stroke-width: 0;
+            opacity: 1.0;
+        }
     </style>
 </head>
 <body>
@@ -160,7 +164,8 @@
                     model: model,
                     element: $(this)[0],
                     start: Math.floor(Number(start) / 1000),
-                    end: Math.floor(Number(end) / 1000)
+                    end: Math.floor(Number(end) / 1000),
+                    refreshRate: 0
                 });
                 bsGraph.render();
 
