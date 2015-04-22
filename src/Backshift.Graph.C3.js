@@ -7,6 +7,7 @@ Backshift.namespace('Backshift.Graph.C3');
 /**
  * Current issues:
  *   - All of the columns appear in the legend, we only want to display those with name != undefined
+ *   - The x-axis gets crowded when looking at a weekly timespan
  *
  * Features to add:
  *   - Identify outages with regions: http://c3js.org/samples/region_timeseries.html
@@ -59,6 +60,26 @@ Backshift.Graph.C3  = Backshift.Class.create( Backshift.Graph, {
       }
     },
 
+    _getType: function(type, shouldStack) {
+      var derivedType,
+          step = true; // treat points a segments (similar to rrdgraph)
+      if (shouldStack === true) {
+        derivedType = "area";
+      } else {
+        derivedType = type;
+      }
+
+      if (step) {
+        if (derivedType === "line") {
+          derivedType = "step";
+        }
+        else if (derivedType === "area") {
+          derivedType = "area-step";
+        }
+      }
+      return derivedType;
+    },
+
     onFetchSuccess: function(dp) {
       var timestamps = dp.getTimestamps();
 
@@ -104,7 +125,7 @@ Backshift.Graph.C3  = Backshift.Class.create( Backshift.Graph, {
           group.push(columnName);
         }
 
-        this.typeMap[columnName] = shouldStack ? "area" : series.type;
+        this.typeMap[columnName] = this._getType(series.type, shouldStack);
       }
 
       this._updatePlot();
