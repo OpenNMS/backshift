@@ -133,7 +133,7 @@ Backshift.Graph.C3  = Backshift.Class.create( Backshift.Graph, {
     },
 
     _onRendered: function() {
-      var svg = d3.select(this.element).select("svg");
+      /*var svg = d3.select(this.element).select("svg");
       if (this.model.title !== undefined) {
         svg.select("#chart-title").remove();
         svg.append('text')
@@ -143,7 +143,7 @@ Backshift.Graph.C3  = Backshift.Class.create( Backshift.Graph, {
           .attr('text-anchor', 'middle')
           .style('font-size', '1.4em')
           .text(this.model.title)
-      }
+      }*/
     },
 
     _updatePlot: function() {
@@ -187,9 +187,14 @@ Backshift.Graph.C3  = Backshift.Class.create( Backshift.Graph, {
         zoom: {
           enabled: true
         },
+        title: {
+          text: this.model.title
+        }
+        /*
         onrendered: function () {
           self._onRendered();
-        }
+        },
+       */
         /*,
         subchart: {
           show: true

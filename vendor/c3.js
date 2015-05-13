@@ -263,6 +263,7 @@
         if ($$.initSubchart) { $$.initSubchart(); }
         if ($$.initTooltip) { $$.initTooltip(); }
         if ($$.initLegend) { $$.initLegend(); }
+        if ($$.initTitle) { $$.initTitle(); }
 
         /*-- Main Region --*/
 
@@ -608,6 +609,9 @@
             $$.updateText(durationForExit);
         }
 
+        // title
+        if ($$.redrawTitle) { $$.redrawTitle(); }
+
         // arc
         if ($$.redrawArc) { $$.redrawArc(duration, durationForExit, withTransform); }
 
@@ -914,6 +918,7 @@
                         if (selection.node().parentNode) {
                             window.clearInterval($$.intervalForObserveInserted);
                             $$.updateDimension();
+                            if ($$.brush) { $$.brush.update(); }
                             $$.config.oninit.call($$);
                             $$.redraw({
                                 withTransform: true,
@@ -1205,7 +1210,16 @@
             },
             tooltip_init_show: false,
             tooltip_init_x: 0,
-            tooltip_init_position: {top: '0px', left: '50px'}
+            tooltip_init_position: {top: '0px', left: '50px'},
+            // title
+            title_text: undefined,
+            title_padding: {
+                top: 0,
+                right: 0,
+                bottom: 0,
+                left: 0
+            },
+            title_position: 'top-center',
         };
 
         Object.keys(this.additionalConfig).forEach(function (key) {
@@ -2576,8 +2590,13 @@
         return h > 0 ? h : 320 / ($$.hasType('gauge') ? 2 : 1);
     };
     c3_chart_internal_fn.getCurrentPaddingTop = function () {
-        var config = this.config;
-        return isValue(config.padding_top) ? config.padding_top : 0;
+        var $$ = this,
+            config = $$.config,
+            padding = isValue(config.padding_top) ? config.padding_top : 0;
+        if ($$.title && $$.title.node()) {
+            padding += $$.getTitlePadding();
+        }
+        return padding;
     };
     c3_chart_internal_fn.getCurrentPaddingBottom = function () {
         var config = this.config;
@@ -4145,6 +4164,38 @@
         $$.legendHasRendered = true;
     };
 
+    c3_chart_internal_fn.initTitle = function () {
+        var $$ = this;
+        $$.title = $$.svg.append("text")
+              .text($$.config.title_text)
+              .attr("class", $$.CLASS.title);
+    };
+    c3_chart_internal_fn.redrawTitle = function () {
+        var $$ = this;
+        $$.title
+              .attr("x", $$.xForTitle.bind($$))
+              .attr("y", $$.yForTitle.bind($$));
+    };
+    c3_chart_internal_fn.xForTitle = function () {
+        var $$ = this, config = $$.config, position = config.title_position || 'left', x;
+        if (position.indexOf('right') >= 0) {
+            x = $$.currentWidth - $$.title.node().getBBox().width - config.title_padding.right;
+        } else if (position.indexOf('center') >= 0) {
+            x = ($$.currentWidth - $$.title.node().getBBox().width) / 2;
+        } else { // left
+            x = config.title_padding.left;
+        }
+        return x;
+    };
+    c3_chart_internal_fn.yForTitle = function () {
+        var $$ = this;
+        return $$.config.title_padding.top + $$.title.node().getBBox().height;
+    };
+    c3_chart_internal_fn.getTitlePadding = function() {
+        var $$ = this;
+        return $$.yForTitle() + $$.config.title_padding.bottom;
+    };
+
     function Axis(owner) {
         API.call(this, owner);
     }
@@ -5633,6 +5684,7 @@
         defocused: 'c3-defocused',
         region: 'c3-region',
         regions: 'c3-regions',
+        title: 'c3-title',
         tooltipContainer: 'c3-tooltip-container',
         tooltip: 'c3-tooltip',
         tooltipName: 'c3-tooltip-name',
