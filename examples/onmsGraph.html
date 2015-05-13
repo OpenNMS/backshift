@@ -45,31 +45,35 @@
     <h2>Backshift vs RRD Graphs</h2>
     <div class="row">
         <div class="col-md-4">
-            <div data-graph-report="netsnmp.memStats" data-graph-resource="node[3].nodeSnmp[]" data-original-graph="rrd1" data-graph-model="graph1"></div>
+            <div data-graph-report="netsnmp.memStats" data-graph-resource="node[44].nodeSnmp[]" data-original-graph="rrd1" data-graph-model="graph1"></div>
         </div>
         <div class="col-md-4">
             <div id="rrd1"></div>
         </div>
+        <!--
         <div class="col-md-4">
             <div id="graph1"></div>
         </div>
+        -->
     </div>
 
     <div class="row">
         <div class="col-md-4">
-            <div data-graph-report="netsnmp.hrMemory" data-graph-resource="node[3].nodeSnmp[]" data-original-graph="rrd2" data-graph-model="graph2"></div>
+            <div data-graph-report="netsnmp.hrMemory" data-graph-resource="node[44].nodeSnmp[]" data-original-graph="rrd2" data-graph-model="graph2"></div>
         </div>
         <div class="col-md-4">
             <div id="rrd2"></div>
         </div>
+        <!--
         <div class="col-md-4">
             <div id="graph2"></div>
         </div>
+        -->
     </div>
 
     <div class="row">
         <div class="col-md-4">
-            <div data-graph-report="netsnmp.hrSystemProcesses" data-graph-resource="node[3].nodeSnmp[]" data-original-graph="rrd3"></div>
+            <div data-graph-report="netsnmp.hrSystemProcesses" data-graph-resource="node[44].nodeSnmp[]" data-original-graph="rrd3"></div>
         </div>
         <div class="col-md-4">
             <div id="rrd3"></div>
@@ -78,7 +82,7 @@
 
     <div class="row">
         <div class="col-md-4">
-            <div data-graph-report="netsnmp.loadavg" data-graph-resource="node[3].nodeSnmp[]" data-original-graph="rrd4"></div>
+            <div data-graph-report="netsnmp.loadavg" data-graph-resource="node[44].nodeSnmp[]" data-original-graph="rrd4"></div>
         </div>
         <div class="col-md-4">
             <div id="rrd4"></div>
@@ -87,7 +91,7 @@
 
     <div class="row">
         <div class="col-md-4">
-            <div data-graph-report="netsnmp.cpuUsageFull" data-graph-resource="node[3].nodeSnmp[]" data-original-graph="rrd5"></div>
+            <div data-graph-report="netsnmp.cpuUsageFull" data-graph-resource="node[44].nodeSnmp[]" data-original-graph="rrd5"></div>
         </div>
         <div class="col-md-4">
             <div id="rrd5"></div>
@@ -96,7 +100,7 @@
 
     <div class="row">
         <div class="col-md-4">
-            <div data-graph-report="netsnmp.cpuStatsFull" data-graph-resource="node[3].nodeSnmp[]" data-original-graph="rrd6"></div>
+            <div data-graph-report="netsnmp.cpuStatsFull" data-graph-resource="node[44].nodeSnmp[]" data-original-graph="rrd6"></div>
         </div>
         <div class="col-md-4">
             <div id="rrd6"></div>
@@ -105,7 +109,7 @@
 
     <div class="row">
         <div class="col-md-4">
-            <div data-graph-report="icmp" data-graph-resource="node[3].responseTime[127.0.0.1]" data-original-graph="rrd11"></div>
+            <div data-graph-report="icmp" data-graph-resource="node[44].responseTime[172.20.1.208]" data-original-graph="rrd11"></div>
         </div>
         <div class="col-md-4">
             <div id="rrd11"></div>
@@ -115,10 +119,10 @@
 </div>
 
 <script type="text/javascript">
-    var onmsHost = "127.0.0.1",
-        onmsPort = 8980,
-        onmsUsername = 'admin',
-        onmsPassword = 'admin',
+    var onmsHost = "demo.opennms.org",
+        onmsPort = 80,
+        onmsUsername = 'demo',
+        onmsPassword = 'demo',
         end = Date.now(),
         start = end - (4 * 60 * 60 * 1000);
 

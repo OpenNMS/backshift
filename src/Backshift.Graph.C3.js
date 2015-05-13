@@ -8,6 +8,7 @@ Backshift.namespace('Backshift.Graph.C3');
  * Current issues:
  *   - All of the columns appear in the legend, we only want to display those with name != undefined
  *   - The x-axis gets crowded when looking at a weekly timespan
+ *   - Need a way of retrieving min/max and average values
  *
  * Features to add:
  *   - Identify outages with regions: http://c3js.org/samples/region_timeseries.html
