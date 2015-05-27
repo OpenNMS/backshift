@@ -3,72 +3,69 @@
 var Backshift = Backshift || {};
 
 Backshift.namespace = function (ns_string) {
-    var parts = ns_string.split('.'),
-        parent = Backshift,
-        i;
+  var parts = ns_string.split('.'),
+    parent = Backshift,
+    i;
 
-    // split redundant leading global
-    if (parts[0] === 'Backshift') {
-        parts = parts.slice(1);
+  // split redundant leading global
+  if (parts[0] === 'Backshift') {
+    parts = parts.slice(1);
+  }
+
+  for (i = 0; i < parts.length; i += 1) {
+    // create a property if it doesn't exist
+    if (typeof parent[parts[i]] === "undefined") {
+      parent[parts[i]] = {};
     }
+    parent = parent[parts[i]];
+  }
 
-    for (i = 0; i < parts.length; i += 1) {
-        // create a property if it doesn't exist
-        if (typeof parent[parts[i]] === "undefined") {
-            parent[parts[i]] = {};
-        }
-        parent = parent[parts[i]];
-    }
-
-    return parent;
+  return parent;
 };
 
-Backshift.keys = function(obj) {
-    var keys = [];
-    for (var key in obj) {
-        if (obj.hasOwnProperty(key)) {
-            keys.push(key);
-        }
+Backshift.keys = function (obj) {
+  var keys = [];
+  for (var key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      keys.push(key);
     }
-    return keys;
+  }
+  return keys;
 };
 
-Backshift.extend = function(destination, source) {
-    for (var property in source) {
-        if (source.hasOwnProperty(property)) {
-            destination[property] = source[property];
-        }
+Backshift.extend = function (destination, source) {
+  for (var property in source) {
+    if (source.hasOwnProperty(property)) {
+      destination[property] = source[property];
     }
-    return destination;
+  }
+  return destination;
 };
 
-Backshift.rows = function(matrix) {
-    var ncols = matrix.length;
-    if (ncols === 0) {
-        return [];
-    }
-    var nrows = matrix[0].length;
+Backshift.rows = function (matrix) {
+  var ncols = matrix.length;
+  if (ncols === 0) {
+    return [];
+  }
+  var nrows = matrix[0].length;
 
-    var rows = new Array(nrows);
-    for (var i = 0; i < nrows; i++) {
-        var row = new Array(ncols);
-        for (var j = 0; j < ncols; j++) {
-            row[j] = matrix[j][i];
-        }
-        rows[i] = row;
+  var rows = new Array(nrows);
+  for (var i = 0; i < nrows; i++) {
+    var row = new Array(ncols);
+    for (var j = 0; j < ncols; j++) {
+      row[j] = matrix[j][i];
     }
+    rows[i] = row;
+  }
 
-    return rows;
+  return rows;
 };
 
-Backshift.fail = function(msg) {
-    console.log("Error: " + msg);
-    throw {
-        name: "Error",
-        message: msg
-    };
+Backshift.fail = function (msg) {
+  console.log("Error: " + msg);
+  throw "Error: " + msg;
 };
 
-Backshift.clone = function(obj) {
-    return JSON.parse(JSON.stringify(obj));
+Backshift.clone = function (obj) {
+  return JSON.parse(JSON.stringify(obj));
 };

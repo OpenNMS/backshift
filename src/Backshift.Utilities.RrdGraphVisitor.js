@@ -1,28 +1,28 @@
 Backshift.namespace('Backshift.Utilities.RrdGraphConverter');
 
-Backshift.Utilities.RrdGraphVisitor  = Backshift.Class.create( {
-  initialize: function(args) {
+Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
+  initialize: function (args) {
     this.onInit(args);
   },
 
-  onInit: function(args) {
+  onInit: function (args) {
     // Defined by subclasses
   },
 
-  _visit: function(graphDef) {
+  _visit: function (graphDef) {
     // Inspired from http://krasimirtsonev.com/blog/article/Simple-command-line-parser-in-JavaScript
-    var CommandLineParser = (function() {
-        var parse = function(str, lookForQuotes) {
-          var args = [];
-          var readingPart = false;
-          var part = '';
-          var n = str.length;
-          for(var i=0; i < n; i++) {
-          if(str.charAt(i) === ' ' && !readingPart) {
+    var CommandLineParser = (function () {
+      var parse = function (str, lookForQuotes) {
+        var args = [];
+        var readingPart = false;
+        var part = '';
+        var n = str.length;
+        for (var i = 0; i < n; i++) {
+          if (str.charAt(i) === ' ' && !readingPart) {
             args.push(part);
             part = '';
-            } else {
-            if(str.charAt(i) === '\"' && lookForQuotes) {
+          } else {
+            if (str.charAt(i) === '\"' && lookForQuotes) {
               readingPart = !readingPart;
               part += str.charAt(i);
             } else {
@@ -92,28 +92,28 @@ Backshift.Utilities.RrdGraphVisitor  = Backshift.Class.create( {
       }
     }
   },
-  _onTitle: function(title) {
+  _onTitle: function (title) {
 
   },
-  _onVerticalLabel: function(label) {
+  _onVerticalLabel: function (label) {
 
   },
-  _onDEF: function(name, path, dsName, consolFun) {
+  _onDEF: function (name, path, dsName, consolFun) {
 
   },
-  _onCDEF: function(name, rpnExpression) {
+  _onCDEF: function (name, rpnExpression) {
 
   },
-  _onLine: function(srcName, color, legend, width) {
+  _onLine: function (srcName, color, legend, width) {
 
   },
-  _onArea: function(srcName, color, legend) {
+  _onArea: function (srcName, color, legend) {
 
   },
-  _onStack: function(srcName, color, legend) {
+  _onStack: function (srcName, color, legend) {
 
   },
-  _displayString: function(string) {
+  _displayString: function (string) {
     if (string === undefined) {
       return string;
     }
@@ -127,4 +127,4 @@ Backshift.Utilities.RrdGraphVisitor  = Backshift.Class.create( {
     string = string.trim();
     return string;
   }
-} );
+});

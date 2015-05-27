@@ -13,23 +13,23 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
           "tcpPassiveOpens"
         ],
         "command": "--title=\"TCP Open Connections\" --vertical-label=\"TCP Opens Per Second\" " +
-          "DEF:actOpen={rrd1}:tcpActiveOpens:AVERAGE " +
-          "DEF:minActOpen={rrd1}:tcpActiveOpens:MIN " +
-          "DEF:maxActOpen={rrd1}:tcpActiveOpens:MAX " +
-          "DEF:passOpen={rrd2}:tcpPassiveOpens:AVERAGE " +
-          "DEF:minPassOpen={rrd2}:tcpPassiveOpens:MIN " +
-          "DEF:maxPassOpen={rrd2}:tcpPassiveOpens:MAX " +
-          "CDEF:negActOpen=0,actOpen,- " +
-          "AREA:passOpen#73d216 " +
-          "LINE1:passOpen#4e9a06:\"In (Passive)\" " +
-          "GPRINT:passOpen:AVERAGE:\"Avg  \\: %8.2lf %s\" " +
-          "GPRINT:passOpen:MIN:\"Min  \\: %8.2lf %s\" " +
-          "GPRINT:passOpen:MAX:\"Max  \\: %8.2lf %s\\n\" " +
-          "AREA:negActOpen#3465a4 " +
-          "LINE1:negActOpen#204a87:\"Out (Active)\" " +
-          "GPRINT:actOpen:AVERAGE:\"Avg  \\: %8.2lf %s\" " +
-          "GPRINT:actOpen:MIN:\"Min  \\: %8.2lf %s\" " +
-          "GPRINT:actOpen:MAX:\"Max  \\: %8.2lf %s\\n\" ",
+        "DEF:actOpen={rrd1}:tcpActiveOpens:AVERAGE " +
+        "DEF:minActOpen={rrd1}:tcpActiveOpens:MIN " +
+        "DEF:maxActOpen={rrd1}:tcpActiveOpens:MAX " +
+        "DEF:passOpen={rrd2}:tcpPassiveOpens:AVERAGE " +
+        "DEF:minPassOpen={rrd2}:tcpPassiveOpens:MIN " +
+        "DEF:maxPassOpen={rrd2}:tcpPassiveOpens:MAX " +
+        "CDEF:negActOpen=0,actOpen,- " +
+        "AREA:passOpen#73d216 " +
+        "LINE1:passOpen#4e9a06:\"In (Passive)\" " +
+        "GPRINT:passOpen:AVERAGE:\"Avg  \\: %8.2lf %s\" " +
+        "GPRINT:passOpen:MIN:\"Min  \\: %8.2lf %s\" " +
+        "GPRINT:passOpen:MAX:\"Max  \\: %8.2lf %s\\n\" " +
+        "AREA:negActOpen#3465a4 " +
+        "LINE1:negActOpen#204a87:\"Out (Active)\" " +
+        "GPRINT:actOpen:AVERAGE:\"Avg  \\: %8.2lf %s\" " +
+        "GPRINT:actOpen:MIN:\"Min  \\: %8.2lf %s\" " +
+        "GPRINT:actOpen:MAX:\"Max  \\: %8.2lf %s\\n\" ",
         "externalValues": [],
         "propertiesValues": [],
         "order": 36865,
@@ -47,7 +47,7 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
         resourceId: 'node[1].nodeSnmp[]'
       });
       var model = rrdGraphConverter.model;
-      expect(model.sources.length).toBe(7);
+      expect(model.metrics.length).toBe(7);
       expect(model.series.length).toBe(4);
 
       expect(model.title).toBe("TCP Open Connections");
@@ -105,18 +105,18 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
         resourceId: 'node[1].nodeSnmp[]'
       });
       var model = rrdGraphConverter.model;
-      expect(model.sources.length).toBe(13);
+      expect(model.metrics.length).toBe(13);
 
-      // Find a specific source that reference a value from strings.properties
-      var source, k, n = model.sources.length;
+      // Find a specific metric that reference a value from strings.properties
+      var metric, k, n = model.metrics.length;
       for (k = 0; k < n; k++) {
-        source = model.sources[k];
-        if (source.name === "minPercentIn") {
+        metric = model.metrics[k];
+        if (metric.name === "minPercentIn") {
           break;
         }
       }
-      expect(source.name).toBe("minPercentIn");
-      expect(source.expression).toBe("(((minOctIn * 8) / ifSpeed) * 100)");
+      expect(metric.name).toBe("minPercentIn");
+      expect(metric.expression).toBe("(((minOctIn * 8) / ifSpeed) * 100)");
 
       expect(model.series.length).toBe(4);
     });
@@ -220,7 +220,7 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
         resourceId: 'node[1].nodeSnmp[]'
       });
       var model = rrdGraphConverter.model;
-      expect(model.sources.length).toBe(39);
+      expect(model.metrics.length).toBe(39);
       expect(model.series.length).toBe(7);
 
       expect(model.series[0].name).toBe("Used (Other)");
@@ -228,7 +228,6 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
       expect(model.title).toBe("System Memory Stats");
       expect(model.verticalLabel).toBe("Bytes");
     });
-
 
 
     it('should convert graphs', function () {
@@ -258,7 +257,7 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
         resourceId: 'node[1].nodeSnmp[]'
       });
       var model = rrdGraphConverter.model;
-      expect(model.sources.length).toBe(6);
+      expect(model.metrics.length).toBe(6);
       expect(model.series.length).toBe(2);
       expect(model.series[1].name).toBe("Temperature");
 

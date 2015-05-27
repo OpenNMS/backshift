@@ -5,7 +5,7 @@ describe('Backshift.Utilities.RpnToJexlConverter', function () {
 
   var rpnConverter = new Backshift.Utilities.RpnToJexlConverter();
 
-  var checkRpnConversion = function(sourceRpn, expectedJexl) {
+  var checkRpnConversion = function (sourceRpn, expectedJexl) {
     expect(rpnConverter.convert(sourceRpn)).toBe(expectedJexl);
   };
 

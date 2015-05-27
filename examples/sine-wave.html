@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<head>
+    <link rel="stylesheet" type="text/css" href="../bower_components/c3/c3.min.css">
+
+    <script src="../bower_components/rsvp/rsvp.min.js"></script>
+    <script src="../bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="../bower_components/d3/d3.min.js"></script>
+    <script src="../bower_components/c3/c3.min.js"></script>
+
+    <script src="../src/Compat.js"></script>
+    <script src="../src/Backshift.js"></script>
+    <script src="../src/Backshift.Class.js"></script>
+    <script src="../src/Backshift.Class.Configurable.js"></script>
+    <script src="../src/Backshift.Math.js"></script>
+    <script src="../src/Backshift.Stats.js"></script>
+    <script src="../src/Backshift.Utilities.Url.js"></script>
+    <script src="../src/Backshift.DataSource.js"></script>
+    <script src="../src/Backshift.DataSource.SineWave.js"></script>
+    <script src="../src/Backshift.Graph.js"></script>
+    <script src="../src/Backshift.Graph.C3.js"></script>
+    <script src="../src/Backshift.Graph.Matrix.js"></script>
+</head>
+
+<body>
+<div id="graph1"></div>
+
+<script type="text/javascript">
+    var ds = new Backshift.DataSource.SineWave({
+        metrics: [
+            {
+                name: "sinWave",
+                amplitude: 5,
+                hshift: 5,
+                period: 32 * Math.PI * 60
+            }
+        ]
+    });
+
+    var graph = new Backshift.Graph.C3({
+        element: document.querySelector("#graph1"),
+        last: 2 * 1000, // 2 minutes
+        refreshRate: 750,
+        checkInterval: 125,
+        dataSource: ds,
+        title: "Wave",
+        verticalLabel: "Units",
+        series: [
+            {
+                name: "Sin Wave",
+                metric: "sinWave",
+                type: "line"
+            }
+        ]
+    });
+
+    graph.render();
+</script>
+</body>

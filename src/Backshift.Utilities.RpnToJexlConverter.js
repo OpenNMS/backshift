@@ -7,35 +7,35 @@ Backshift.namespace('Backshift.Utilities.RpnToJexlConverter');
  *
  * @author jesse
  */
-Backshift.Utilities.RpnToJexlConverter  = Backshift.Class.create( {
-  initialize: function() {
+Backshift.Utilities.RpnToJexlConverter = Backshift.Class.create({
+  initialize: function () {
     this.operators = {};
     this._buildOperators();
   },
 
-  _buildOperators: function() {
+  _buildOperators: function () {
     var simpleOp = function (op) {
-      return function(stack) {
+      return function (stack) {
         var b = stack.pop();
         var a = stack.pop();
         return "(" + a + " " + op + " " + b + ")";
       };
     };
 
-    var ifOp = function(stack) {
+    var ifOp = function (stack) {
       var c = stack.pop();
       var b = stack.pop();
       var a = stack.pop();
       return "(" + a + " != 0 ? " + b + " : " + c + ")";
     };
 
-    var unOp = function(stack) {
+    var unOp = function (stack) {
       var a = stack.pop();
       return "( (" + a + " == __inf) || (" + a + " == __neg_inf) ? 1 : 0)";
     };
 
     var booleanOp = function (op) {
-      return function(stack) {
+      return function (stack) {
         var b = stack.pop();
         var a = stack.pop();
         return "(" + a + " " + op + " " + b + " ? 1 : 0)";
@@ -58,7 +58,7 @@ Backshift.Utilities.RpnToJexlConverter  = Backshift.Class.create( {
 
   },
 
-  convert: function(rpn) {
+  convert: function (rpn) {
     var token, tokens, n, i, stack = [];
     tokens = rpn.split(",");
     n = tokens.length;
@@ -78,12 +78,12 @@ Backshift.Utilities.RpnToJexlConverter  = Backshift.Class.create( {
     }
   },
 
-  _isOperator: function(token) {
+  _isOperator: function (token) {
     return token in this.operators;
   },
 
-  _toExpression: function(token, stack) {
+  _toExpression: function (token, stack) {
     return this.operators[token](stack);
   }
 
-} );
+});

@@ -14,15 +14,17 @@ Backshift.Math = {};
  * @param A an array of integers
  * @returns {number} the lcm
  */
-Backshift.Math.lcm = function(A) {
-    if (A === undefined || A.length < 1) {
-        return 0;
+Backshift.Math.lcm = function (A) {
+  if (A === undefined || A.length < 1) {
+    return 0;
+  }
+  var n = A.length, a = Math.abs(A[0]);
+  for (var i = 1; i < n; i++) {
+    var b = Math.abs(A[i]), c = a;
+    while (a && b) {
+      a > b ? a %= b : b %= a;
     }
-    var n = A.length, a = Math.abs(A[0]);
-    for (var i = 1; i < n; i++)
-    { var b = Math.abs(A[i]), c = a;
-        while (a && b){ a > b ? a %= b : b %= a; }
-        a = Math.abs(c*A[i])/(a+b);
-    }
-    return a;
+    a = Math.abs(c * A[i]) / (a + b);
+  }
+  return a;
 };

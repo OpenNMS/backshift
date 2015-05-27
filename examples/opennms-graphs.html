@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="../bower_components/c3/c3.min.css">
+
+    <script src="../bower_components/rsvp/rsvp.min.js"></script>
+    <script src="../bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="../bower_components/d3/d3.min.js"></script>
+    <script src="../bower_components/c3/c3.min.js"></script>
+
+    <script src="../src/Compat.js"></script>
+    <script src="../src/Backshift.js"></script>
+    <script src="../src/Backshift.Class.js"></script>
+    <script src="../src/Backshift.Class.Configurable.js"></script>
+    <script src="../src/Backshift.Math.js"></script>
+    <script src="../src/Backshift.Stats.js"></script>
+    <script src="../src/Backshift.Utilities.Url.js"></script>
+    <script src="../src/Backshift.Utilities.RpnToJexlConverter.js"></script>
+    <script src="../src/Backshift.Utilities.RrdGraphVisitor.js"></script>
+    <script src="../src/Backshift.Utilities.RrdGraphConverter.js"></script>
+    <script src="../src/Backshift.DataSource.js"></script>
+    <script src="../src/Backshift.DataSource.OpenNMS.js"></script>
+    <script src="../src/Backshift.Graph.js"></script>
+    <script src="../src/Backshift.Graph.C3.js"></script>
+    <script src="../src/Backshift.Graph.Matrix.js"></script>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+
+    <style>
+        .row {
+            margin-top: 25px;
+        }
+
+        .c3-area {
+            stroke-width: 0;
+            opacity: 1.0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <h2>Backshift vs RRD Graphs</h2>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div data-graph-report="netsnmp.memStats" data-graph-resource="node[44].nodeSnmp[]"
+                 data-original-graph="rrd1" data-graph-model="graph1"></div>
+        </div>
+        <div class="col-md-4">
+            <div id="rrd1"></div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div data-graph-report="netsnmp.hrMemory" data-graph-resource="node[44].nodeSnmp[]"
+                 data-original-graph="rrd2" data-graph-model="graph2"></div>
+        </div>
+        <div class="col-md-4">
+            <div id="rrd2"></div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div data-graph-report="netsnmp.hrSystemProcesses" data-graph-resource="node[44].nodeSnmp[]"
+                 data-original-graph="rrd3"></div>
+        </div>
+        <div class="col-md-4">
+            <div id="rrd3"></div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div data-graph-report="netsnmp.loadavg" data-graph-resource="node[44].nodeSnmp[]"
+                 data-original-graph="rrd4"></div>
+        </div>
+        <div class="col-md-4">
+            <div id="rrd4"></div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div data-graph-report="netsnmp.cpuUsageFull" data-graph-resource="node[44].nodeSnmp[]"
+                 data-original-graph="rrd5"></div>
+        </div>
+        <div class="col-md-4">
+            <div id="rrd5"></div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div data-graph-report="netsnmp.cpuStatsFull" data-graph-resource="node[44].nodeSnmp[]"
+                 data-original-graph="rrd6"></div>
+        </div>
+        <div class="col-md-4">
+            <div id="rrd6"></div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div data-graph-report="icmp" data-graph-resource="node[44].responseTime[172.20.1.208]"
+                 data-original-graph="rrd11"></div>
+        </div>
+        <div class="col-md-4">
+            <div id="rrd11"></div>
+        </div>
+    </div>
+
+</div>
+
+<script type="text/javascript">
+    var onmsHost = "demo.opennms.org",
+            onmsPort = 80,
+            onmsUsername = 'demo',
+            onmsPassword = 'demo',
+            end = Date.now(),
+            start = end - (8 * 60 * 60 * 1000); // 8 hours ago
+
+    function getBaseHref() {
+        return "http://" + onmsHost + ":" + onmsPort;
+    }
+
+    $(document).ready(function () {
+        $("div[data-graph-report]").each(function () {
+            var report = $(this).data('graph-report');
+            var resource = $(this).data('graph-resource');
+
+            var url = getBaseHref() + '/opennms/rest/graphs/' + encodeURIComponent(report);
+
+            // Pull in the graph definition
+            $.ajax({
+                url: url,
+                dataType: 'json',
+                headers: {"Authorization": "Basic " + window.btoa(onmsUsername + ":" + onmsPassword)},
+                xhrFields: {
+                    withCredentials: true
+                },
+                context: $(this)
+            }).done(function (graphDef) {
+                // Convert the graph definition to a supported model
+                var rrdGraphConverter = new Backshift.Utilities.RrdGraphConverter({
+                    graphDef: graphDef,
+                    resourceId: resource
+                });
+                var graphModel = rrdGraphConverter.model;
+
+                // Build the data-source
+                var ds = new Backshift.DataSource.OpenNMS({
+                    url: getBaseHref() + "/opennms/rest/measurements",
+                    username: onmsUsername,
+                    password: onmsPassword,
+                    metrics: graphModel.metrics
+                });
+
+                // Build and render the graph
+                var graph = new Backshift.Graph.C3({
+                    element: $(this)[0],
+                    start: start,
+                    end: end,
+                    dataSource: ds,
+                    series: graphModel.series,
+                    step: true,
+                    title: graphModel.title,
+                    verticalLabel: graphModel.verticalLabel
+                });
+                graph.render();
+
+                // Pull in the RRD graph for comparison
+                var rrdGraphImageUrl = "http://" + onmsUsername + ":" + onmsPassword + "@" + onmsHost + ":" + onmsPort + "/opennms/graph/graph.png?resourceId=" + resource +
+                        "&report=" + encodeURIComponent(report) +
+                        "&start=" + start +
+                        "&end=" + end +
+                        "&width=480&height=320";
+                $('#' + $(this).data('original-graph')).prepend('<img src="' + rrdGraphImageUrl + '" />');
+
+                // Show the resulting model if the div is defined
+                $('#' + $(this).data('graph-model')).prepend("<pre>" + JSON.stringify(graphModel, null, 2) + "</pre>");
+            });
+        });
+    });
+</script>
+</body>
+</html>
