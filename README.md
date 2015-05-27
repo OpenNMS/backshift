@@ -1,4 +1,4 @@
-# Backshift
+# Backshift [![Build Status](https://secure.travis-ci.org/j-white/backshift.png?branch=master)](http://travis-ci.org/j-white/backshift)
 
 This library was built as an alternative to [rrdgraph](http://oss.oetiker.ch/rrdtool/doc/rrdgraph.en.html) for use in [OpenNMS](https://github.com/OpenNMS/opennms).
 
