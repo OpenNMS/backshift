@@ -12,24 +12,20 @@ Backshift.Graph.Matrix = Backshift.Class.create(Backshift.Graph, {
     this.statusBlock = null;
   },
 
-  beforeFetch: function () {
-    this.timeBeforeFetch = Date.now();
-    this.updateStatus("Fetching...");
+  onBeforeQuery: function () {
+    this.timeBeforeQuery = Date.now();
+    this.updateStatus("Querying...");
   },
 
-  onFetchSuccess: function (dp) {
-    this.drawMatrix(dp);
-    var timeAfterFetch = Date.now();
-    var secondsForFetch = Number((timeAfterFetch - this.timeBeforeFetch) / 1000).toFixed(2);
-    this.updateStatus("Successfully retrieved data in " + secondsForFetch + " seconds.");
+  onQuerySuccess: function (results) {
+    this.drawMatrix(results);
+    var timeAfterQuery = Date.now();
+    var queryDuration = Number((timeAfterQuery - this.timeBeforeQuery) / 1000).toFixed(2);
+    this.updateStatus("Successfully retrieved data in " + queryDuration + " seconds.");
   },
 
-  onFetchFail: function () {
-    this.updateStatus("Fetch failed.");
-  },
-
-  onNewData: function () {
-    this.updateStatus("Received new data!");
+  onQueryFailed: function () {
+    this.updateStatus("Query failed.");
   },
 
   updateStatus: function (status) {
@@ -40,28 +36,28 @@ Backshift.Graph.Matrix = Backshift.Class.create(Backshift.Graph, {
     }
   },
 
-  drawMatrix: function (dp) {
-    var mat = dp.getMatrix(),
-      n = mat.labels.length,
-      rows = new Array(n),
-      i = 0,
-      entry,
+  drawMatrix: function (results) {
+    var numRows = results.columns[0].length,
+      numColumns = results.columnNames.length,
+      rows = new Array(numRows),
+      i,
       k;
 
-    /* Format the rows to:
-     {
-     'timestamp': 100,
-     'source1': 1,
-     'source2:' 2
-     },
+    /* Format the columns into rows of the form:
+      [
+        {
+          'timestamp': 100,
+          'metric1': 1,
+          'metric2': 2
+        },
+      ]
      */
-    Backshift.rows(mat).forEach(function (row) {
-      entry = {};
-      for (k = 0; k < n; k++) {
-        entry[mat.labels[k]] = row[k];
+    for (i = 0; i < numRows; i++) {
+      rows[i] = {};
+      for (k = 0; k < numColumns; k++) {
+        rows[i][results.columnNames[k]] = results.columns[k][i];
       }
-      rows[i++] = entry;
-    }, this);
+    }
 
     // Retrieve the current status, if present
     var status = "";
@@ -76,11 +72,11 @@ Backshift.Graph.Matrix = Backshift.Class.create(Backshift.Graph, {
     this.statusBlock = d3.select(this.element).append("p").attr("align", "right").text(status);
 
     // Draw the table
-    this.tabulate(this.element, rows, mat.labels);
+    this.tabulate(this.element, rows, results.columnNames);
 
     // Add some meta-data to the div
     d3.select(this.element)
-      .attr("data-matrix", JSON.stringify(mat));
+      .attr("data-results", JSON.stringify(results));
 
     d3.select(this.element)
       .attr("data-rendered-at", Date.now());

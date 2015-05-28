@@ -24,13 +24,18 @@
 </head>
 
 <body>
-<div id="graph"></div>
+
+<div id="c3-graph"></div>
+
+<br/>
+
+<div id="matrix-graph"></div>
 
 <script type="text/javascript">
     var ds = new Backshift.DataSource.SineWave({
         metrics: [
             {
-                name: "sinWave",
+                name: "sineWave",
                 amplitude: 5,
                 hshift: 5,
                 period: 32 * Math.PI * 60
@@ -38,8 +43,8 @@
         ]
     });
 
-    var graph = new Backshift.Graph.C3({
-        element: document.querySelector("#graph"),
+    var c3Graph = new Backshift.Graph.C3({
+        element: document.querySelector("#c3-graph"),
         last: 2 * 1000, // 2 seconds
         refreshRate: 750,
         checkInterval: 125,
@@ -48,13 +53,24 @@
         verticalLabel: "Units",
         series: [
             {
-                name: "Sin Wave",
-                metric: "sinWave",
+                name: "Sine Wave",
+                metric: "sineWave",
                 type: "line"
             }
         ]
     });
 
-    graph.render();
+    c3Graph.render();
+
+    var matrixGraph = new Backshift.Graph.Matrix({
+        element: document.querySelector("#matrix-graph"),
+        last: 2 * 1000, // 2 seconds
+        refreshRate: 750,
+        checkInterval: 125,
+        resolution: 10,
+        dataSource: ds
+    });
+
+    matrixGraph.render();
 </script>
 </body>

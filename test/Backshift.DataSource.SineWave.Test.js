@@ -8,7 +8,6 @@ describe('Backshift.DataSource.SineWave.Test', function () {
       metrics: [
         {
           name: 'sinWave',
-          type: 'sin',
           amplitude: 5,
           hshift: 5,
           period: 32 * Math.PI

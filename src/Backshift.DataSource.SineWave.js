@@ -13,10 +13,11 @@ Backshift.DataSource.SineWave = Backshift.Class.create(Backshift.DataSource, {
     var self = this;
 
     return new RSVP.Promise(function (resolve) {
-      var k, t, column, columns, columnNames, numMetrics = self.metrics.length;
+      var k, t, column, columns, columnNames, columnNameToIndex, numMetrics = self.metrics.length;
 
       columns = new Array(1 + numMetrics);
       columnNames = new Array(1 + numMetrics);
+      columnNameToIndex = {};
 
       for (k = 0; k <= numMetrics; k++) {
         column = new Array(resolution);
@@ -35,15 +36,14 @@ Backshift.DataSource.SineWave = Backshift.Class.create(Backshift.DataSource, {
             column[t] = self._sin(columns[0][t], self.metrics[k - 1]);
           }
         }
+
+        columnNameToIndex[columnNames[k]] = k;
       }
 
       resolve({
         columns: columns,
         columnNames: columnNames,
-        columnNameToIndex: {
-          'timestamp': 0,
-          'sinWave': 1
-        }
+        columnNameToIndex: columnNameToIndex
       });
     });
   },

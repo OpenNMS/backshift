@@ -7,11 +7,6 @@ Backshift.namespace('Backshift.Graph');
 /** The core graph implementation */
 Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
   initialize: function (args) {
-    if (args.series === undefined) {
-      Backshift.fail('Graph needs one or more series.');
-    }
-    this.series = args.series;
-
     if (args.dataSource === undefined) {
       Backshift.fail('Graph needs a data source.');
     }
@@ -21,6 +16,8 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
       Backshift.fail('Graph needs an element.');
     }
     this.element = args.element;
+
+    this.series = args.series;
 
     this.configure(args);
 
