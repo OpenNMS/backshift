@@ -167,6 +167,9 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
           }
         }
       },
+      transition: {
+        duration: 0
+      },
       point: {
         show: false
       },
