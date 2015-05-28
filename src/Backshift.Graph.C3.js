@@ -28,6 +28,9 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
 
   defaults: function ($super) {
     return Backshift.extend($super(), {
+      width: undefined,
+      height: undefined,
+      resolution: 100,
       title: undefined,
       verticalLabel: undefined,
       step: false // treat points a segments (similar to rrdgraph)
@@ -148,6 +151,10 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
         colors: this.colorMap,
         groups: this.groups,
         order: null // stack order by data definition
+      },
+      size: {
+        width: this.width,
+        height: this.height
       },
       axis: {
         x: {
