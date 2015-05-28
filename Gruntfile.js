@@ -40,7 +40,8 @@ module.exports = function (grunt) {
     'src/Backshift.Graph.js',
     'src/Backshift.Graph.C3.js',
     'src/Backshift.DataSource.js',
-    'src/Backshift.DataSource.OpenNMS.js'
+    'src/Backshift.DataSource.OpenNMS.js',
+    'src/Loaded.js'
   ];
 
   // Project configuration.
