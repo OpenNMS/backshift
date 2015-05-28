@@ -24,7 +24,7 @@ The actual rendering of the charts is performed by third party libraries i.e. [c
 
 ### Building
 
-Install the dependencies and build the minified script:
+Install the dependencies and build the minified scripts:
 
 ```
 npm install

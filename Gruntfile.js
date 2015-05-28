@@ -1,31 +1,46 @@
-module.exports = function(grunt) {
+module.exports = function (grunt) {
 
-  var srcFiles = [
-      'src/Compat.js',
-      'src/Backshift.js',
-      'src/Backshift.Class.js',
-      'src/Backshift.Class.Configurable.js',
-      'src/Backshift.Math.js',
-      'src/Backshift.Stats.js',
-      'src/Backshift.Utilities.Url.js',
-      'src/Backshift.Utilities.RpnToJexlConverter.js',
-      'src/Backshift.Utilities.RrdGraphVisitor.js',
-      'src/Backshift.Utilities.RrdGraphConverter.js',
-      'src/Backshift.Graph.js',
-      'src/Backshift.Data.js',
-      'src/Backshift.Data.Mock.js',
-      'src/Backshift.Data.Mock.TrigFnFactory.js',
-      'src/Backshift.Data.Mock.Trig.js',
-      'src/Backshift.Data.Newts.js',
-      'src/Backshift.Data.OnmsRRD.js',
-      'src/Backshift.Data.Factory.js',
-      'src/Backshift.Legend.js',
-      'src/Backshift.Legend.Rickshaw.js',
-      'src/Backshift.Graph.js',
-      'src/Backshift.Graph.Matrix.js',
-      'src/Backshift.Graph.Flot.js',
-      'src/Backshift.Graph.Rickshaw.js',
-      'src/Backshift.Graph.C3.js'
+  var allSrcFiles = [
+    'src/Compat.js',
+    'src/Backshift.js',
+    'src/Backshift.Class.js',
+    'src/Backshift.Class.Configurable.js',
+    'src/Backshift.Math.js',
+    'src/Backshift.Stats.js',
+    'src/Backshift.Utilities.Url.js',
+    'src/Backshift.Utilities.RpnToJexlConverter.js',
+    'src/Backshift.Utilities.RrdGraphVisitor.js',
+    'src/Backshift.Utilities.RrdGraphConverter.js',
+    'src/Backshift.Graph.js',
+    'src/Backshift.Data.js',
+    'src/Backshift.Data.Mock.js',
+    'src/Backshift.Data.Mock.TrigFnFactory.js',
+    'src/Backshift.Data.Mock.Trig.js',
+    'src/Backshift.Data.Newts.js',
+    'src/Backshift.Data.OnmsRRD.js',
+    'src/Backshift.Data.Factory.js',
+    'src/Backshift.Legend.js',
+    'src/Backshift.Legend.Rickshaw.js',
+    'src/Backshift.Graph.js',
+    'src/Backshift.Graph.Matrix.js',
+    'src/Backshift.Graph.Flot.js',
+    'src/Backshift.Graph.Rickshaw.js',
+    'src/Backshift.Graph.C3.js'
+  ];
+
+  // Minimal set of files required for support in OpenNMS
+  var onmsSrcFiles = [
+    'src/Compat.js',
+    'src/Backshift.js',
+    'src/Backshift.Class.js',
+    'src/Backshift.Class.Configurable.js',
+    'src/Backshift.Utilities.RpnToJexlConverter.js',
+    'src/Backshift.Utilities.RrdGraphVisitor.js',
+    'src/Backshift.Utilities.RrdGraphConverter.js',
+    'src/Backshift.Graph.js',
+    'src/Backshift.Graph.C3.js',
+    'src/Backshift.DataSource.js',
+    'src/Backshift.DataSource.OpenNMS.js'
   ];
 
   // Project configuration.
@@ -33,26 +48,35 @@ module.exports = function(grunt) {
     pkg: grunt.file.readJSON('package.json'),
     uglify: {
       options: {
-        banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n'
+        mangle: false,
+        banner: '/*! <%= pkg.name %> <%= pkg.version %> - built on <%= grunt.template.today("yyyy-mm-dd") %> */\n'
       },
       build: {
-        src: srcFiles,
+        src: allSrcFiles,
         dest: 'build/<%= pkg.name %>.min.js'
+      },
+      onmsBuild: {
+        src: onmsSrcFiles,
+        dest: 'build/<%= pkg.name %>.onms.min.js'
       }
     },
     concat: {
-        dist: {
-          src: srcFiles,
-          dest: 'build/<%= pkg.name %>.js'
-        }
+      build: {
+        src: allSrcFiles,
+        dest: 'build/<%= pkg.name %>.js'
+      },
+      onmsBuild: {
+        src: onmsSrcFiles,
+        dest: 'build/<%= pkg.name %>.onms.js'
+      }
     },
-    jsdoc : {
-        dist : {
-            src: ['src/*.js'],
-            options: {
-                destination: 'build/doc'
-            }
+    jsdoc: {
+      build: {
+        src: ['src/*.js'],
+        options: {
+          destination: 'build/doc'
         }
+      }
     }
   });
 
