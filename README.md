@@ -14,12 +14,25 @@ And thus Backshift was born at [DevJam 2014](http://www.opennms.org/wiki/Dev-Jam
 
 ## Design
 
-Backshift provides an API for defining both graphs and data sources.
-Time series metrics can be retrieved from any of the available data sources and rendered by one of the graphing implementations.
+Backshift provides an API for defining both graphs, different ways to visualize time series metrics, and data sources, different ways of retrieving the time series metrics.
 
-## Building
- 
+## Getting Started
+
+### Building
+
+Install the dependencies and build the minified script:
+
 ```
 npm install
 grunt
 ```
+
+### Running the examples
+
+Run the development web server:
+
+```
+npm start
+```
+
+Now browse to the examples at `http://localhost:8000/examples/opennms-graphs.html`.
