@@ -14,7 +14,11 @@ And thus Backshift was born at [DevJam 2014](http://www.opennms.org/wiki/Dev-Jam
 
 ## Design
 
-Backshift provides an API for defining both graphs, different ways to visualize time series metrics, and data sources, different ways of retrieving the time series metrics.
+Backshift provides the glue between data sources and charting APIs.
+
+Charts and data sources are made accessible via a consistent API, allowing these to be easily interchanged.
+
+The actual rendering of the charts is performed by third party libraries i.e. [c3.js](http://c3js.org/) built to this end.
 
 ## Getting Started
 
