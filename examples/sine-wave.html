@@ -24,7 +24,7 @@
 </head>
 
 <body>
-<div id="graph1"></div>
+<div id="graph"></div>
 
 <script type="text/javascript">
     var ds = new Backshift.DataSource.SineWave({
@@ -39,8 +39,8 @@
     });
 
     var graph = new Backshift.Graph.C3({
-        element: document.querySelector("#graph1"),
-        last: 2 * 1000, // 2 minutes
+        element: document.querySelector("#graph"),
+        last: 2 * 1000, // 2 seconds
         refreshRate: 750,
         checkInterval: 125,
         dataSource: ds,
