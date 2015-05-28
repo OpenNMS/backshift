@@ -9,13 +9,12 @@ Backshift.Class.Configurable = Backshift.Class.create({
     args = args || {};
 
     Backshift.keys(this.defaults()).forEach(function (key) {
-
       if (!args.hasOwnProperty(key)) {
         this[key] = this[key] || this.defaults()[key];
         return;
       }
 
-      if (typeof this.defaults()[key] == 'object') {
+      if (this.defaults()[key] !== null && typeof this.defaults()[key] == 'object') {
 
         Backshift.keys(this.defaults()[key]).forEach(function (k) {
 
