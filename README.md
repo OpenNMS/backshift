@@ -35,4 +35,4 @@ Run the development web server:
 npm start
 ```
 
-Now browse to the examples at `http://localhost:8000/examples/opennms-graphs.html`.
+Now browse to the examples at `http://localhost:8000/examples/`.
