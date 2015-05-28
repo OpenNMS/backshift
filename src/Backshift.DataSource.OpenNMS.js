@@ -95,6 +95,9 @@ Backshift.DataSource.OpenNMS = Backshift.Class.create(Backshift.DataSource, {
     columnNameToIndex = {};
 
     columns[0] = json.timestamps;
+    columnNames[0] = 'timestamp';
+    columnNameToIndex['timestamp'] = 0;
+
     for (k = 0; k < numMetrics; k++) {
       columns[1 + k] = json.columns[k].values;
       columnNames[1 + k] = json.labels[k];

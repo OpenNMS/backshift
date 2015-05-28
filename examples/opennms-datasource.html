@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="../bower_components/rsvp/rsvp.min.js"></script>
+    <script src="../bower_components/jquery/dist/jquery.min.js"></script>
+
+    <script src="../src/Compat.js"></script>
+    <script src="../src/Backshift.js"></script>
+    <script src="../src/Backshift.Class.js"></script>
+    <script src="../src/Backshift.Class.Configurable.js"></script>
+    <script src="../src/Backshift.Math.js"></script>
+    <script src="../src/Backshift.Stats.js"></script>
+    <script src="../src/Backshift.Utilities.Url.js"></script>
+    <script src="../src/Backshift.Utilities.RpnToJexlConverter.js"></script>
+    <script src="../src/Backshift.Utilities.RrdGraphVisitor.js"></script>
+    <script src="../src/Backshift.Utilities.RrdGraphConverter.js"></script>
+    <script src="../src/Backshift.DataSource.js"></script>
+    <script src="../src/Backshift.DataSource.OpenNMS.js"></script>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+<div class="container-fluid">
+    <h2>OpenNMS datasource results:</h2>
+    <div class="row">
+        <div class="col-md-4">
+            <div id="results">Querying...</div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var onmsHost = "demo.opennms.org",
+            onmsPort = 80,
+            onmsUsername = 'demo',
+            onmsPassword = 'demo',
+            end = Date.now(),
+            start = end - (8 * 60 * 60 * 1000), // 8 hours ago
+            resolution = 100;
+
+    function getBaseHref() {
+        return "http://" + onmsHost + ":" + onmsPort;
+    }
+
+    $(document).ready(function () {
+        // Build the data-source
+        var ds = new Backshift.DataSource.OpenNMS({
+            url: getBaseHref() + "/opennms/rest/measurements",
+            username: onmsUsername,
+            password: onmsPassword,
+            // Define the metrics you want to retrieve
+            metrics: [
+                {
+                    name: "context",
+                    resourceId: "node[70].nodeSnmp[]",
+                    attribute: "SysRawContext",
+                    aggregation: "AVERAGE"
+                }
+            ]
+        });
+
+        // Retrieve the metrics over a given timespan with the desired resolution (i.e. number of points)
+        ds.query(start, end, resolution).then(function(results) {
+            $('#results').html("<pre>" + JSON.stringify(results, null, 4) + "</pre>");
+        }, function(err){
+            $('#results').text("Query failed with: " + err);
+        });
+    });
+</script>
+</body>
+</html>
