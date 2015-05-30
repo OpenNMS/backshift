@@ -10,6 +10,11 @@ Backshift.DataSource.SineWave = Backshift.Class.create(Backshift.DataSource, {
   },
 
   query: function (start, end, resolution, args) {
+    if (resolution <= 0) {
+      // Use millisecond resolution if none is specified
+      resolution = end - end;
+    }
+
     var self = this;
 
     return new RSVP.Promise(function (resolve) {

@@ -30,7 +30,6 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
     return Backshift.extend($super(), {
       width: undefined,
       height: undefined,
-      resolution: 100,
       title: undefined,
       verticalLabel: undefined,
       step: false // treat points a segments (similar to rrdgraph)

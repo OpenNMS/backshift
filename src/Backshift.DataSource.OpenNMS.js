@@ -46,7 +46,7 @@ Backshift.DataSource.OpenNMS = Backshift.Class.create(Backshift.DataSource, {
     var queryRequest = {
       "start": start,
       "end": end,
-      "step": Math.floor((end - start) / resolution),
+      "step": resolution > 0 ? Math.floor((end - start) / resolution) : 1,
       "source": [],
       "expression": []
     };
