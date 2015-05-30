@@ -167,6 +167,14 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
           }
         }
       },
+      grid: {
+        x: {
+          show: true
+        },
+        y: {
+          show: true
+        }
+      },
       transition: {
         duration: 0
       },
