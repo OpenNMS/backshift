@@ -185,6 +185,14 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
       },
       title: {
         text: this.title
+      },
+      tooltip: {
+        format: {
+          title: function (d) { return d; },
+          value: function (value, ratio, id) {
+            return d3.format(".4s")(value);
+          }
+        }
       }
     });
   }
