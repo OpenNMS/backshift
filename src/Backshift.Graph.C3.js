@@ -6,7 +6,7 @@ Backshift.namespace('Backshift.Graph.C3');
 
 /**
  * Current issues:
- *   - All of the columns appear in the legend, we only want to display those with name != undefined
+ *   - Can't tell the difference between 0 and NaN without mouseover
  *   - The x-axis gets crowded when looking at a weekly timespan
  *   - Need a way of retrieving min/max and average values
  *
@@ -63,7 +63,7 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
 
   _getDisplayName: function (name) {
     if (name === undefined || name === null) {
-      return " ";
+      return null;
     } else {
       return name;
     }
