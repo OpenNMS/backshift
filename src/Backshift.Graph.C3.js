@@ -42,6 +42,7 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
     this.colorMap = {};
     this.typeMap = {};
     this.nameMap = {};
+    this.chartMessage = "Loading...";
   },
 
   onRender: function () {
@@ -136,10 +137,32 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
       this.typeMap[columnName] = this._getType(series.type, shouldStack);
     }
 
+    this.chartMessage = null;
     this._updatePlot();
   },
 
+  onQueryFailed: function($super, reason) {
+    $super(reason);
+    this.chartMessage = "Query failed.";
+  },
+
+  _onRendered: function() {
+    if (this.chartMessage !== null) {
+      var svg = d3.select(this.element).select("svg");
+      var boundingRect = svg.node().getBoundingClientRect();
+      svg.select("#chart-title").remove();
+      svg.append('text')
+        .attr("id", "chart-title")
+        .attr('x', boundingRect.width / 2)
+        .attr('y', boundingRect.height / 2.5)
+        .attr('text-anchor', 'middle')
+        .style('font-size', '2.5em')
+        .text(this.chartMessage);
+    }
+  },
+
   _updatePlot: function () {
+    var self = this;
     c3.generate({
       bindto: d3.select(this.element),
       data: {
@@ -182,6 +205,9 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
       },
       zoom: {
         enabled: true
+      },
+      onrendered: function () {
+        self._onRendered()
       },
       title: {
         text: this.title
