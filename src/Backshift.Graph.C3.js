@@ -185,7 +185,7 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
         y: {
           label: this.verticalLabel,
           tick: {
-            format: d3.format("s")
+            format: d3.format(".2s")
           }
         }
       },
