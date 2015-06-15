@@ -54,28 +54,28 @@ module.exports = function (grunt) {
       },
       build: {
         src: allSrcFiles,
-        dest: 'build/<%= pkg.name %>.min.js'
+        dest: 'dist/<%= pkg.name %>.min.js'
       },
       onmsBuild: {
         src: onmsSrcFiles,
-        dest: 'build/<%= pkg.name %>.onms.min.js'
+        dest: 'dist/<%= pkg.name %>.onms.min.js'
       }
     },
     concat: {
       build: {
         src: allSrcFiles,
-        dest: 'build/<%= pkg.name %>.js'
+        dest: 'dist/<%= pkg.name %>.js'
       },
       onmsBuild: {
         src: onmsSrcFiles,
-        dest: 'build/<%= pkg.name %>.onms.js'
+        dest: 'dist/<%= pkg.name %>.onms.js'
       }
     },
     jsdoc: {
       build: {
         src: ['src/*.js'],
         options: {
-          destination: 'build/doc'
+          destination: 'dist/doc'
         }
       }
     }
