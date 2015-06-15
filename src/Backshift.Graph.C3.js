@@ -6,20 +6,20 @@ Backshift.namespace('Backshift.Graph.C3');
 
 /**
  * Current issues:
- *   - Can't tell the difference between 0 and NaN without mouseover
- *   - The x-axis gets crowded when looking at a weekly timespan
- *   - Need a way of retrieving min/max and average values
+ *   - Can't tell the difference between 0 and NaN without mouseover - use regions to identify these?
  *
  * Features to add:
+ *   - Improved X-axis legend - the format should depend on the time-span
+ *   - Add support for retrieving min/max and average values
  *   - Identify outages with regions: http://c3js.org/samples/region_timeseries.html
  *   - Identify events with grid lines: http://c3js.org/samples/grid_x_lines.html
  *
  * Notes:
  *   - Opacity for the area can be set with:
  *     .c3-area {
-            stroke-width: 0;
-            opacity: 1.0;
-        }
+ *          stroke-width: 0;
+ *          opacity: 1.0;
+ *      }
  *
  */
 
@@ -251,7 +251,12 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
       },
       axis: {
         x: {
-          type: 'timeseries'
+          type: 'timeseries',
+          tick: {
+            culling: {
+              max: 8 // the number of tick texts will be adjusted to less than this value
+            }
+          }
         },
         y: {
           label: this.verticalLabel,
