@@ -5,8 +5,7 @@
   "homepage": "https://github.com/j-white/backshift",
   "private": true,
   "dependencies": {
-    "jquery": "~2.1.4",
-    "rsvp": "~3.0.18"
+    "jquery": "~2.1.4"
   },
   "devDependencies": {
     "c3": "https://github.com/masayuki0812/c3.git#v0.4.11-rc1"

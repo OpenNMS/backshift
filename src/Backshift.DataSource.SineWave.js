@@ -16,41 +16,40 @@ Backshift.DataSource.SineWave = Backshift.Class.create(Backshift.DataSource, {
     }
 
     var self = this;
+    var dfd = jQuery.Deferred();
+    var k, t, column, columns, columnNames, columnNameToIndex, numMetrics = self.metrics.length;
 
-    return new RSVP.Promise(function (resolve) {
-      var k, t, column, columns, columnNames, columnNameToIndex, numMetrics = self.metrics.length;
+    columns = new Array(1 + numMetrics);
+    columnNames = new Array(1 + numMetrics);
+    columnNameToIndex = {};
 
-      columns = new Array(1 + numMetrics);
-      columnNames = new Array(1 + numMetrics);
-      columnNameToIndex = {};
+    for (k = 0; k <= numMetrics; k++) {
+      column = new Array(resolution);
+      columns[k] = column;
 
-      for (k = 0; k <= numMetrics; k++) {
-        column = new Array(resolution);
-        columns[k] = column;
+      if (k === 0) {
+        columnNames[k] = 'timestamp';
 
-        if (k === 0) {
-          columnNames[k] = 'timestamp';
-
-          for (t = 0; t < resolution; t++) {
-            column[t] = start + t / (resolution - 1) * (end - start);
-          }
-        } else {
-          columnNames[k] = self.metrics[k - 1].name;
-
-          for (t = 0; t < resolution; t++) {
-            column[t] = self._sin(columns[0][t], self.metrics[k - 1]);
-          }
+        for (t = 0; t < resolution; t++) {
+          column[t] = start + t / (resolution - 1) * (end - start);
         }
+      } else {
+        columnNames[k] = self.metrics[k - 1].name;
 
-        columnNameToIndex[columnNames[k]] = k;
+        for (t = 0; t < resolution; t++) {
+          column[t] = self._sin(columns[0][t], self.metrics[k - 1]);
+        }
       }
 
-      resolve({
-        columns: columns,
-        columnNames: columnNames,
-        columnNameToIndex: columnNameToIndex
-      });
+      columnNameToIndex[columnNames[k]] = k;
+    }
+
+    dfd.resolve({
+      columns: columns,
+      columnNames: columnNames,
+      columnNameToIndex: columnNameToIndex
     });
+    return dfd.promise();
   },
 
   _sin: function (t, metric) {

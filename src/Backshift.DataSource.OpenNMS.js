@@ -21,25 +21,25 @@ Backshift.DataSource.OpenNMS = Backshift.Class.create(Backshift.DataSource, {
     }
 
     var self = this;
-    return new RSVP.Promise(function (resolve, reject) {
-      jQuery.ajax({
-        url: self.url,
-        xhrFields: {
-          withCredentials: withCredentials
-        },
-        headers: headers,
-        type: "POST",
-        data: JSON.stringify(self._getQueryRequest(start, end, resolution)),
-        contentType: "application/json",
-        dataType: "json",
-        success: function (json) {
-          resolve(self._parseResponse(json));
-        },
-        error: function (jqXhr, textStatus) {
-          reject(textStatus);
-        }
-      });
+    var dfd = jQuery.Deferred();
+    jQuery.ajax({
+      url: self.url,
+      xhrFields: {
+        withCredentials: withCredentials
+      },
+      headers: headers,
+      type: "POST",
+      data: JSON.stringify(self._getQueryRequest(start, end, resolution)),
+      contentType: "application/json",
+      dataType: "json",
+      success: function (json) {
+        dfd.resolve(self._parseResponse(json));
+      },
+      error: function (jqXhr, textStatus) {
+        dfd.reject(textStatus);
+      }
     });
+    return dfd.promise();
   },
 
   _getQueryRequest: function (start, end, resolution) {
