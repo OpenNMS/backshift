@@ -32,7 +32,9 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
       height: undefined,
       title: undefined,
       verticalLabel: undefined,
-      step: false // treat points a segments (similar to rrdgraph)
+      clipboardData: undefined,
+      exportIconSizeRatio: 0.03, // relative size in pixels of "Export to CSV" icon - set to 0 to disable
+      step: false // treats points a segments (similar to rrdgraph)
     });
   },
 
@@ -43,6 +45,12 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
     this.typeMap = {};
     this.nameMap = {};
     this.chartMessage = "Loading...";
+
+    this.clipboardPrimed = false;
+    // Only add the event listener if the export icon is enabled
+    if (this.exportIconSizeRatio > 0) {
+      document.addEventListener('copy', this._onClipboardCopy);
+    }
   },
 
   onRender: function () {
@@ -146,11 +154,61 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
     this.chartMessage = "Query failed.";
   },
 
+  _onToggleCsvExport: function(el) {
+    var iconColor = "black";
+    if (this.clipboardPrimed) {
+      window.backshift_c3_clipboard = undefined;
+      this.clipboardPrimed = false;
+    } else {
+      iconColor = "green";
+      var i, j, csv  = "";
+      var numColumns = this.columns.length;
+      var numRows = numColumns > 0 ? this.columns[0].length - 1 : 0;
+
+      for (i = 0; i < numColumns; i++) {
+        if (i == 0) {
+          csv = "Timestamp";
+        } else {
+          csv += "," + this.nameMap[this.columns[i][0]];
+        }
+      }
+
+      for (i = 1; i <= numRows; i++) {
+        csv += "\n";
+        for (j = 0; j < numColumns; j++) {
+          if (j > 0) {
+            csv += ",";
+          }
+          csv += this.columns[j][i];
+        }
+      }
+      window.backshift_c3_clipboard = csv;
+      this.clipboardPrimed = true;
+    }
+    d3.select(el).style("fill", iconColor);
+  },
+
+  _onClipboardCopy: function(e) {
+    if (window.backshift_c3_clipboard === undefined) {
+      return;
+    }
+    var isIe = (navigator.userAgent.toLowerCase().indexOf("msie") != -1
+           || navigator.userAgent.toLowerCase().indexOf("trident") != -1);
+    if (isIe) {
+      window.clipboardData.setData('Text', window.backshift_c3_clipboard);
+    } else {
+      e.clipboardData.setData('text/plain', window.backshift_c3_clipboard);
+    }
+    e.preventDefault();
+  },
+
   _onRendered: function() {
+    var self = this;
+    var svg = d3.select(this.element).select("svg");
+    var boundingRect = svg.node().getBoundingClientRect();
+
+    svg.select("#chart-title").remove();
     if (this.chartMessage !== null) {
-      var svg = d3.select(this.element).select("svg");
-      var boundingRect = svg.node().getBoundingClientRect();
-      svg.select("#chart-title").remove();
       svg.append('text')
         .attr("id", "chart-title")
         .attr('x', boundingRect.width / 2)
@@ -158,6 +216,19 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
         .attr('text-anchor', 'middle')
         .style('font-size', '2.5em')
         .text(this.chartMessage);
+    }
+
+    svg.select("#export-to-csv").remove();
+    if (this.columns.length > 0 && this.exportIconSizeRatio > 0) {
+      var sizeInPixels = boundingRect.width * this.exportIconSizeRatio;
+      svg.append('text')
+        .attr("id", "export-to-csv")
+        .attr('x', boundingRect.width - sizeInPixels)
+        .attr('y', sizeInPixels)
+        .attr('font-family', 'FontAwesome')
+        .attr('font-size', function(d) { return sizeInPixels + 'px'} )
+        .text(function(d) { return '\uf0ce' })
+        .on("click", function() { return self._onToggleCsvExport(this, self); });
     }
   },
 
