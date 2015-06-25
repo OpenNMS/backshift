@@ -56,6 +56,17 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
     this.createTimer();
   },
 
+  resize: function(size) {
+    // Implemented by subclasses
+  },
+
+  destroy: function() {
+    if (this.timer !== null) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+  },
+
   createTimer: function () {
     var self = this;
     this.timer = setInterval(function () {

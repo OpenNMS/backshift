@@ -51,6 +51,26 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
     if (this.exportIconSizeRatio > 0) {
       document.addEventListener('copy', this._onClipboardCopy);
     }
+
+    this.chart = null;
+  },
+
+  resize: function(size) {
+    // Store the width/height for any subsequent renders
+    this.width = size.width;
+    this.height = size.height;
+    // If we have a chart, resize it
+    if (this.chart !== null) {
+      this.chart.resize(size);
+    }
+  },
+
+  destroy: function($super) {
+    $super();
+    // If we have a chart, destroy it
+    if (this.chart !== null) {
+      this.chart = chart.destroy();
+    }
   },
 
   onRender: function () {
@@ -234,7 +254,7 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
 
   _updatePlot: function () {
     var self = this;
-    c3.generate({
+    this.chart = c3.generate({
       bindto: d3.select(this.element),
       data: {
         x: 'timestamp',
