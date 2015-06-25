@@ -1184,7 +1184,7 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
       title: undefined,
       verticalLabel: undefined,
       clipboardData: undefined,
-      exportIconSizeRatio: 0.03, // relative size in pixels of "Export to CSV" icon - set to 0 to disable
+      exportIconSizeRatio: 0.05, // relative size in pixels of "Export to CSV" icon - set to 0 to disable
       step: false // treats points a segments (similar to rrdgraph)
     });
   },
@@ -1371,7 +1371,7 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
 
     svg.select("#export-to-csv").remove();
     if (this.columns.length > 0 && this.exportIconSizeRatio > 0) {
-      var sizeInPixels = boundingRect.width * this.exportIconSizeRatio;
+      var sizeInPixels = Math.min(boundingRect.width, boundingRect.height) * this.exportIconSizeRatio;
       svg.append('text')
         .attr("id", "export-to-csv")
         .attr('x', boundingRect.width - sizeInPixels)
