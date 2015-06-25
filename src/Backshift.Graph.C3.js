@@ -34,6 +34,7 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
       verticalLabel: undefined,
       clipboardData: undefined,
       exportIconSizeRatio: 0.05, // relative size in pixels of "Export to CSV" icon - set to 0 to disable
+      interactive: true, // whether to do fancier chart navigation with mouse input events
       step: false // treats points a segments (similar to rrdgraph)
     });
   },
@@ -69,7 +70,7 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
     $super();
     // If we have a chart, destroy it
     if (this.chart !== null) {
-      this.chart = chart.destroy();
+      this.chart = this.chart.destroy();
     }
   },
 
@@ -254,8 +255,12 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
 
   _updatePlot: function () {
     var self = this;
+
     this.chart = c3.generate({
       bindto: d3.select(this.element),
+      interaction: {
+        enabled: this.interactive
+      },
       data: {
         x: 'timestamp',
         columns: this.columns,
