@@ -69,7 +69,7 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
     $super();
     // If we have a chart, destroy it
     if (this.chart !== null) {
-      this.chart = chart.destroy();
+      this.chart = this.chart.destroy();
     }
   },
 
