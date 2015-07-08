@@ -35,7 +35,8 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
       clipboardData: undefined,
       exportIconSizeRatio: 0.05, // relative size in pixels of "Export to CSV" icon - set to 0 to disable
       interactive: true, // whether to do fancier chart navigation with mouse input events
-      step: false // treats points a segments (similar to rrdgraph)
+      step: false, // treats points a segments (similar to rrdgraph)
+      zoom: true, // whether to allow zooming
     });
   },
 
@@ -305,7 +306,7 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
         show: false
       },
       zoom: {
-        enabled: true
+        enabled: this.zoom
       },
       onrendered: function () {
         self._onRendered()
