@@ -2,7 +2,7 @@
 
 This library was built as an alternative to [rrdgraph](http://oss.oetiker.ch/rrdtool/doc/rrdgraph.en.html) for use in [OpenNMS](https://github.com/OpenNMS/opennms).
 
-![](https://raw.githubusercontent.com/j-white/backshift/gh-pages/images/jrobin-vs-c3.png)
+![](https://raw.githubusercontent.com/opennms/backshift/gh-pages/images/jrobin-vs-c3.png)
 
 ## Motivation
 
