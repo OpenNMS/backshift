@@ -42,6 +42,22 @@ Backshift.Utilities.RpnToJexlConverter = Backshift.Class.create({
       };
     };
 
+    var limitOp = function (stack) {
+      console.log('stack = ' + JSON.stringify(stack));
+      var max = stack.pop();
+      var min = stack.pop();
+      var val = stack.pop();
+      return "( " +
+        "( " +
+          "(" + min + " == __inf) || (" + min + " == __neg_inf) " +
+          "|| (" + max + " == __inf) || (" + max + " == __neg_inf) " +
+          "|| (" + val + " == __inf) || (" + val + " == __neg_inf) " +
+          "|| (" + val + " < " + min + ") " +
+          "|| (" + val + " > " + max + ") " +
+        ") ? null : " + val + " " +
+      ")";
+    };
+
     this.operators['+'] = simpleOp('+');
     this.operators['-'] = simpleOp('-');
     this.operators['*'] = simpleOp('*');
@@ -55,6 +71,7 @@ Backshift.Utilities.RpnToJexlConverter = Backshift.Class.create({
     this.operators['GE'] = booleanOp('>=');
     this.operators['EQ'] = booleanOp('==');
     this.operators['NE'] = booleanOp('!=');
+    this.operators['LIMIT'] = limitOp;
 
   },
 
