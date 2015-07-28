@@ -257,7 +257,7 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
   _updatePlot: function () {
     var self = this;
 
-    this.chart = c3.generate({
+    var plotConfig = {
       bindto: d3.select(this.element),
       interaction: {
         enabled: this.interactive
@@ -279,13 +279,10 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
         x: {
           type: 'timeseries',
           tick: {
-            culling: {
-              max: 8 // the number of tick texts will be adjusted to less than this value
-            }
           }
         },
         y: {
-          label: this.verticalLabel,
+          label: self.verticalLabel,
           tick: {
             format: d3.format(".2s")
           }
@@ -322,6 +319,42 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
           }
         }
       }
-    });
+    };
+
+    if (self.columns && self.columns.length > 0) {
+      plotConfig.axis.x.tick.count = 30;
+
+      var timestamps = self.columns[0];
+      if (timestamps && timestamps.length >= 2) {
+        // timestamp,value,...
+        var oldest = timestamps[1];
+        var newest = timestamps[timestamps.length - 1];
+        var difference = newest - oldest;
+
+        console.log(newest + ' - ' + oldest + ' = ' + difference);
+
+        if (difference < 90000000) {
+          // less than about a day - 14:01
+          plotConfig.axis.x.tick.format = '%H:%M';
+          plotConfig.axis.x.tick.count = 24;
+        } else if (difference < 1209600000) {
+          // less than 2 weeks - Tue Jul 28
+          plotConfig.axis.x.tick.format = '%a %b %d';
+          plotConfig.axis.x.tick.count = 14;
+        } else if (difference < 7776000000) {
+          // less than 90 days - Jul 28
+          plotConfig.axis.x.tick.format = '%b %d';
+          plotConfig.axis.x.tick.count = 30;
+        } else {
+          // more than 3 months - Jul 2015
+          plotConfig.axis.x.tick.format = '%b %Y';
+          plotConfig.axis.x.tick.count = 12;
+        }
+      }
+    } else {
+      delete plotConfig.axis.x.tick.count;
+    }
+
+    self.chart = c3.generate(plotConfig);
   }
 });
