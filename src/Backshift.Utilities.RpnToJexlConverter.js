@@ -22,6 +22,16 @@ Backshift.Utilities.RpnToJexlConverter = Backshift.Class.create({
       };
     };
 
+    var funcOp = function (op, numArgs) {
+      return function (stack) {
+        var i, ret = op + "(";
+        for (i=0; i < numArgs; i++) {
+          ret += stack.pop() + ',';
+        }
+        return ret.substring(0, ret.length - 1) + ')';
+      };
+    };
+
     var ifOp = function (stack) {
       var c = stack.pop();
       var b = stack.pop();
@@ -30,6 +40,11 @@ Backshift.Utilities.RpnToJexlConverter = Backshift.Class.create({
     };
 
     var unOp = function (stack) {
+      var a = stack.pop();
+      return "( (" + a + " == NaN) ? 1 : 0)";
+    };
+
+    var infOp = function (stack) {
       var a = stack.pop();
       return "( (" + a + " == __inf) || (" + a + " == __neg_inf) ? 1 : 0)";
     };
@@ -43,7 +58,6 @@ Backshift.Utilities.RpnToJexlConverter = Backshift.Class.create({
     };
 
     var limitOp = function (stack) {
-      console.log('stack = ' + JSON.stringify(stack));
       var max = stack.pop();
       var min = stack.pop();
       var val = stack.pop();
@@ -56,6 +70,41 @@ Backshift.Utilities.RpnToJexlConverter = Backshift.Class.create({
           "|| (" + val + " > " + max + ") " +
         ") ? null : " + val + " " +
       ")";
+    };
+
+    var minMaxNanOp = function(op) {
+      return function (stack) {
+        var b = stack.pop();
+        var a = stack.pop();
+        return "( " +
+          "( " + a + " == NaN ) ? " + b + " : ( " +
+            "( " + b + " == NaN ) ? " + a + " : ( " +
+              op + "(" + b + "," + a + ") " +
+            ") " +
+          ") " +
+        ")";
+      }
+    };
+
+    var addNanOp = function (stack) {
+      var b = stack.pop();
+      var a = stack.pop();
+      return "( " +
+        "( " +
+          "( " + a + " == NaN ) && " +
+          "( " + b + " == NaN ) " +
+        ") ? NaN : ( " +
+          "( " + a + " == NaN ) ? " + b + " : ( " +
+            "( " + b + " == NaN ) ? " + a + " : ( " + a + " + " + b + " ) " +
+          ") " +
+        ") " +
+      ")";
+    };
+
+    var atan2Op = function (stack) {
+      var x = stack.pop();
+      var y = stack.pop();
+      return "math:atan2(" + y + "," + x + ")";
     };
 
     this.operators['+'] = simpleOp('+');
@@ -71,7 +120,28 @@ Backshift.Utilities.RpnToJexlConverter = Backshift.Class.create({
     this.operators['GE'] = booleanOp('>=');
     this.operators['EQ'] = booleanOp('==');
     this.operators['NE'] = booleanOp('!=');
+    this.operators['MIN'] = funcOp('math:min', 2);
+    this.operators['MAX'] = funcOp('math:max', 2);
+    this.operators['MINNAN'] = minMaxNanOp('math:min');
+    this.operators['MAXNAN'] = minMaxNanOp('math:max');
+    this.operators['ISINF'] = infOp;
     this.operators['LIMIT'] = limitOp;
+    this.operators['ADDNAN'] = addNanOp;
+    this.operators['SIN'] = funcOp('math:sin', 1);
+    this.operators['COS'] = funcOp('math:cos', 1);
+    this.operators['LOG'] = funcOp('math:log', 1);
+    this.operators['EXP'] = funcOp('math:exp', 1);
+    this.operators['SQRT'] = funcOp('math:sqrt', 1);
+    this.operators['ATAN'] = funcOp('math:atan', 1);
+    this.operators['ATAN2'] = atan2Op;
+    this.operators['FLOOR'] = funcOp('math:floor', 1);
+    this.operators['CEIL'] = funcOp('math:ceil', 1);
+    this.operators['RAD2DEG'] = funcOp('math:toDegrees', 1);
+    this.operators['DEG2RAD'] = funcOp('math:toRadians', 1);
+    this.operators['ABS'] = funcOp('math:abs', 1);
+    this.operators['UNKN'] = function() { return 'NaN'; };
+    this.operators['INF'] = function() { return '__inf'; };
+    this.operators['NEGINF'] = function() { return '__neg_inf'; };
 
   },
 
