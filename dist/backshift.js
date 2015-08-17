@@ -575,6 +575,16 @@ Backshift.Utilities.RpnToJexlConverter = Backshift.Class.create({
       };
     };
 
+    var funcOp = function (op, numArgs) {
+      return function (stack) {
+        var i, ret = op + "(";
+        for (i=0; i < numArgs; i++) {
+          ret += stack.pop() + ',';
+        }
+        return ret.substring(0, ret.length - 1) + ')';
+      };
+    };
+
     var ifOp = function (stack) {
       var c = stack.pop();
       var b = stack.pop();
@@ -583,6 +593,11 @@ Backshift.Utilities.RpnToJexlConverter = Backshift.Class.create({
     };
 
     var unOp = function (stack) {
+      var a = stack.pop();
+      return "( (" + a + " == NaN) ? 1 : 0)";
+    };
+
+    var infOp = function (stack) {
       var a = stack.pop();
       return "( (" + a + " == __inf) || (" + a + " == __neg_inf) ? 1 : 0)";
     };
@@ -593,6 +608,56 @@ Backshift.Utilities.RpnToJexlConverter = Backshift.Class.create({
         var a = stack.pop();
         return "(" + a + " " + op + " " + b + " ? 1 : 0)";
       };
+    };
+
+    var limitOp = function (stack) {
+      var max = stack.pop();
+      var min = stack.pop();
+      var val = stack.pop();
+      return "( " +
+        "( " +
+          "(" + min + " == __inf) || (" + min + " == __neg_inf) " +
+          "|| (" + max + " == __inf) || (" + max + " == __neg_inf) " +
+          "|| (" + val + " == __inf) || (" + val + " == __neg_inf) " +
+          "|| (" + val + " < " + min + ") " +
+          "|| (" + val + " > " + max + ") " +
+        ") ? null : " + val + " " +
+      ")";
+    };
+
+    var minMaxNanOp = function(op) {
+      return function (stack) {
+        var b = stack.pop();
+        var a = stack.pop();
+        return "( " +
+          "( " + a + " == NaN ) ? " + b + " : ( " +
+            "( " + b + " == NaN ) ? " + a + " : ( " +
+              op + "(" + b + "," + a + ") " +
+            ") " +
+          ") " +
+        ")";
+      }
+    };
+
+    var addNanOp = function (stack) {
+      var b = stack.pop();
+      var a = stack.pop();
+      return "( " +
+        "( " +
+          "( " + a + " == NaN ) && " +
+          "( " + b + " == NaN ) " +
+        ") ? NaN : ( " +
+          "( " + a + " == NaN ) ? " + b + " : ( " +
+            "( " + b + " == NaN ) ? " + a + " : ( " + a + " + " + b + " ) " +
+          ") " +
+        ") " +
+      ")";
+    };
+
+    var atan2Op = function (stack) {
+      var x = stack.pop();
+      var y = stack.pop();
+      return "math:atan2(" + y + "," + x + ")";
     };
 
     this.operators['+'] = simpleOp('+');
@@ -608,6 +673,28 @@ Backshift.Utilities.RpnToJexlConverter = Backshift.Class.create({
     this.operators['GE'] = booleanOp('>=');
     this.operators['EQ'] = booleanOp('==');
     this.operators['NE'] = booleanOp('!=');
+    this.operators['MIN'] = funcOp('math:min', 2);
+    this.operators['MAX'] = funcOp('math:max', 2);
+    this.operators['MINNAN'] = minMaxNanOp('math:min');
+    this.operators['MAXNAN'] = minMaxNanOp('math:max');
+    this.operators['ISINF'] = infOp;
+    this.operators['LIMIT'] = limitOp;
+    this.operators['ADDNAN'] = addNanOp;
+    this.operators['SIN'] = funcOp('math:sin', 1);
+    this.operators['COS'] = funcOp('math:cos', 1);
+    this.operators['LOG'] = funcOp('math:log', 1);
+    this.operators['EXP'] = funcOp('math:exp', 1);
+    this.operators['SQRT'] = funcOp('math:sqrt', 1);
+    this.operators['ATAN'] = funcOp('math:atan', 1);
+    this.operators['ATAN2'] = atan2Op;
+    this.operators['FLOOR'] = funcOp('math:floor', 1);
+    this.operators['CEIL'] = funcOp('math:ceil', 1);
+    this.operators['RAD2DEG'] = funcOp('math:toDegrees', 1);
+    this.operators['DEG2RAD'] = funcOp('math:toRadians', 1);
+    this.operators['ABS'] = funcOp('math:abs', 1);
+    this.operators['UNKN'] = function() { return 'NaN'; };
+    this.operators['INF'] = function() { return '__inf'; };
+    this.operators['NEGINF'] = function() { return '__neg_inf'; };
 
   },
 
@@ -926,6 +1013,17 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
     this.createTimer();
   },
 
+  resize: function(size) {
+    // Implemented by subclasses
+  },
+
+  destroy: function() {
+    if (this.timer !== null) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+  },
+
   createTimer: function () {
     var self = this;
     this.timer = setInterval(function () {
@@ -1185,7 +1283,9 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
       verticalLabel: undefined,
       clipboardData: undefined,
       exportIconSizeRatio: 0.05, // relative size in pixels of "Export to CSV" icon - set to 0 to disable
-      step: false // treats points a segments (similar to rrdgraph)
+      interactive: true, // whether to do fancier chart navigation with mouse input events
+      step: false, // treats points a segments (similar to rrdgraph)
+      zoom: true, // whether to allow zooming
     });
   },
 
@@ -1201,6 +1301,26 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
     // Only add the event listener if the export icon is enabled
     if (this.exportIconSizeRatio > 0) {
       document.addEventListener('copy', this._onClipboardCopy);
+    }
+
+    this.chart = null;
+  },
+
+  resize: function(size) {
+    // Store the width/height for any subsequent renders
+    this.width = size.width;
+    this.height = size.height;
+    // If we have a chart, resize it
+    if (this.chart !== null) {
+      this.chart.resize(size);
+    }
+  },
+
+  destroy: function($super) {
+    $super();
+    // If we have a chart, destroy it
+    if (this.chart !== null) {
+      this.chart = this.chart.destroy();
     }
   },
 
@@ -1385,8 +1505,12 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
 
   _updatePlot: function () {
     var self = this;
-    c3.generate({
+
+    var plotConfig = {
       bindto: d3.select(this.element),
+      interaction: {
+        enabled: this.interactive
+      },
       data: {
         x: 'timestamp',
         columns: this.columns,
@@ -1404,13 +1528,10 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
         x: {
           type: 'timeseries',
           tick: {
-            culling: {
-              max: 8 // the number of tick texts will be adjusted to less than this value
-            }
           }
         },
         y: {
-          label: this.verticalLabel,
+          label: self.verticalLabel,
           tick: {
             format: d3.format(".2s")
           }
@@ -1431,7 +1552,7 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
         show: false
       },
       zoom: {
-        enabled: true
+        enabled: this.zoom
       },
       onrendered: function () {
         self._onRendered()
@@ -1447,6 +1568,391 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
           }
         }
       }
+    };
+
+    if (self.columns && self.columns.length > 0) {
+      plotConfig.axis.x.tick.count = 30;
+
+      var timestamps = self.columns[0];
+      if (timestamps && timestamps.length >= 2) {
+        // timestamp,value,...
+        var oldest = timestamps[1];
+        var newest = timestamps[timestamps.length - 1];
+        var difference = newest - oldest;
+
+        console.log(newest + ' - ' + oldest + ' = ' + difference);
+
+        if (difference < 90000000) {
+          // less than about a day - 14:01
+          plotConfig.axis.x.tick.format = '%H:%M';
+          plotConfig.axis.x.tick.count = 24;
+        } else if (difference < 1209600000) {
+          // less than 2 weeks - Tue Jul 28
+          plotConfig.axis.x.tick.format = '%a %b %d';
+          plotConfig.axis.x.tick.count = 14;
+        } else if (difference < 7776000000) {
+          // less than 90 days - Jul 28
+          plotConfig.axis.x.tick.format = '%b %d';
+          plotConfig.axis.x.tick.count = 30;
+        } else {
+          // more than 3 months - Jul 2015
+          plotConfig.axis.x.tick.format = '%b %Y';
+          plotConfig.axis.x.tick.count = 12;
+        }
+      }
+    } else {
+      delete plotConfig.axis.x.tick.count;
+    }
+
+    self.chart = c3.generate(plotConfig);
+  }
+});
+
+/**
+ * Created by jwhite on 5/23/14.
+ */
+
+Backshift.namespace('Backshift.Graph.DC');
+
+/** Draws a table with all of the sources values. */
+Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
+
+  defaults: function ($super) {
+    return Backshift.extend($super(), {
+      width: undefined,
+      height: undefined,
+      title: undefined,
+      verticalLabel: undefined,
+      clipboardData: undefined,
+      replaceDiv: false, // (experimental) whether or not to render off-screen in a new div and replace the old one
+      exportIconSizeRatio: 0.05, // relative size in pixels of "Export to CSV" icon - set to 0 to disable
+      interactive: true, // whether to do fancier chart navigation with mouse input events
+      step: false, // treats points a segments (similar to rrdgraph)
+      zoom: true, // whether to allow zooming
     });
+  },
+
+  onInit: function () {
+    // Used to hold a reference to the div that holds the status text
+    this.statusBlock = null;
+    this.idPrefix = new Date().getTime() + '' + Math.floor(Math.random() * 100000);
+  },
+
+  onBeforeQuery: function () {
+    this.timeBeforeQuery = Date.now();
+    this.updateStatus("Querying...");
+  },
+
+  onQuerySuccess: function (results) {
+    this.drawGraphs(results);
+    var timeAfterQuery = Date.now();
+    var queryDuration = Number((timeAfterQuery - this.timeBeforeQuery) / 1000).toFixed(2);
+    this.updateStatus("Successfully retrieved data in " + queryDuration + " seconds.");
+  },
+
+  onQueryFailed: function () {
+    this.updateStatus("Query failed.");
+  },
+
+  updateStatus: function (status) {
+    /*
+    if (this.statusBlock) {
+      this.statusBlock.text(status);
+    } else {
+      this.statusBlock = d3.select(this.element).append("p").attr("align", "right").text(status);
+    }
+    */
+  },
+
+  drawGraphs: function (results) {
+    var self = this,
+      numRows = results.columns[0].length,
+      numColumns = results.columnNames.length,
+      rows = [],
+      val,
+      i,
+      k, row;
+
+    var timeFormat = d3.time.format('%Y-%m-%d %H:%M:%S');
+    var numberFormat = d3.format('0.2f');
+
+    /* make this element unique so we can refer to it when rendering */
+    var dgName = self.element.getAttribute('data-graph-model');
+    if (dgName === undefined) {
+      dgName = self.element.getAttribute('data-graph-name');
+    }
+    var id = dgName + self.idPrefix;
+    self.element.id = id;
+    jQuery(self.element)
+      .css('max-height', self.height)
+      .css('max-width', self.width)
+      .css('position', 'relative')
+      .css('float', 'none');
+
+    for (i = 0; i < numRows; i++) {
+      row = {};
+      for (k = 0; k < numColumns; k++) {
+        val = results.columns[k][i];
+        if (k === 0) { // timestamp
+          val = new Date(val);
+        }
+        if (val === null || val === undefined || val === 'NaN' || isNaN(val)) {
+          val = NaN;
+        }
+        row[results.columnNames[k]] = val;
+      }
+      rows.push(row);
+    }
+
+    var minTime = results.columns[0][0],
+      maxTime = results.columns[0][numRows-1],
+      difference = maxTime - minTime;
+
+    numRows = rows.length;
+    var columnNames = results.columnNames.splice(1);
+
+    if (!self.crossfilter) {
+      self.crossfilter = crossfilter([]);
+    }
+    self.crossfilter.remove();
+    self.crossfilter.add(rows);
+
+    var xunits;
+
+    if (difference < 90000000) {
+      xunits = d3.time.hours;
+    } else if (difference < 1209600000) {
+      xunits = d3.time.days;
+    } else if (difference < 7776000000) {
+      xunits = d3.time.months;
+    } else {
+      xunits = d3.time.years;
+    }
+
+    // dimension by timestamp
+    var dateDimension = self.crossfilter.dimension(function(d) {
+      return d.timestamp;
+    });
+
+    var columnGroups = [];
+    var yMin = Number.POSITIVE_INFINITY;
+    var yMax = Number.NEGATIVE_INFINITY;
+
+    var getGroup = function(columnName) {
+      var reduceAdd = function(p,v) {
+        if (isNaN(v[columnName])) {
+          p.nanCount++;
+        } else {
+          p.total += v[columnName];
+        }
+        if (p.nanCount > 0) {
+          p.value = NaN;
+        } else {
+          p.value = p.total;
+        }
+        return p;
+      };
+
+      var reduceDel = function(p,v) {
+        if (isNaN(v[columnName])) {
+          p.nanCount--;
+        } else {
+          p.total -= v[columnName];
+        }
+        if (p.nanCount > 0) {
+          p.value = NaN;
+        } else {
+          p.value = p.total;
+        }
+        return p;
+      };
+
+      var reduceInitial = function() {
+        return {nanCount:0, total:0, value:NaN};
+      };
+      return dateDimension.group().reduce(reduceAdd, reduceDel, reduceInitial);
+    };
+
+    for (i = 0; i < self.series.length; i++) {
+      var columnName = self.series[i].metric;
+
+      columnGroups[i] = getGroup(columnName);
+
+      // used for determining min/max for the entire graph; this is horribly inefficient
+      var ydim = self.crossfilter.dimension(function(d) {
+        return d[columnName];
+      }).filterFunction(function(d) {
+        return !isNaN(d);
+      });
+
+      var min = ydim.bottom(1)[0];
+      var max = ydim.top(1)[0];
+      yMin = Math.min(yMin, min[columnName]);
+      yMax = Math.max(yMax, max[columnName]);
+    }
+
+    if (yMin < 0) {
+      yMin = yMin * 1.1;
+    } else {
+      yMin = yMin * 0.9;
+    }
+    if (yMax > 0) {
+      yMax = yMax * 1.1;
+    } else {
+      yMax = yMax * 0.9;
+    }
+
+    if (self.chart) {
+      self.chart.redraw();
+    } else {
+      var chart = dc.compositeChart('#' + id);
+
+      var charts = [], colors = [], ser, itemCount = 0,
+        accessor = function(d) {
+          return d.value.value;
+        },
+        definedFunc = function(d) {
+          return !isNaN(d.y);
+        }
+      ;
+
+      for (i = 0; i < self.series.length; i++) {
+        var lastChart, lastSeries, nextSeries;
+        if (charts.length > 0) {
+          lastChart = charts[charts.length - 1];
+        }
+
+        ser = self.series[i];
+        if (i > 0) {
+          lastSeries = self.series[i-1];
+        }
+        if (self.series[i+1]) {
+          nextSeries = self.series[i+1];
+        }
+
+        var currentChart;
+        if (ser.type === 'area' && ser.name === undefined && nextSeries && nextSeries.type === 'line' && ser.metric === nextSeries.metric) {
+          // the measurements API defines an area graph by returning
+          // 2 segments: the "area", and the "line".  dc.js will automatically
+          // fill the area if we give it a line graph, so we do this to merge
+          // area/line tuples into one chart definition
+        } else if (ser.type === 'area') {
+          itemCount++;
+          if (colors.length) {
+            lastChart.ordinalColors(colors);
+          }
+          colors = [ser.color];
+          currentChart = dc.lineChart(chart)
+            .renderArea(true)
+            .group(columnGroups[i], ser.name)
+            .valueAccessor(accessor)
+            .defined(definedFunc)
+            ;
+          charts.push(currentChart);
+        } else if (ser.type === 'line') {
+          itemCount++;
+          if (colors.length) {
+            lastChart.ordinalColors(colors);
+          }
+          colors = [ser.color];
+          currentChart = dc.lineChart(chart)
+            .group(columnGroups[i], ser.name)
+            .valueAccessor(accessor)
+            .defined(definedFunc)
+            ;
+          if (lastSeries && lastSeries.type === 'area' && lastSeries.metric === ser.metric) {
+            // this line graph is actually part of the previous area graph
+            // in the series, so treat it as an area
+            currentChart.renderArea(true);
+          }
+          charts.push(currentChart);
+        } else if (ser.type === 'stack') {
+          itemCount++;
+          lastChart.stack(columnGroups[i], ser.name);
+          colors.push(ser.color);
+        }
+      }
+
+      if (colors.length) {
+        charts[charts.length - 1].ordinalColors(colors);
+      }
+
+      var legendItemHeight = 10,
+        legendItemGap = 5;
+
+      chart
+        .renderHorizontalGridLines(true)
+        .width(self.width)
+        .height(self.height)
+        .margins({
+          top: 30,
+          right: 20,
+          bottom: (legendItemHeight * 2) + legendItemGap + 30,
+          left: 45
+        })
+        .transitionDuration(0)
+        .mouseZoomable(false)
+        .zoomOutRestrict(true)
+        .dimension(dateDimension)
+        ;
+
+      chart
+        .x(d3.time.scale().domain([minTime, maxTime]))
+        .round(xunits.round)
+        .xUnits(xunits)
+        ;
+
+      chart
+        .yAxisLabel(self.verticalLabel, 16)
+        .elasticY(true)
+        ;
+
+      chart
+        .renderTitle(true)
+        .title(function(p) {
+          return timeFormat(p.key) + ': ' + numberFormat(p.value.value);
+        })
+        ;
+
+      var legend = dc.legend()
+        .x(50)
+        .y(self.height - ((legendItemHeight * 2) + legendItemGap))
+        .itemHeight(legendItemHeight)
+        .gap(legendItemGap)
+        .legendWidth(self.width - 140)
+        .horizontal(true)
+        .autoItemWidth(true)
+      ;
+      chart.legend(legend);
+
+      chart.xAxis().ticks(6);
+      chart.yAxis().tickFormat(d3.format('.2s'));
+
+      if (self.title) {
+        chart.on('postRender', function(chart) {
+          var svg = chart.svg();
+          svg.insert('rect', ':first-child')
+            .attr('width', '100%')
+            .attr('height', '100%')
+            .attr('fill', 'white');
+
+          var boundingRect = svg.node().getBoundingClientRect();
+
+          svg.select('#' + id + '-chart-title').remove();
+          svg.append('text')
+            .attr('id', id + '-chart-title')
+            .attr('x', boundingRect.width / 2)
+            .attr('y', '20')
+            .attr('text-anchor', 'middle')
+            .style('font-size', '1em')
+            .text(self.title);
+        });
+      }
+
+      chart
+        .compose(charts)
+        .brushOn(false)
+        .render();
+    }
   }
 });
