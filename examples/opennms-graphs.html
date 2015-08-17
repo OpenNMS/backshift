@@ -2,9 +2,12 @@
 <html>
 <head>
     <link rel="stylesheet" type="text/css" href="../bower_components/c3/c3.min.css">
+    <link rel="stylesheet" type="text/css" href="../bower_components/dcjs/dc.css">
     <script src="../bower_components/jquery/dist/jquery.min.js"></script>
-    <script src="../bower_components/d3/d3.min.js"></script>
-    <script src="../bower_components/c3/c3.min.js"></script>
+    <script src="../bower_components/d3/d3.js"></script>
+    <script src="../bower_components/c3/c3.js"></script>
+    <script src="../bower_components/crossfilter/crossfilter.js"></script>
+    <script src="../bower_components/dcjs/dc.js"></script>
 
     <script src="../src/Compat.js"></script>
     <script src="../src/Backshift.js"></script>
@@ -20,11 +23,12 @@
     <script src="../src/Backshift.DataSource.OpenNMS.js"></script>
     <script src="../src/Backshift.Graph.js"></script>
     <script src="../src/Backshift.Graph.C3.js"></script>
+    <script src="../src/Backshift.Graph.DC.js"></script>
     <script src="../src/Backshift.Graph.Matrix.js"></script>
 
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
 
     <style>
@@ -58,6 +62,16 @@
 
     <div class="row">
         <div class="col-md-4">
+            <div data-graph-report="mib2.tcpopen" data-graph-resource="node[44].nodeSnmp[]"
+                 data-original-graph="rrd0" data-graph-model="graph0"></div>
+        </div>
+        <div class="col-md-4">
+            <div id="rrd0"></div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
             <div data-graph-report="netsnmp.memStats" data-graph-resource="node[44].nodeSnmp[]"
                  data-original-graph="rrd1" data-graph-model="graph1"></div>
         </div>
@@ -65,6 +79,7 @@
             <div id="rrd1"></div>
         </div>
     </div>
+
     <div class="row">
         <div class="col-md-4">
             <div data-graph-report="netsnmp.hrMemory" data-graph-resource="node[44].nodeSnmp[]"
@@ -117,7 +132,7 @@
 
     <div class="row">
         <div class="col-md-4">
-            <div data-graph-report="icmp" data-graph-resource="node[44].responseTime[172.20.1.208]"
+            <div data-graph-report="icmp" data-graph-resource="node[44].responseTime[192.168.211.16]"
                  data-original-graph="rrd11"></div>
         </div>
         <div class="col-md-4">
@@ -132,7 +147,7 @@
             onmsUsername = 'demo',
             onmsPassword = 'demo',
             end = Date.now(),
-            start = end - (8 * 60 * 60 * 1000); // 8 hours ago
+            start = end - (12*60*60*1000); // (30*24*60*60*1000); // 30 days ago
 
     function getBaseHref() {
         return "http://" + onmsHost + ":" + onmsPort;
@@ -171,7 +186,9 @@
                 });
 
                 // Build and render the graph
-                var graph = new Backshift.Graph.C3({
+                var graph = new Backshift.Graph.DC({
+                    width: 480,
+                    height: 320,
                     element: $(this)[0],
                     start: start,
                     end: end,
@@ -179,7 +196,9 @@
                     series: graphModel.series,
                     step: true,
                     title: graphModel.title,
-                    verticalLabel: graphModel.verticalLabel
+                    verticalLabel: graphModel.verticalLabel,
+                    replaceDiv: true,
+                    interactive: false,
                 });
                 graph.render();
 

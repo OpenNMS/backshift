@@ -34,6 +34,7 @@ module.exports = function(config) {
             'src/Backshift.Graph.js',
             'src/Backshift.Graph.Matrix.js',
             'src/Backshift.Graph.C3.js',
+            'src/Backshift.Graph.DC.js',
             'test/*.Test.js'
         ],
 
