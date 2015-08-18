@@ -41,6 +41,7 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
       end: 0,
       last: 0,
       refreshRate: 0,
+      beginOnRender: true,
       checkInterval: 15 * 1000 // 15 seconds
     };
   },
@@ -52,8 +53,20 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
     }
 
     this.onRender();
+    if (this.beginOnRender) {
+      this.begin();
+    }
+  },
+
+  begin: function () {
+    this.onBegin();
     this.refresh();
     this.createTimer();
+  },
+
+  cancel: function () {
+    this.destroyTimer();
+    this.onCancel();
   },
 
   resize: function(size) {
@@ -61,19 +74,24 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
   },
 
   destroy: function() {
-    if (this.timer !== null) {
-      clearInterval(this.timer);
-      this.timer = null;
-    }
+    this.destroyTimer();
   },
 
   createTimer: function () {
     var self = this;
-    this.timer = setInterval(function () {
+    self.destroyTimer();
+    self.timer = setInterval(function () {
       if (self.shouldRefresh()) {
         self.refresh();
       }
-    }, this.checkInterval);
+    }, self.checkInterval);
+  },
+
+  destroyTimer: function () {
+    if (this.timer !== null) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
   },
 
   setStart: function (start) {
@@ -142,6 +160,14 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
   },
 
   onRender: function () {
+    // Implemented by subclasses
+  },
+
+  onBegin: function () {
+    // Implemented by subclasses
+  },
+
+  onCancel: function () {
     // Implemented by subclasses
   },
 

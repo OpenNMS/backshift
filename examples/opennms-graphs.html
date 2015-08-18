@@ -199,8 +199,12 @@
                     verticalLabel: graphModel.verticalLabel,
                     replaceDiv: true,
                     interactive: false,
+                    beginOnRender: false,
                 });
                 graph.render();
+                setTimeout(function() {
+                    graph.begin();
+                }, 1000);
 
                 // Pull in the RRD graph for comparison
                 var rrdGraphImageUrl = "http://" + onmsUsername + ":" + onmsPassword + "@" + onmsHost + ":" + onmsPort + "/opennms/graph/graph.png?resourceId=" + resource +
