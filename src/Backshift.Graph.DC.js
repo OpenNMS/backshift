@@ -26,6 +26,12 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
     // Used to hold a reference to the div that holds the status text
     this.statusBlock = null;
     this.idPrefix = new Date().getTime() + '' + Math.floor(Math.random() * 100000);
+    this.crossfilter = crossfilter([]);
+    this.dateDimension = this.crossfilter.dimension(function(d) {
+      return d.timestamp;
+    });
+
+    this.renderGraphs();
   },
 
   onBeforeQuery: function () {
@@ -34,7 +40,7 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
   },
 
   onQuerySuccess: function (results) {
-    this.drawGraphs(results);
+    this.updateData(results);
     var timeAfterQuery = Date.now();
     var queryDuration = Number((timeAfterQuery - this.timeBeforeQuery) / 1000).toFixed(2);
     this.updateStatus("Successfully retrieved data in " + queryDuration + " seconds.");
@@ -42,6 +48,11 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
 
   onQueryFailed: function () {
     this.updateStatus("Query failed.");
+  },
+
+  onCancel: function () {
+    this.crossfilter.groupAll();
+    this.crossfilter.remove();
   },
 
   updateStatus: function (status) {
@@ -54,30 +65,13 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
     */
   },
 
-  drawGraphs: function (results) {
+  updateData: function (results) {
     var self = this,
       numRows = results.columns[0].length,
       numColumns = results.columnNames.length,
       rows = [],
-      val,
       i,
       k, row;
-
-    var timeFormat = d3.time.format('%Y-%m-%d %H:%M:%S');
-    var numberFormat = d3.format('0.2f');
-
-    /* make this element unique so we can refer to it when rendering */
-    var dgName = self.element.getAttribute('data-graph-model');
-    if (dgName === undefined) {
-      dgName = self.element.getAttribute('data-graph-name');
-    }
-    var id = dgName + self.idPrefix;
-    self.element.id = id;
-    jQuery(self.element)
-      .css('max-height', self.height)
-      .css('max-width', self.width)
-      .css('position', 'relative')
-      .css('float', 'none');
 
     for (i = 0; i < numRows; i++) {
       row = {};
@@ -94,21 +88,27 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
       rows.push(row);
     }
 
-    var minTime = results.columns[0][0],
-      maxTime = results.columns[0][numRows-1],
-      difference = maxTime - minTime;
-
-    numRows = rows.length;
-    var columnNames = results.columnNames.splice(1);
-
-    if (!self.crossfilter) {
-      self.crossfilter = crossfilter([]);
-    }
+    self.crossfilter.groupAll();
     self.crossfilter.remove();
     self.crossfilter.add(rows);
 
-    var xunits;
+    var now = new Date(),
+      minTime = self.dateDimension.bottom(1),
+      maxTime = self.dateDimension.top(1);
 
+    if (minTime.length === 0) {
+      minTime = now;
+    } else {
+      minTime = minTime[0].timestamp;
+    }
+    if (maxTime.length === 0) {
+      maxTime = now;
+    } else {
+      maxTime = maxTime[0].timestamp;
+    }
+    var difference = maxTime.getTime() - minTime.getTime();
+
+    var xunits;
     if (difference < 90000000) {
       xunits = d3.time.hours;
     } else if (difference < 1209600000) {
@@ -119,10 +119,36 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
       xunits = d3.time.years;
     }
 
-    // dimension by timestamp
-    var dateDimension = self.crossfilter.dimension(function(d) {
-      return d.timestamp;
-    });
+    if (self.chart) {
+      self.chart
+        .elasticX(false)
+        .elasticY(true)
+        .x(d3.time.scale().domain([minTime, maxTime]))
+        .round(xunits.round)
+        .xUnits(xunits)
+        .render()
+        .redraw();
+    }
+  },
+
+  renderGraphs: function () {
+    var self = this, i, k;
+
+    var timeFormat = d3.time.format('%Y-%m-%d %H:%M:%S');
+    var numberFormat = d3.format('0.2f');
+
+    /* make this element unique so we can refer to it when rendering */
+    var dgName = self.element.getAttribute('data-graph-model');
+    if (dgName === undefined) {
+      dgName = self.element.getAttribute('data-graph-name');
+    }
+    var id = dgName + self.idPrefix;
+    self.element.id = id;
+    jQuery(self.element)
+      .css('max-height', self.height)
+      .css('max-width', self.width)
+      .css('position', 'relative')
+      .css('float', 'none');
 
     var columnGroups = [];
 
@@ -158,7 +184,7 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
       var reduceInitial = function() {
         return {nanCount:0, total:0, value:NaN};
       };
-      return dateDimension.group().reduce(reduceAdd, reduceDel, reduceInitial);
+      return self.dateDimension.group().reduce(reduceAdd, reduceDel, reduceInitial);
     };
 
     for (i = 0; i < self.series.length; i++) {
@@ -252,22 +278,17 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
         .margins({
           top: 30,
           right: 20,
-          bottom: (legendItemHeight * 2) + legendItemGap + 30,
+          bottom: (legendItemHeight * 2) + legendItemGap + 40,
           left: 45
         })
         .transitionDuration(0)
         .mouseZoomable(false)
         .zoomOutRestrict(true)
-        .dimension(dateDimension)
+        .dimension(self.dateDimension)
         ;
 
       chart
-        .x(d3.time.scale().domain([minTime, maxTime]))
-        .round(xunits.round)
-        .xUnits(xunits)
-        ;
-
-      chart
+        .x(d3.scale.ordinal())
         .yAxisLabel(self.verticalLabel, 16)
         .elasticY(true)
         ;
@@ -281,7 +302,7 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
 
       var legend = dc.legend()
         .x(50)
-        .y(self.height - ((legendItemHeight * 2) + legendItemGap))
+        .y(self.height - ((legendItemHeight * 2) + legendItemGap) - 10)
         .itemHeight(legendItemHeight)
         .gap(legendItemGap)
         .legendWidth(self.width - 140)
@@ -294,9 +315,11 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
       chart.yAxis().tickFormat(d3.format('.2s'));
 
       if (self.title) {
-        chart.on('postRender', function(chart) {
+        chart.on('renderlet', function(chart) {
           var svg = chart.svg();
+          svg.select('#' + id + '-chart-background').remove();
           svg.insert('rect', ':first-child')
+            .attr('id', id + '-chart-background')
             .attr('width', '100%')
             .attr('height', '100%')
             .attr('fill', 'white');
@@ -318,6 +341,7 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
         .compose(charts)
         .brushOn(false)
         .render();
+      self.chart = chart;
     }
   }
 });
