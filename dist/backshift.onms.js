@@ -1421,8 +1421,6 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
     });
 
     var columnGroups = [];
-    var yMin = Number.POSITIVE_INFINITY;
-    var yMax = Number.NEGATIVE_INFINITY;
 
     var getGroup = function(columnName) {
       var reduceAdd = function(p,v) {
@@ -1463,29 +1461,6 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
       var columnName = self.series[i].metric;
 
       columnGroups[i] = getGroup(columnName);
-
-      // used for determining min/max for the entire graph; this is horribly inefficient
-      var ydim = self.crossfilter.dimension(function(d) {
-        return d[columnName];
-      }).filterFunction(function(d) {
-        return !isNaN(d);
-      });
-
-      var min = ydim.bottom(1)[0];
-      var max = ydim.top(1)[0];
-      yMin = Math.min(yMin, min[columnName]);
-      yMax = Math.max(yMax, max[columnName]);
-    }
-
-    if (yMin < 0) {
-      yMin = yMin * 1.1;
-    } else {
-      yMin = yMin * 0.9;
-    }
-    if (yMax > 0) {
-      yMax = yMax * 1.1;
-    } else {
-      yMax = yMax * 0.9;
     }
 
     if (self.chart) {
