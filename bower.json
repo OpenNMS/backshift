@@ -1,7 +1,7 @@
 {
   "name": "backshift",
   "description": "Time series graphing",
-  "version": "1.0.1-beta.3",
+  "version": "1.0.1-beta.4",
   "homepage": "https://github.com/j-white/backshift",
   "private": true,
   "dependencies": {
