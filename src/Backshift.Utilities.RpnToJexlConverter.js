@@ -68,7 +68,7 @@ Backshift.Utilities.RpnToJexlConverter = Backshift.Class.create({
           "|| (" + val + " == __inf) || (" + val + " == __neg_inf) " +
           "|| (" + val + " < " + min + ") " +
           "|| (" + val + " > " + max + ") " +
-        ") ? null : " + val + " " +
+        ") ? NaN : " + val + " " +
       ")";
     };
 
