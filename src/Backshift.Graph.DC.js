@@ -263,7 +263,7 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
 
         if (this.step && currentChart) {
           currentChart.interpolate('step-after');
-        } else if (this.interpolate) {
+        } else if (this.interpolate && currentChart) {
           currentChart.interpolate(this.interpolate);
         }
         if (this.tension) {
