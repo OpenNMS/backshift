@@ -64,6 +64,11 @@ Backshift.DataSource.OpenNMS = Backshift.Class.create(Backshift.DataSource, {
           resourceId: metric.resourceId,
           transient: metric.transient
         };
+        // Only set the datasource when it differs from the attribute name in order
+        // to preserve backwards compatibility with 16.x (which does not recognize the datasource field)
+        if (metric.datasource !== undefined && metric.attribute !== metric.datasource) {
+          qrSource.datasource = metric.datasource;
+        }
         queryRequest.source.push(qrSource);
       } else {
         qrSource = {

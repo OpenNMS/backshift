@@ -53,8 +53,9 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
 
     this.model.metrics.push({
       name: name,
-      resourceId: this.resourceId,
       attribute: attribute,
+      resourceId: this.resourceId,
+      datasource: dsName,
       aggregation: consolFun
     });
   },

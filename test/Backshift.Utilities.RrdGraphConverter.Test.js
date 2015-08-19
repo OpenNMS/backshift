@@ -264,5 +264,42 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
       expect(model.title).toBe("Temperature on lms-tempdevice");
     });
 
+    it('should convert strafeping', function () {
+      var strafeping = {
+        "name": "strafeping",
+        "title": "StrafePing",
+        "columns": [
+          "strafeping"
+        ],
+        "command": "--title=\"StrafePing Response Time\" --height 200 --width 600 --alt-autoscale-max --alt-y-grid --lower-limit 0 --vertical-label Seconds DEF:ping1Micro={rrd1}:ping1:AVERAGE CDEF:ping1=ping1Micro,1000000,/ DEF:ping2Micro={rrd1}:ping2:AVERAGE CDEF:ping2=ping2Micro,1000000,/ DEF:ping3Micro={rrd1}:ping3:AVERAGE CDEF:ping3=ping3Micro,1000000,/ DEF:ping4Micro={rrd1}:ping4:AVERAGE CDEF:ping4=ping4Micro,1000000,/ DEF:ping5Micro={rrd1}:ping5:AVERAGE CDEF:ping5=ping5Micro,1000000,/ DEF:ping6Micro={rrd1}:ping6:AVERAGE CDEF:ping6=ping6Micro,1000000,/ DEF:ping7Micro={rrd1}:ping7:AVERAGE CDEF:ping7=ping7Micro,1000000,/ DEF:ping8Micro={rrd1}:ping8:AVERAGE CDEF:ping8=ping8Micro,1000000,/ DEF:ping9Micro={rrd1}:ping9:AVERAGE CDEF:ping9=ping9Micro,1000000,/ DEF:ping10Micro={rrd1}:ping10:AVERAGE CDEF:ping10=ping10Micro,1000000,/ DEF:ping11Micro={rrd1}:ping11:AVERAGE CDEF:ping11=ping11Micro,1000000,/ DEF:ping12Micro={rrd1}:ping12:AVERAGE CDEF:ping12=ping12Micro,1000000,/ DEF:ping13Micro={rrd1}:ping13:AVERAGE CDEF:ping13=ping13Micro,1000000,/ DEF:ping14Micro={rrd1}:ping14:AVERAGE CDEF:ping14=ping14Micro,1000000,/ DEF:ping15Micro={rrd1}:ping15:AVERAGE CDEF:ping15=ping15Micro,1000000,/ DEF:ping16Micro={rrd1}:ping16:AVERAGE CDEF:ping16=ping16Micro,1000000,/ DEF:ping17Micro={rrd1}:ping17:AVERAGE CDEF:ping17=ping17Micro,1000000,/ DEF:ping18Micro={rrd1}:ping18:AVERAGE CDEF:ping18=ping18Micro,1000000,/ DEF:ping19Micro={rrd1}:ping19:AVERAGE CDEF:ping19=ping19Micro,1000000,/ DEF:ping20Micro={rrd1}:ping20:AVERAGE CDEF:ping20=ping20Micro,1000000,/ CDEF:cp1=ping1,0,0.14290626,LIMIT CDEF:cp2=ping2,0,0.14290626,LIMIT CDEF:cp3=ping3,0,0.14290626,LIMIT CDEF:cp4=ping4,0,0.14290626,LIMIT CDEF:cp5=ping5,0,0.14290626,LIMIT CDEF:cp6=ping6,0,0.14290626,LIMIT CDEF:cp7=ping7,0,0.14290626,LIMIT CDEF:cp8=ping8,0,0.14290626,LIMIT CDEF:cp9=ping9,0,0.14290626,LIMIT CDEF:cp10=ping10,0,0.14290626,LIMIT CDEF:cp11=ping11,0,0.14290626,LIMIT CDEF:cp12=ping12,0,0.14290626,LIMIT CDEF:cp13=ping13,0,0.14290626,LIMIT CDEF:cp14=ping14,0,0.14290626,LIMIT CDEF:cp15=ping15,0,0.14290626,LIMIT CDEF:cp16=ping16,0,0.14290626,LIMIT CDEF:cp17=ping17,0,0.14290626,LIMIT CDEF:cp18=ping18,0,0.14290626,LIMIT CDEF:cp19=ping19,0,0.14290626,LIMIT CDEF:cp20=ping20,0,0.14290626,LIMIT DEF:loss={rrd1}:loss:AVERAGE DEF:maxLoss={rrd1}:loss:MAX AREA:cp20#f0f0f0 AREA:cp19#dddddd AREA:cp18#cacaca AREA:cp17#b7b7b7 AREA:cp16#a4a4a4 AREA:cp15#919191 AREA:cp14#7e7e7e AREA:cp13#6b6b6b AREA:cp12#585858 AREA:cp11#454545 AREA:cp10#535353 AREA:cp9#666666 AREA:cp8#797979 AREA:cp7#8c8c8c AREA:cp6#9f9f9f AREA:cp5#b2b2b2 AREA:cp4#c5c5c5 AREA:cp3#d8d8d8 AREA:cp2#ebebeb AREA:cp1#fefefe DEF:medianMicro={rrd1}:median:AVERAGE CDEF:median=medianMicro,1000000,/ CDEF:ploss=loss,20,/,100,* CDEF:maxPloss=maxLoss,20,/,100,* GPRINT:median:AVERAGE:\"Median RTT (%.1lf %ss avg)\" LINE1:median#202020 CDEF:me0=loss,-1,GT,loss,0,LE,*,1,UNKN,IF,median,* CDEF:meL0=me0,0.0007145313,- CDEF:meH0=me0,0,*,0.0007145313,2,*,+ AREA:meL0 STACK:meH0#26ff00:0 CDEF:me1=loss,0,GT,loss,1,LE,*,1,UNKN,IF,median,* CDEF:meL1=me1,0.0007145313,- CDEF:meH1=me1,0,*,0.0007145313,2,*,+ AREA:meL1 STACK:meH1#00b8ff:1/20 CDEF:me2=loss,1,GT,loss,2,LE,*,1,UNKN,IF,median,* CDEF:meL2=me2,0.0007145313,- CDEF:meH2=me2,0,*,0.0007145313,2,*,+ AREA:meL2 STACK:meH2#0059ff:2/20 CDEF:me3=loss,2,GT,loss,3,LE,*,1,UNKN,IF,median,* CDEF:meL3=me3,0.0007145313,- CDEF:meH3=me3,0,*,0.0007145313,2,*,+ AREA:meL3 STACK:meH3#5e00ff:3/20 CDEF:me4=loss,3,GT,loss,4,LE,*,1,UNKN,IF,median,* CDEF:meL4=me4,0.0007145313,- CDEF:meH4=me4,0,*,0.0007145313,2,*,+ AREA:meL4 STACK:meH4#7e00ff:4/20 CDEF:me10=loss,4,GT,loss,10,LE,*,1,UNKN,IF,median,* CDEF:meL10=me10,0.0007145313,- CDEF:meH10=me10,0,*,0.0007145313,2,*,+ AREA:meL10 STACK:meH10#dd00ff:10/20 CDEF:me19=loss,10,GT,loss,19,LE,*,1,UNKN,IF,median,* CDEF:meL19=me19,0.0007145313,- CDEF:meH19=me19,0,*,0.0007145313,2,*,+ AREA:meL19 STACK:meH19#ff0000:19/20 COMMENT:\"\\l\" GPRINT:ploss:AVERAGE:\"Packet Loss\\: %.2lf %% average\" GPRINT:maxPloss:MAX:\"%.2lf %% maximum\" GPRINT:ploss:LAST:\"%.2lf %% current\\l\" COMMENT:\"\\s\"",
+        "externalValues": [],
+        "propertiesValues": [],
+        "order": 15,
+        "types": [
+          "responseTime",
+          "distributedStatus"
+        ],
+        "description": null,
+        "width": null,
+        "height": null,
+        "suppress": []
+      };
+
+      var rrdGraphConverter = new Backshift.Utilities.RrdGraphConverter({
+        graphDef: strafeping,
+        resourceId: 'node[1].responseTime[127.0.0.1]'
+      });
+      var model = rrdGraphConverter.model;
+
+      expect(model.metrics.length).toBe(87);
+      expect(model.series.length).toBe(35);
+
+      expect(model.metrics[0].name).toBe("ping1Micro");
+      expect(model.metrics[0].attribute).toBe("strafeping");
+      expect(model.metrics[0].datasource).toBe("ping1");
+
+      expect(model.title).toBe("StrafePing Response Time");
+    });
+
   });
 });
