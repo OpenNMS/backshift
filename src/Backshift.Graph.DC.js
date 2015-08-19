@@ -15,6 +15,8 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
       verticalLabel: undefined,
       step: false, // treats points a segments (similar to rrdgraph)
       zoom: true, // whether to allow zooming
+      interpolate: 'linear', // if step is false, set the line interpolation
+      tension: undefined, // if step is false, set the interpolation tension
     });
   },
 
@@ -261,6 +263,11 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
 
         if (this.step && currentChart) {
           currentChart.interpolate('step-after');
+        } else if (this.interpolate) {
+          currentChart.interpolate(this.interpolate);
+        }
+        if (this.tension) {
+          currentChart.tension(this.tension);
         }
       }
 

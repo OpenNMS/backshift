@@ -194,7 +194,11 @@
                     end: end,
                     dataSource: ds,
                     series: graphModel.series,
-                    step: true,
+                    step: false,
+                    /*
+                    interpolate: 'basis',
+                    tension: 0.1,
+                    */
                     title: graphModel.title,
                     verticalLabel: graphModel.verticalLabel,
                     interactive: false,
