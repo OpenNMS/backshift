@@ -13,10 +13,6 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
       height: undefined,
       title: undefined,
       verticalLabel: undefined,
-      clipboardData: undefined,
-      replaceDiv: false, // (experimental) whether or not to render off-screen in a new div and replace the old one
-      exportIconSizeRatio: 0.05, // relative size in pixels of "Export to CSV" icon - set to 0 to disable
-      interactive: true, // whether to do fancier chart navigation with mouse input events
       step: false, // treats points a segments (similar to rrdgraph)
       zoom: true, // whether to allow zooming
     });
@@ -262,6 +258,10 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
           lastChart.stack(columnGroups[i], ser.name);
           colors.push(ser.color);
         }
+
+        if (this.step) {
+          currentChart.interpolate('step');
+        }
       }
 
       if (colors.length) {
@@ -282,7 +282,7 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
           left: 45
         })
         .transitionDuration(0)
-        .mouseZoomable(false)
+        .mouseZoomable(this.zoom)
         .zoomOutRestrict(true)
         .dimension(self.dateDimension)
         ;
