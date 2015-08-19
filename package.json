@@ -18,7 +18,8 @@
     "grunt-contrib-concat": "~0.5.1",
     "grunt-jsdoc": "~0.6.4",
     "http-server": "~0.8.0",
-    "bower": "~1.4.1"
+    "bower": "~1.4.1",
+    "jsdoc": "~3.3.2"
   },
   "scripts": {
     "postinstall": "bower install",
