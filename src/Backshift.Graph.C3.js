@@ -331,8 +331,6 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
         var newest = timestamps[timestamps.length - 1];
         var difference = newest - oldest;
 
-        console.log(newest + ' - ' + oldest + ' = ' + difference);
-
         if (difference < 90000000) {
           // less than about a day - 14:01
           plotConfig.axis.x.tick.format = '%H:%M';
