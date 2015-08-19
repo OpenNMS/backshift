@@ -259,7 +259,7 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
           colors.push(ser.color);
         }
 
-        if (this.step) {
+        if (this.step && currentChart) {
           currentChart.interpolate('step');
         }
       }
@@ -273,13 +273,14 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
 
       chart
         .renderHorizontalGridLines(true)
+        .renderVerticalGridLines(true)
         .width(self.width)
         .height(self.height)
         .margins({
           top: 30,
           right: 20,
           bottom: (legendItemHeight * 2) + legendItemGap + 40,
-          left: 45
+          left: 50
         })
         .transitionDuration(0)
         .mouseZoomable(this.zoom)
@@ -289,7 +290,7 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
 
       chart
         .x(d3.scale.ordinal())
-        .yAxisLabel(self.verticalLabel, 16)
+        .yAxisLabel(self.verticalLabel, 14)
         .elasticY(true)
         ;
 
