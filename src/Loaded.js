@@ -1,2 +1,4 @@
-// Send an event once the script has been loaded. This leveraged when loading the .js dynamically.
-jQuery(document).trigger("libraryLoaded", "backshift");
+// Register as an AMD module,
+if ( typeof define === "function" && define.amd ) {
+    define(["dc"], Backshift);
+}
