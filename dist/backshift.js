@@ -621,7 +621,7 @@ Backshift.Utilities.RpnToJexlConverter = Backshift.Class.create({
           "|| (" + val + " == __inf) || (" + val + " == __neg_inf) " +
           "|| (" + val + " < " + min + ") " +
           "|| (" + val + " > " + max + ") " +
-        ") ? null : " + val + " " +
+        ") ? NaN : " + val + " " +
       ")";
     };
 
@@ -914,8 +914,9 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
 
     this.model.metrics.push({
       name: name,
-      resourceId: this.resourceId,
       attribute: attribute,
+      resourceId: this.resourceId,
+      datasource: dsName,
       aggregation: consolFun
     });
   },
@@ -1606,8 +1607,6 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
         var newest = timestamps[timestamps.length - 1];
         var difference = newest - oldest;
 
-        console.log(newest + ' - ' + oldest + ' = ' + difference);
-
         if (difference < 90000000) {
           // less than about a day - 14:01
           plotConfig.axis.x.tick.format = '%H:%M';
@@ -1649,12 +1648,10 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
       height: undefined,
       title: undefined,
       verticalLabel: undefined,
-      clipboardData: undefined,
-      replaceDiv: false, // (experimental) whether or not to render off-screen in a new div and replace the old one
-      exportIconSizeRatio: 0.05, // relative size in pixels of "Export to CSV" icon - set to 0 to disable
-      interactive: true, // whether to do fancier chart navigation with mouse input events
       step: false, // treats points a segments (similar to rrdgraph)
       zoom: true, // whether to allow zooming
+      interpolate: 'linear', // if step is false, set the line interpolation
+      tension: undefined, // if step is false, set the interpolation tension
     });
   },
 
@@ -1898,6 +1895,15 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
           lastChart.stack(columnGroups[i], ser.name);
           colors.push(ser.color);
         }
+
+        if (this.step && currentChart) {
+          currentChart.interpolate('step-after');
+        } else if (this.interpolate && currentChart) {
+          currentChart.interpolate(this.interpolate);
+        }
+        if (this.tension) {
+          currentChart.tension(this.tension);
+        }
       }
 
       if (colors.length) {
@@ -1909,23 +1915,24 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
 
       chart
         .renderHorizontalGridLines(true)
+        .renderVerticalGridLines(true)
         .width(self.width)
         .height(self.height)
         .margins({
           top: 30,
           right: 20,
           bottom: (legendItemHeight * 2) + legendItemGap + 40,
-          left: 45
+          left: 50
         })
         .transitionDuration(0)
-        .mouseZoomable(false)
+        .mouseZoomable(this.zoom)
         .zoomOutRestrict(true)
         .dimension(self.dateDimension)
         ;
 
       chart
         .x(d3.scale.ordinal())
-        .yAxisLabel(self.verticalLabel, 16)
+        .yAxisLabel(self.verticalLabel, 14)
         .elasticY(true)
         ;
 
