@@ -28,39 +28,29 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
     this.dateDimension = this.crossfilter.dimension(function(d) {
       return d.timestamp;
     });
+    this.chartMessage = "Loading...";
 
     this.renderGraphs();
   },
 
   onBeforeQuery: function () {
     this.timeBeforeQuery = Date.now();
-    this.updateStatus("Querying...");
   },
 
   onQuerySuccess: function (results) {
+    this.chartMessage = null;
     this.updateData(results);
-    var timeAfterQuery = Date.now();
-    var queryDuration = Number((timeAfterQuery - this.timeBeforeQuery) / 1000).toFixed(2);
-    this.updateStatus("Successfully retrieved data in " + queryDuration + " seconds.");
   },
 
-  onQueryFailed: function () {
-    this.updateStatus("Query failed.");
+  onQueryFailed: function($super, reason) {
+    $super(reason);
+    this.chartMessage = "Query failed.";
+    this.drawStatusMessage();
   },
 
   onCancel: function () {
     this.crossfilter.groupAll();
     this.crossfilter.remove();
-  },
-
-  updateStatus: function (status) {
-    /*
-    if (this.statusBlock) {
-      this.statusBlock.text(status);
-    } else {
-      this.statusBlock = d3.select(this.element).append("p").attr("align", "right").text(status);
-    }
-    */
   },
 
   updateData: function (results) {
@@ -127,6 +117,8 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
         .render()
         .redraw();
     }
+
+    self.drawStatusMessage();
   },
 
   renderGraphs: function () {
@@ -350,6 +342,24 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
         .brushOn(false)
         .render();
       self.chart = chart;
+    }
+
+    self.drawStatusMessage();
+  },
+
+  drawStatusMessage: function() {
+    // Draw the status message
+    var svg = d3.select(this.element).select("svg");
+    var boundingRect = svg.node().getBoundingClientRect();
+    svg.select("#chart-title").remove();
+    if (this.chartMessage !== null) {
+      svg.append('text')
+          .attr("id", "chart-title")
+          .attr('x', boundingRect.width / 2)
+          .attr('y', boundingRect.height / 2.5)
+          .attr('text-anchor', 'middle')
+          .style('font-size', '2.5em')
+          .text(this.chartMessage);
     }
   }
 });
