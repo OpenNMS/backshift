@@ -17,6 +17,8 @@ module.exports = function(config) {
             'bower_components/d3/d3.min.js',
             'bower_components/jquery/dist/jquery.min.js',
             'bower_components/c3/c3.min.js',
+            'bower_components/crossfilter/crossfilter.min.js',
+            'bower_components/dcjs/dc.min.js',
             'src/Compat.js',
             'src/Backshift.js',
             'src/Backshift.Class.js',
