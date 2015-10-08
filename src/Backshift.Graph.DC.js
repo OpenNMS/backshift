@@ -119,7 +119,7 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
     var self = this, i, k;
 
     var timeFormat = d3.time.format('%Y-%m-%d %H:%M:%S');
-    var numberFormat = d3.format('0.2f');
+    var numberFormat = d3.format('.2s');
 
     /* make this element unique so we can refer to it when rendering */
     var dgName = self.element.getAttribute('data-graph-model');
@@ -306,7 +306,7 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
       chart.legend(legend);
 
       chart.xAxis().ticks(6);
-      chart.yAxis().tickFormat(d3.format('.2s'));
+      chart.yAxis().tickFormat(numberFormat);
 
       if (self.title) {
         chart.on('renderlet', function(chart) {
