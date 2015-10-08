@@ -28,24 +28,19 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
     this.dateDimension = this.crossfilter.dimension(function(d) {
       return d.timestamp;
     });
-    this.chartMessage = "Loading...";
-
+    this.statusMessage = "Loading...";
     this.renderGraphs();
   },
 
-  onBeforeQuery: function () {
-    this.timeBeforeQuery = Date.now();
-  },
-
   onQuerySuccess: function (results) {
-    this.chartMessage = null;
+    this.statusMessage = null;
     this.updateData(results);
   },
 
   onQueryFailed: function($super, reason) {
     $super(reason);
-    this.chartMessage = "Query failed.";
-    this.drawStatusMessage();
+    this.statusMessage = "Query failed.";
+    this.renderGraphs();
   },
 
   onCancel: function () {
@@ -114,11 +109,10 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
         .x(d3.time.scale().domain([minTime, maxTime]))
         .round(xunits.round)
         .xUnits(xunits)
-        .render()
-        .redraw();
+        .render();
     }
 
-    self.drawStatusMessage();
+    self.renderGraphs();
   },
 
   renderGraphs: function () {
@@ -344,22 +338,19 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
       self.chart = chart;
     }
 
-    self.drawStatusMessage();
-  },
-
-  drawStatusMessage: function() {
     // Draw the status message
-    var svg = d3.select(this.element).select("svg");
-    var boundingRect = svg.node().getBoundingClientRect();
-    svg.select("#chart-title").remove();
-    if (this.chartMessage !== null) {
+    var svg = self.chart.svg();
+    svg.select('#' + id + '-chart-status').remove();
+    if (this.statusMessage !== null) {
+      var boundingRect = svg.node().getBoundingClientRect();
+
       svg.append('text')
-          .attr("id", "chart-title")
+          .attr("id", id + '-chart-status')
           .attr('x', boundingRect.width / 2)
           .attr('y', boundingRect.height / 2.5)
           .attr('text-anchor', 'middle')
           .style('font-size', '2.5em')
-          .text(this.chartMessage);
+          .text(this.statusMessage);
     }
   }
 });
