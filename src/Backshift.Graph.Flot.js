@@ -136,7 +136,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
         borderWidth: 0,
         hoverable: true,
         color: '#c8c8c8',
-        margin: { left: 0, right: 0, top: 25, bottom: 100 }
+        margin: { left: 0, right: 0, top: 25, bottom: 0 }
       },
       selection: {
         mode: "x",
