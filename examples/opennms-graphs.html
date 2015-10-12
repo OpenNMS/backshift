@@ -9,6 +9,13 @@
     <script src="../bower_components/crossfilter/crossfilter.js"></script>
     <script src="../bower_components/dcjs/dc.js"></script>
 
+    <script src="../bower_components/flot/jquery.flot.js"></script>
+    <script src="../bower_components/flot/jquery.flot.time.js"></script>
+    <script src="../bower_components/flot/jquery.flot.stack.js"></script>
+    <script src="../bower_components/flot/jquery.flot.navigate.js"></script>
+    <script src="../bower_components/flot/jquery.flot.resize.js"></script>
+    <script src="../bower_components/flot-axislabels/jquery.flot.axislabels.js"></script>
+
     <script src="../src/Compat.js"></script>
     <script src="../src/Backshift.js"></script>
     <script src="../src/Backshift.Class.js"></script>
@@ -24,6 +31,7 @@
     <script src="../src/Backshift.Graph.js"></script>
     <script src="../src/Backshift.Graph.C3.js"></script>
     <script src="../src/Backshift.Graph.DC.js"></script>
+    <script src="../src/Backshift.Graph.Flot.js"></script>
     <script src="../src/Backshift.Graph.Matrix.js"></script>
 
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
@@ -139,6 +147,7 @@
             <div id="rrd11"></div>
         </div>
     </div>
+
 </div>
 
 <script type="text/javascript">
@@ -186,7 +195,7 @@
                 });
 
                 // Build and render the graph
-                var graph = new Backshift.Graph.DC({
+                var graph = new Backshift.Graph.Flot({
                     width: 480,
                     height: 320,
                     element: $(this)[0],

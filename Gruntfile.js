@@ -40,6 +40,7 @@ module.exports = function (grunt) {
     'src/Backshift.Utilities.RrdGraphConverter.js',
     'src/Backshift.Graph.js',
     'src/Backshift.Graph.DC.js',
+    'src/Backshift.Graph.Flot.js',
     'src/Backshift.DataSource.js',
     'src/Backshift.DataSource.OpenNMS.js',
     'src/Loaded.js'

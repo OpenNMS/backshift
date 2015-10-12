@@ -7,6 +7,10 @@
     <script src="../bower_components/jquery/dist/jquery.min.js"></script>
     <script src="../bower_components/d3/d3.min.js"></script>
     <script src="../bower_components/c3/c3.min.js"></script>
+    <script src="../bower_components/flot/jquery.flot.js"></script>
+    <script src="../bower_components/flot/jquery.flot.time.js"></script>
+    <script src="../bower_components/flot/jquery.flot.stack.js"></script>
+    <script src="../bower_components/flot-fillbelow/jquery.flot.fillbelow.js"></script>
 
     <script src="../src/Compat.js"></script>
     <script src="../src/Backshift.js"></script>
@@ -19,12 +23,13 @@
     <script src="../src/Backshift.DataSource.SineWave.js"></script>
     <script src="../src/Backshift.Graph.js"></script>
     <script src="../src/Backshift.Graph.C3.js"></script>
+    <script src="../src/Backshift.Graph.Flot.js"></script>
     <script src="../src/Backshift.Graph.Matrix.js"></script>
 </head>
 
 <body>
 
-<div id="c3-graph"></div>
+<div id="chart-graph"></div>
 
 <br/>
 
@@ -42,8 +47,8 @@
         ]
     });
 
-    var c3Graph = new Backshift.Graph.C3({
-        element: document.querySelector("#c3-graph"),
+    var c3Graph = new Backshift.Graph.Flot({
+        element: document.querySelector("#chart-graph"),
         last: 2 * 1000, // 2 seconds
         refreshRate: 750,
         checkInterval: 125,
