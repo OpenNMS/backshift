@@ -19,6 +19,8 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
 
     this.series = args.series;
 
+    this.printStatements = args.printStatements;
+
     this.configure(args);
 
     if (this.start === 0 && this.end === 0 && this.last === 0) {
