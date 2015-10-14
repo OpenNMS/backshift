@@ -86,7 +86,8 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
           fillColor: series.color
         },
         data: seriesValues,
-        id: columnName
+        id: columnName,
+        metric: series.metric
       };
 
       this.flotSeries.push(flotSeries);
@@ -96,6 +97,8 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       }
     }
 
+    var legendStatements = [];
+
     var options = {
       title: self.title,
       axisLabels: {
@@ -104,7 +107,6 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       hooks: {
         draw: [self.drawHook]
       },
-      legend: { show: false },
       series: {
         lines:  {
           zero: false
@@ -147,6 +149,10 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       },
       pan: {
         interactive: true
+      },
+      legend: {
+        show: false,
+        statements: self.printStatements
       }
     };
 

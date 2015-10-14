@@ -11,10 +11,10 @@
 
     <script src="../bower_components/flot/jquery.flot.js"></script>
     <script src="../bower_components/flot/jquery.flot.time.js"></script>
-    <script src="../bower_components/flot/jquery.flot.stack.js"></script>
     <script src="../bower_components/flot/jquery.flot.navigate.js"></script>
     <script src="../bower_components/flot/jquery.flot.resize.js"></script>
     <script src="../bower_components/flot-axislabels/jquery.flot.axislabels.js"></script>
+    <script src="../src/jquery.flot.legend.js"></script>
 
     <script src="../src/Compat.js"></script>
     <script src="../src/Backshift.js"></script>
@@ -203,6 +203,7 @@
                     end: end,
                     dataSource: ds,
                     series: graphModel.series,
+                    printStatements: graphModel.printStatements,
                     step: false,
                     /*
                     interpolate: 'basis',
