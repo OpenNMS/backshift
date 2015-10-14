@@ -49,6 +49,7 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
       var model = rrdGraphConverter.model;
       expect(model.metrics.length).toBe(7);
       expect(model.series.length).toBe(4);
+      expect(model.printStatements.length).toBe(8);
 
       expect(model.title).toBe("TCP Open Connections");
       expect(model.verticalLabel).toBe("TCP Opens Per Second");
@@ -119,6 +120,7 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
       expect(metric.expression).toBe("(((minOctIn * 8) / ifSpeed) * 100)");
 
       expect(model.series.length).toBe(4);
+      expect(model.printStatements.length).toBe(8);
     });
 
     it('should convert graphs', function () {
@@ -222,6 +224,7 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
       var model = rrdGraphConverter.model;
       expect(model.metrics.length).toBe(39);
       expect(model.series.length).toBe(7);
+      expect(model.printStatements.length).toBe(28);
 
       expect(model.series[0].name).toBe("Used (Other)");
 

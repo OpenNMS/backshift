@@ -38,7 +38,8 @@ Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
       }
     })();
 
-    var i, args, command, name, path, dsName, consolFun, rpnExpression, subParts, width, srcName, color, legend;
+    var i, args, command, name, path, dsName, consolFun, rpnExpression, subParts, width, srcName,
+        color, legend, aggregation, value;
     var parts = CommandLineParser.parse(graphDef.command, true);
     var n = parts.length;
     for (i = 0; i < n; i++) {
@@ -89,6 +90,11 @@ Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
         color = '#' + subParts[1];
         legend = this._displayString(args[2]);
         this._onStack(srcName, color, legend);
+      } else if (command === "GPRINT") {
+        srcName = args[1];
+        aggregation = args[2];
+        value = args[3];
+        this._onGPrint(srcName, aggregation, value);
       }
     }
   },
@@ -111,6 +117,9 @@ Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
 
   },
   _onStack: function (srcName, color, legend) {
+
+  },
+  _onGPrint: function (srcName, aggregation, value) {
 
   },
   _displayString: function (string) {
