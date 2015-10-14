@@ -49,7 +49,12 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
       var model = rrdGraphConverter.model;
       expect(model.metrics.length).toBe(7);
       expect(model.series.length).toBe(4);
+
       expect(model.printStatements.length).toBe(8);
+      expect(model.printStatements[0].value).toBe("%g In (Passive)");
+      expect(model.printStatements[1].value).toBe("Avg  : %8.2lf %s");
+      expect(model.printStatements[2].value).toBe("Min  : %8.2lf %s");
+      expect(model.printStatements[3].value).toBe("Max  : %8.2lf %s\\n");
 
       expect(model.title).toBe("TCP Open Connections");
       expect(model.verticalLabel).toBe("TCP Opens Per Second");
@@ -262,7 +267,7 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
       var model = rrdGraphConverter.model;
       expect(model.metrics.length).toBe(6);
       expect(model.series.length).toBe(2);
-      expect(model.series[1].name).toBe("Temperature");
+      expect(model.series[1].name).toBe("Temperature:");
 
       expect(model.title).toBe("Temperature on lms-tempdevice");
     });
@@ -296,6 +301,7 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
 
       expect(model.metrics.length).toBe(87);
       expect(model.series.length).toBe(35);
+      expect(model.printStatements.length).toBe(13);
 
       expect(model.metrics[0].name).toBe("ping1Micro");
       expect(model.metrics[0].attribute).toBe("strafeping");

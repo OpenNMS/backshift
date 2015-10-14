@@ -39,7 +39,7 @@ Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
     })();
 
     var i, args, command, name, path, dsName, consolFun, rpnExpression, subParts, width, srcName,
-        color, legend, aggregation, value;
+        color, legend, aggregation, value, seriesName;
     var parts = CommandLineParser.parse(graphDef.command, true);
     var n = parts.length;
     for (i = 0; i < n; i++) {
@@ -50,13 +50,16 @@ Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
         }
 
         if (args[1] === "title") {
-          this._onTitle(this._displayString(args[2]));
+          this._onTitle(this.displayString(this._decodeString(args[2])));
         } else if (args[1] === "vertical-label") {
-          this._onVerticalLabel(this._displayString(args[2]));
+          this._onVerticalLabel(this.displayString(this._decodeString(args[2])));
         }
       }
 
-      args = parts[i].split(":");
+      args = parts[i].match(/(\\.|[^:])+/g);
+      if (args === null) {
+        continue;
+      }
       command = args[0];
 
       if (command === "DEF") {
@@ -76,25 +79,28 @@ Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
         subParts = args[1].split("#");
         srcName = subParts[0];
         color = '#' + subParts[1];
-        legend = this._displayString(args[2]);
+        legend = this._decodeString(args[2]);
         this._onLine(srcName, color, legend, width);
       } else if (command === "AREA") {
         subParts = args[1].split("#");
         srcName = subParts[0];
         color = '#' + subParts[1];
-        legend = this._displayString(args[2]);
+        legend = this._decodeString(args[2]);
         this._onArea(srcName, color, legend);
       } else if (command === "STACK") {
         subParts = args[1].split("#");
         srcName = subParts[0];
         color = '#' + subParts[1];
-        legend = this._displayString(args[2]);
+        legend = this._decodeString(args[2]);
         this._onStack(srcName, color, legend);
       } else if (command === "GPRINT") {
         srcName = args[1];
         aggregation = args[2];
-        value = args[3];
+        value = this._decodeString(args[3]);
         this._onGPrint(srcName, aggregation, value);
+      } else if (command === "COMMENT") {
+        value = this._decodeString(args[1]);
+        this._onComment(value);
       }
     }
   },
@@ -122,16 +128,31 @@ Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
   _onGPrint: function (srcName, aggregation, value) {
 
   },
-  _displayString: function (string) {
+  _onComment: function (value) {
+
+  },
+  _seriesName: function(string) {
+
+  },
+  _decodeString: function (string) {
     if (string === undefined) {
       return string;
     }
+
     // Remove any quotes
     string = string.replace(/"/g, '');
+    // Replace escaped colons
+    string = string.replace("\\:", ':');
+
+    return string;
+  },
+  displayString: function (string) {
+    if (string === undefined) {
+      return string;
+    }
+
     // Remove any newlines
     string = string.replace("\\n", '');
-    // Remove trailing slashes
-    string = string.replace(/(.*)(\\)/, '$1');
     // Remove any leading/trailing whitespace
     string = string.trim();
     return string;

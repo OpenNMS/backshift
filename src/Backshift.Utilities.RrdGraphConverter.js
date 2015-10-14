@@ -70,34 +70,35 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
 
   _onLine: function (srcName, color, legend, width) {
     var series = {
-      name: legend,
+      name: this.displayString(legend),
       metric: srcName,
       type: "line",
-      color: color
+      color: color,
     };
-    this.maybeAddPrintStatementForSeries(series);
+    this.maybeAddPrintStatementForSeries(series.metric, legend);
     this.model.series.push(series);
   },
 
   _onArea: function (srcName, color, legend) {
     var series = {
-      name: legend,
+      name: this.displayString(legend),
       metric: srcName,
       type: "area",
       color: color
     };
-    this.maybeAddPrintStatementForSeries(series);
+    this.maybeAddPrintStatementForSeries(series.metric, legend);
     this.model.series.push(series);
   },
 
   _onStack: function (srcName, color, legend) {
     var series = {
-      name: legend,
+      name: this.displayString(legend),
       metric: srcName,
       type: "stack",
-      color: color
+      color: color,
+      legend: legend
     };
-    this.maybeAddPrintStatementForSeries(series);
+    this.maybeAddPrintStatementForSeries(series.metric, legend);
     this.model.series.push(series);
   },
 
@@ -109,14 +110,20 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
     });
   },
 
-  maybeAddPrintStatementForSeries: function(series) {
-    if (series.name === undefined || series.name === null || series.name === "") {
+  _onComment: function (value) {
+    this.model.printStatements.push({
+      value: value
+    });
+  },
+
+  maybeAddPrintStatementForSeries: function(metric, legend) {
+    if (legend === undefined || legend === null || legend === "") {
       return;
     }
 
     this.model.printStatements.push({
-      metric: series.metric,
-      value: "%g " + series.name
+      metric: metric,
+      value: "%g " + legend
     });
  }
 });
