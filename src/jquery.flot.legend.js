@@ -1,3 +1,10 @@
+/*
+
+* Fix averages for stacked areas
+* Hidden series shouldn't affect Y-axis range
+* Default length/precision when not set
+* Spacing after lf when no s is present
+ */
 (function ($) {
     var options = {
         legend: {
@@ -80,6 +87,11 @@
                 });
 
                 i++;
+            } else if (c === '%' && nextc === '%') {
+
+                stack.push('%');
+
+                i++;
             } else if (c == '\\' && nextc == 'n') {
                 if (stack.length > 0) {
                     tokens.push({
@@ -93,10 +105,10 @@
                 });
 
                 i++;
-            } else if (statement.value.slice(i, -1).match(/^%\d+\.\d+lf/)) {
-                var slice = statement.value.slice(i, -1);
+            } else if (statement.value.slice(i).match(/^%(\d*)\.\d+lf/) !== null) {
+                var slice = statement.value.slice(i);
 
-                var regex = /^%(\d+)\.(\d+)lf/;
+                var regex = /^%(\d*)\.(\d+)lf/;
 
                 var match = regex.exec(slice);
 
@@ -113,7 +125,7 @@
 
                 tokens.push({
                     type: 'lf',
-                    length: parseInt(length),
+                    length: length !== null ? parseInt(length) : -1,
                     precision: parseInt(precision)
                 });
 
@@ -135,8 +147,8 @@
             });
         }
 
-       // console.log("'" + statement.value + "'");
-       // console.log(JSON.stringify(tokens));
+       //console.log("'" + statement.value + "'");
+       //console.log(JSON.stringify(tokens));
 
         return tokens;
     }
@@ -151,6 +163,67 @@
 
         var textSize = canvasCtx.measureText(text);
         legendCtx.x += textSize.width;
+    }
+
+    function reduceWithAggregate(aggregation, series) {
+
+        var N = series.data.length, total = 0, y, yMin = NaN, yMax = NaN, last = NaN;
+
+        if (aggregation === 'MIN') {
+
+            $.each(series.data, function(idx) {
+                y = series.data[idx][1];
+                if (isNaN(y)) {
+                    return;
+                }
+                if (isNaN(yMin) || y < yMin) {
+                    yMin = y;
+                }
+            });
+            return yMin;
+
+        } else if (aggregation === 'MAX') {
+
+            $.each(series.data, function(idx) {
+                y = series.data[idx][1];
+                if (isNaN(y)) {
+                    return;
+                }
+                if (isNaN(yMax)  || y > yMax) {
+                    yMax = y;
+                }
+            });
+            return yMax;
+
+        } else if (aggregation === "AVERAGE" || aggregation === "AVG") {
+
+            N = 0;
+
+            $.each(series.data, function(idx) {
+                y = series.data[idx][1];
+                if (isNaN(y)) {
+                    return;
+                }
+                total += y;
+                N++;
+            });
+
+            return N > 0 ? total / N : NaN;
+
+        } else if (aggregation === "LAST") {
+
+            $.each(series.data, function(idx) {
+                y = series.data[idx][1];
+                if (!isNaN(y)) {
+                    last = y;
+                }
+            });
+
+            return last;
+
+        } else {
+            throw "Unsupported aggregation: " + aggregation;
+        }
     }
 
     function drawStatement(legendCtx, statement, options, allSeries) {
@@ -169,12 +242,11 @@
             });
 
             if (series === undefined) {
-                // TODO: The GPRINT statements may reference a DEF which is not included a series, Eugh.
-                console.log("No series with metric '" + statement.metric + "' was found. Skipping.");
-                return;
+                throw "No series with metric '" + statement.metric + "' was found.";
             }
         }
 
+        var lastSymbol = "";
         var tokens = tokenizeStatement(statement);
         $.each(tokens, function(idx) {
             var token = tokens[idx];
@@ -203,15 +275,27 @@
 
             } else if (token.type === 'unit') {
 
-                drawText(legendCtx, fontSize, "M ");
+                if (lastSymbol === "") {
+                    lastSymbol = " ";
+                }
+
+                drawText(legendCtx, fontSize, lastSymbol + " ");
 
             } else if (token.type === 'lf') {
 
-                var num = Array(token.length + 1).join('X');
-                num += ".";
-                num += Array(token.precision + 1).join('Y');
 
-                drawText(legendCtx, fontSize, num);
+                var value = reduceWithAggregate(statement.aggregation, series);
+                var scaledValue = value;
+                lastSymbol = "";
+
+                if (!isNaN(value)) {
+                    var prefix = d3.formatPrefix(value, token.precision);
+                    lastSymbol = prefix.symbol;
+                    scaledValue = prefix.scale(value);
+                }
+
+                var format = d3.format(token.length + "." + token.precision + "f");
+                drawText(legendCtx, fontSize, format(scaledValue));
 
             } else {
                 throw "Unsupported token: " + JSON.stringify(token);

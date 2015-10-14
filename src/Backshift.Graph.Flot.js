@@ -46,7 +46,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
     var container = $(this.element);
 
     var timestamps = results.columns[0];
-    var series, values, i, j, numSeries, numValues, X, Y, columnName, shouldStack, shouldFill, seriesValues;
+    var series, values, i, j, numSeries, numValues, X, Y, columnName, shouldStack, shouldFill, seriesValues, shouldShow;
     numSeries = this.series.length;
     numValues = timestamps.length;
 
@@ -65,6 +65,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
 
       shouldStack = this._shouldStack(i);
       shouldFill = this.series[i].type === "stack" || this.series[i].type === "area";
+      shouldShow = this.series[i].type !== "hidden";
 
       seriesValues = [];
       for (j = 0; j < numValues; j++) {
@@ -81,7 +82,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
         label: series.name,
         color: series.color,
         lines: {
-          show: true,
+          show: shouldShow,
           fill: shouldFill,
           fillColor: series.color
         },
@@ -100,6 +101,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
     var legendStatements = [];
 
     var options = {
+      canvas: true,
       title: self.title,
       axisLabels: {
         show: true
@@ -128,7 +130,9 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       },
       yaxes: [{
         position: 'left',
-        axisLabel: self.verticalLabel
+        axisLabel: self.verticalLabel,
+        axisLabelUseHtml: false,
+        axisLabelUseCanvas: true
       }],
       xaxis: { },
       grid: {

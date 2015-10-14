@@ -15,8 +15,8 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
     this.rpnConverter = new Backshift.Utilities.RpnToJexlConverter();
 
     // Replace strings.properties tokens
-    var propertyValue, i, n = this.graphDef.propertiesValues.length;
-    for (i = 0; i < n; i++) {
+    var propertyValue, i, j, n, m, metric;
+    for (i = 0, n = this.graphDef.propertiesValues.length; i < n; i++) {
       propertyValue = this.graphDef.propertiesValues[i];
       var re = new RegExp("\\{" + propertyValue + "}", "g");
       this.graphDef.command = this.graphDef.command.replace(re, propertyValue);
@@ -24,17 +24,37 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
 
     this._visit(this.graphDef);
 
+    for (i = 0, n = this.model.printStatements.length; i < n; i++) {
+      metric = this.model.printStatements[i].metric;
+      if (metric === undefined) {
+        continue;
+      }
+
+      var foundSeries = false;
+      for (j = 0, m = this.model.series.length; j < m; j++) {
+        if (metric === this.model.series[j].metric) {
+          foundSeries = true;
+          break;
+        }
+      }
+
+      if (!foundSeries) {
+        var series = {
+          metric: metric,
+          type: "hidden"
+        };
+        this.model.series.push(series);
+      }
+    }
+
     // Determine the set of metric names that are used in the series / legends
     var nonTransientMetrics = {};
-    n = this.model.series.length;
-    for (i = 0; i < n; i++) {
+    for (i = 0, n = this.model.series.length; i < n; i++) {
       nonTransientMetrics[this.model.series[i].metric] = 1;
     }
 
     // Mark all other sources as transient - if we don't use their values, then don't return them
-    var metric;
-    n = this.model.metrics.length;
-    for (i = 0; i < n; i++) {
+    for (i = 0, n = this.model.metrics.length; i < n; i++) {
       metric = this.model.metrics[i];
       metric.transient = !(metric.name in nonTransientMetrics);
     }
@@ -73,7 +93,7 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
       name: this.displayString(legend),
       metric: srcName,
       type: "line",
-      color: color,
+      color: color
     };
     this.maybeAddPrintStatementForSeries(series.metric, legend);
     this.model.series.push(series);
