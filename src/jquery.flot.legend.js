@@ -7,7 +7,7 @@
             statements: [],
             margin: { left: 5, right: 0, top: 0, bottom: 0 },
             style: {
-                fontSize: 9,
+                fontSize: 10,
                 spaceWidth: 5,
                 badgeSize: 10,
                 lineSpacing: 5
