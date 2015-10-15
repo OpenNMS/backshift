@@ -54,6 +54,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
     var to = timestamps[timestamps.length - 1];
 
     this.flotSeries = [];
+    this.hiddenFlotSeries = [];
 
     var lastSeriesToStackWith = null;
 
@@ -82,7 +83,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
         label: series.name,
         color: series.color,
         lines: {
-          show: shouldShow,
+          show: true,
           fill: shouldFill,
           fillColor: series.color
         },
@@ -91,10 +92,14 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
         metric: series.metric
       };
 
-      this.flotSeries.push(flotSeries);
+      if (shouldShow) {
+        this.flotSeries.push(flotSeries);
 
-      if (shouldStack) {
-        lastSeriesToStackWith = flotSeries;
+        if (shouldStack) {
+          lastSeriesToStackWith = flotSeries;
+        }
+      } else {
+        this.hiddenFlotSeries.push(flotSeries);
       }
     }
 
@@ -157,7 +162,8 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       legend: {
         show: false,
         statements: self.printStatements
-      }
+      },
+      hiddenSeries: this.hiddenFlotSeries
     };
 
     this.addTimeAxis(options, from, to);

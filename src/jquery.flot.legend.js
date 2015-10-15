@@ -1,9 +1,5 @@
 /*
-
-* Fix averages for stacked areas
-* Hidden series shouldn't affect Y-axis range
-* Default length/precision when not set
-* Spacing after lf when no s is present
+* Bottom right section on CPU usage graph is wrong.
  */
 (function ($) {
     var options = {
@@ -46,6 +42,8 @@
     function tokenizeStatement(statement) {
 
         var hasBadgeToken = false;
+        var hasLfToken = false;
+        var hasUnitToken = false;
 
         var state = 0, stack = [], tokens = [];
 
@@ -85,6 +83,8 @@
                 tokens.push({
                     type: 'unit'
                 });
+
+                hasUnitToken = true;
 
                 i++;
             } else if (c === '%' && nextc === '%') {
@@ -129,6 +129,8 @@
                     precision: parseInt(precision)
                 });
 
+                hasLfToken = true;
+
                 i += match[0].length - 1;
             } else {
                 stack.push(c);
@@ -140,6 +142,11 @@
             stack.push(" ");
         }
 
+        // Add a space after the %lf statement if there is no unit
+        if (hasLfToken && !hasUnitToken && tokens[tokens.length - 1].type === "lf") {
+            stack.push(" ");
+        }
+
         if (stack.length > 0) {
             tokens.push({
                 type: 'text',
@@ -147,8 +154,8 @@
             });
         }
 
-       //console.log("'" + statement.value + "'");
-       //console.log(JSON.stringify(tokens));
+       // console.log("'" + statement.value + "'");
+       // console.log(JSON.stringify(tokens));
 
         return tokens;
     }
@@ -169,10 +176,20 @@
 
         var N = series.data.length, total = 0, y, yMin = NaN, yMax = NaN, last = NaN;
 
+        var getYFromPoint = function(point) {
+            if (point.length === 2) {
+                return point[1];
+            } else if (point.length === 3) {
+                return point[1] - point[2];
+            } else {
+                throw "Unsupported point of length " + point.length;
+            }
+        };
+
         if (aggregation === 'MIN') {
 
             $.each(series.data, function(idx) {
-                y = series.data[idx][1];
+                y = getYFromPoint(series.data[idx]);
                 if (isNaN(y)) {
                     return;
                 }
@@ -185,7 +202,7 @@
         } else if (aggregation === 'MAX') {
 
             $.each(series.data, function(idx) {
-                y = series.data[idx][1];
+                y = getYFromPoint(series.data[idx]);
                 if (isNaN(y)) {
                     return;
                 }
@@ -200,7 +217,7 @@
             N = 0;
 
             $.each(series.data, function(idx) {
-                y = series.data[idx][1];
+                y = getYFromPoint(series.data[idx]);
                 if (isNaN(y)) {
                     return;
                 }
@@ -213,7 +230,7 @@
         } else if (aggregation === "LAST") {
 
             $.each(series.data, function(idx) {
-                y = series.data[idx][1];
+                y = getYFromPoint(series.data[idx]);
                 if (!isNaN(y)) {
                     last = y;
                 }
@@ -238,6 +255,12 @@
             $.each(allSeries, function(idx) {
                 if (allSeries[idx].metric === statement.metric) {
                     series = allSeries[idx];
+                }
+            });
+
+            $.each(options.hiddenSeries, function(idx) {
+                if (options.hiddenSeries[idx].metric === statement.metric) {
+                    series = options.hiddenSeries[idx];
                 }
             });
 
@@ -283,10 +306,11 @@
 
             } else if (token.type === 'lf') {
 
-
                 var value = reduceWithAggregate(statement.aggregation, series);
                 var scaledValue = value;
                 lastSymbol = "";
+
+
 
                 if (!isNaN(value)) {
                     var prefix = d3.formatPrefix(value, token.precision);
@@ -294,7 +318,17 @@
                     scaledValue = prefix.scale(value);
                 }
 
-                var format = d3.format(token.length + "." + token.precision + "f");
+                var format = "";
+                if (!isNaN(token.length)) {
+                    format += token.length;
+                }
+                if (!isNaN(token.precision)) {
+                    format += "." + token.precision;
+                }
+                format += "f";
+
+                format = d3.format(format);
+
                 drawText(legendCtx, fontSize, format(scaledValue));
 
             } else {
