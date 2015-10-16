@@ -14,7 +14,8 @@
     "flot": "~0.8.3",
     "flot-axislabels": "https://github.com/markrcote/flot-axislabels.git#a181e09d0",
     "flot.saveasimage": "~1.0.0",
-    "flot.tooltip": "~0.8.5"
+    "flot.tooltip": "~0.8.5",
+    "flot-legend": "https://github.com/j-white/flot-legend.git#master"
   },
   "resolutions": {
     "d3": "~3.5.6"

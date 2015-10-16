@@ -25,6 +25,7 @@ module.exports = function(config) {
             'bower_components/flot/jquery.flot.navigate.js',
             'bower_components/flot/jquery.flot.resize.js',
             'bower_components/flot-axislabels/jquery.flot.axislabels.js',
+            'bower_components/flot-legend/jquery.flot.legend.min.js',
             'src/Compat.js',
             'src/Backshift.js',
             'src/Backshift.Class.js',
