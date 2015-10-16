@@ -1,6 +1,3 @@
-/*
-* Bottom right section on CPU usage graph is wrong.
- */
 (function ($) {
     var options = {
         legend: {
@@ -309,8 +306,6 @@
                 var value = reduceWithAggregate(statement.aggregation, series);
                 var scaledValue = value;
                 lastSymbol = "";
-
-
 
                 if (!isNaN(value)) {
                     var prefix = d3.formatPrefix(value, token.precision);

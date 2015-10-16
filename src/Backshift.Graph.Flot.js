@@ -153,9 +153,9 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
         mode: "x",
         color: '#666'
       },
-      zoom: {
+      /*zoom: {
         interactive: true
-      },
+      },*/
       pan: {
         interactive: true
       },
@@ -163,7 +163,10 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
         show: false,
         statements: self.printStatements
       },
-      hiddenSeries: this.hiddenFlotSeries
+      hiddenSeries: this.hiddenFlotSeries,
+      tooltip: {
+        show: true
+      }
     };
 
     this.addTimeAxis(options, from, to);
