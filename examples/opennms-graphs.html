@@ -1,37 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <link rel="stylesheet" type="text/css" href="../bower_components/c3/c3.min.css">
-    <link rel="stylesheet" type="text/css" href="../bower_components/dcjs/dc.css">
     <script src="../bower_components/jquery/dist/jquery.min.js"></script>
     <script src="../bower_components/d3/d3.min.js"></script>
-    <script src="../bower_components/c3/c3.js"></script>
-    <script src="../bower_components/crossfilter/crossfilter.js"></script>
-    <script src="../bower_components/dcjs/dc.js"></script>
 
     <script src="../bower_components/flot/jquery.flot.js"></script>
     <script src="../bower_components/flot/jquery.flot.time.js"></script>
-    <script src="../bower_components/flot-legend/jquery.flot.legend.min.js"></script>
-
-    <!--
-    Does not feel intuitive. No way to reset the view either.
-
-    <script src="../bower_components/flot/jquery.flot.navigate.js"></script>
-    -->
     <script src="../bower_components/flot/jquery.flot.canvas.js"></script>
-
-    <!--
-    Alignment is off, pull request pending: https://github.com/markrcote/flot-axislabels/pull/39
-    -->
+    <script src="../bower_components/flot-legend/jquery.flot.legend.js"></script>
     <script src="../bower_components/flot-axislabels/jquery.flot.axislabels.js"></script>
-
-    <!--
-    This is broken.
-
-    <script type="text/javascript" src="../bower_components/flot.saveasimage/lib/base64.js"></script>
-    <script type="text/javascript" src="../bower_components/flot.saveasimage/lib/canvas2image.js"></script>
-    <script type="text/javascript" src="../bower_components/flot.saveasimage/jquery.flot.saveAsImage.js"></script>
-    -->
     <script src="../bower_components/flot.tooltip/js/jquery.flot.tooltip.min.js"></script>
 
     <script src="../src/Compat.js"></script>
@@ -47,10 +24,7 @@
     <script src="../src/Backshift.DataSource.js"></script>
     <script src="../src/Backshift.DataSource.OpenNMS.js"></script>
     <script src="../src/Backshift.Graph.js"></script>
-    <script src="../src/Backshift.Graph.C3.js"></script>
-    <script src="../src/Backshift.Graph.DC.js"></script>
     <script src="../src/Backshift.Graph.Flot.js"></script>
-    <script src="../src/Backshift.Graph.Matrix.js"></script>
 
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
@@ -60,15 +34,6 @@
     <style>
         .row {
             margin-top: 25px;
-        }
-
-        .c3-area {
-            stroke-width: 0;
-            opacity: 0.85;
-        }
-
-        .c3-line {
-            stroke-width: 2px;
         }
     </style>
 </head>

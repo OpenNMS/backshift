@@ -122,8 +122,6 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       }
     }
 
-    var legendStatements = [];
-
     var options = {
       canvas: true,
       title: self.title,
@@ -171,12 +169,6 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       selection: {
         mode: "x",
         color: '#666'
-      },
-      /*zoom: {
-        interactive: true
-      },*/
-      pan: {
-        interactive: true
       },
       legend: {
         show: false,
