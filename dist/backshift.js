@@ -1379,7 +1379,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
   },
 
   onInit: function () {
-    var container = $(this.element);
+    var container = jQuery(this.element);
     // Set the container dimensions, Flot's canvas will use 100% of the container div
     container.width(this.width);
     container.height(this.height);
@@ -1423,7 +1423,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
 
   drawChart: function (results) {
     var self = this;
-    var container = $(this.element);
+    var container = jQuery(this.element);
 
     var timestamps = results.columns[0];
     var series, values, i, j, numSeries, numValues, X, Y, columnName, shouldStack, shouldFill, seriesValues, shouldShow;
@@ -1543,7 +1543,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
 
     this.addTimeAxis(options, from, to);
 
-    $.plot(container, this.flotSeries, options);
+    jQuery.plot(container, this.flotSeries, options);
   },
 
   drawHook: function(plot, canvascontext) {
@@ -1554,7 +1554,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
   },
 
   addTimeAxis: function(options, from, to) {
-    var elem = $(this.element);
+    var elem = jQuery(this.element);
     var ticks = elem.width() / 100;
 
     options.xaxis = {
