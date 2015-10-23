@@ -768,7 +768,8 @@ Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
       }
     })();
 
-    var i, args, command, name, path, dsName, consolFun, rpnExpression, subParts, width, srcName, color, legend;
+    var i, args, command, name, path, dsName, consolFun, rpnExpression, subParts, width, srcName,
+        color, legend, aggregation, value, seriesName;
     var parts = CommandLineParser.parse(graphDef.command, true);
     var n = parts.length;
     for (i = 0; i < n; i++) {
@@ -779,13 +780,16 @@ Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
         }
 
         if (args[1] === "title") {
-          this._onTitle(this._displayString(args[2]));
+          this._onTitle(this.displayString(this._decodeString(args[2])));
         } else if (args[1] === "vertical-label") {
-          this._onVerticalLabel(this._displayString(args[2]));
+          this._onVerticalLabel(this.displayString(this._decodeString(args[2])));
         }
       }
 
-      args = parts[i].split(":");
+      args = parts[i].match(/(\\.|[^:])+/g);
+      if (args === null) {
+        continue;
+      }
       command = args[0];
 
       if (command === "DEF") {
@@ -805,20 +809,28 @@ Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
         subParts = args[1].split("#");
         srcName = subParts[0];
         color = '#' + subParts[1];
-        legend = this._displayString(args[2]);
+        legend = this._decodeString(args[2]);
         this._onLine(srcName, color, legend, width);
       } else if (command === "AREA") {
         subParts = args[1].split("#");
         srcName = subParts[0];
         color = '#' + subParts[1];
-        legend = this._displayString(args[2]);
+        legend = this._decodeString(args[2]);
         this._onArea(srcName, color, legend);
       } else if (command === "STACK") {
         subParts = args[1].split("#");
         srcName = subParts[0];
         color = '#' + subParts[1];
-        legend = this._displayString(args[2]);
+        legend = this._decodeString(args[2]);
         this._onStack(srcName, color, legend);
+      } else if (command === "GPRINT") {
+        srcName = args[1];
+        aggregation = args[2];
+        value = this._decodeString(args[3]);
+        this._onGPrint(srcName, aggregation, value);
+      } else if (command === "COMMENT") {
+        value = this._decodeString(args[1]);
+        this._onComment(value);
       }
     }
   },
@@ -843,16 +855,34 @@ Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
   _onStack: function (srcName, color, legend) {
 
   },
-  _displayString: function (string) {
+  _onGPrint: function (srcName, aggregation, value) {
+
+  },
+  _onComment: function (value) {
+
+  },
+  _seriesName: function(string) {
+
+  },
+  _decodeString: function (string) {
     if (string === undefined) {
       return string;
     }
+
     // Remove any quotes
     string = string.replace(/"/g, '');
+    // Replace escaped colons
+    string = string.replace("\\:", ':');
+
+    return string;
+  },
+  displayString: function (string) {
+    if (string === undefined) {
+      return string;
+    }
+
     // Remove any newlines
     string = string.replace("\\n", '');
-    // Remove trailing slashes
-    string = string.replace(/(.*)(\\)/, '$1');
     // Remove any leading/trailing whitespace
     string = string.trim();
     return string;
@@ -869,14 +899,15 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
 
     this.model = {
       metrics: [],
-      series: []
+      series: [],
+      printStatements: []
     };
 
     this.rpnConverter = new Backshift.Utilities.RpnToJexlConverter();
 
     // Replace strings.properties tokens
-    var propertyValue, i, n = this.graphDef.propertiesValues.length;
-    for (i = 0; i < n; i++) {
+    var propertyValue, i, j, n, m, metric;
+    for (i = 0, n = this.graphDef.propertiesValues.length; i < n; i++) {
       propertyValue = this.graphDef.propertiesValues[i];
       var re = new RegExp("\\{" + propertyValue + "}", "g");
       this.graphDef.command = this.graphDef.command.replace(re, propertyValue);
@@ -884,17 +915,37 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
 
     this._visit(this.graphDef);
 
+    for (i = 0, n = this.model.printStatements.length; i < n; i++) {
+      metric = this.model.printStatements[i].metric;
+      if (metric === undefined) {
+        continue;
+      }
+
+      var foundSeries = false;
+      for (j = 0, m = this.model.series.length; j < m; j++) {
+        if (metric === this.model.series[j].metric) {
+          foundSeries = true;
+          break;
+        }
+      }
+
+      if (!foundSeries) {
+        var series = {
+          metric: metric,
+          type: "hidden"
+        };
+        this.model.series.push(series);
+      }
+    }
+
     // Determine the set of metric names that are used in the series / legends
     var nonTransientMetrics = {};
-    n = this.model.series.length;
-    for (i = 0; i < n; i++) {
+    for (i = 0, n = this.model.series.length; i < n; i++) {
       nonTransientMetrics[this.model.series[i].metric] = 1;
     }
 
     // Mark all other sources as transient - if we don't use their values, then don't return them
-    var metric;
-    n = this.model.metrics.length;
-    for (i = 0; i < n; i++) {
+    for (i = 0, n = this.model.metrics.length; i < n; i++) {
       metric = this.model.metrics[i];
       metric.transient = !(metric.name in nonTransientMetrics);
     }
@@ -929,31 +980,63 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
   },
 
   _onLine: function (srcName, color, legend, width) {
-    this.model.series.push({
-      name: legend,
+    var series = {
+      name: this.displayString(legend),
       metric: srcName,
       type: "line",
       color: color
-    });
+    };
+    this.maybeAddPrintStatementForSeries(series.metric, legend);
+    this.model.series.push(series);
   },
 
   _onArea: function (srcName, color, legend) {
-    this.model.series.push({
-      name: legend,
+    var series = {
+      name: this.displayString(legend),
       metric: srcName,
       type: "area",
       color: color
-    });
+    };
+    this.maybeAddPrintStatementForSeries(series.metric, legend);
+    this.model.series.push(series);
   },
 
   _onStack: function (srcName, color, legend) {
-    this.model.series.push({
-      name: legend,
+    var series = {
+      name: this.displayString(legend),
       metric: srcName,
       type: "stack",
-      color: color
+      color: color,
+      legend: legend
+    };
+    this.maybeAddPrintStatementForSeries(series.metric, legend);
+    this.model.series.push(series);
+  },
+
+  _onGPrint: function (srcName, aggregation, value) {
+    this.model.printStatements.push({
+      metric: srcName,
+      aggregation: aggregation,
+      value: value
     });
-  }
+  },
+
+  _onComment: function (value) {
+    this.model.printStatements.push({
+      value: value
+    });
+  },
+
+  maybeAddPrintStatementForSeries: function(metric, legend) {
+    if (legend === undefined || legend === null || legend === "") {
+      return;
+    }
+
+    this.model.printStatements.push({
+      metric: metric,
+      value: "%g " + legend
+    });
+ }
 });
 
 /**
@@ -976,6 +1059,8 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
     this.element = args.element;
 
     this.series = args.series;
+
+    this.printStatements = args.printStatements;
 
     this.configure(args);
 
@@ -1271,6 +1356,237 @@ Backshift.Graph.Matrix = Backshift.Class.create(Backshift.Graph, {
       });
 
     return table;
+  }
+});
+
+/**
+ * Created by jwhite on 10/12/14.
+ */
+
+Backshift.namespace('Backshift.Graph.Flot');
+
+/** Renders the graoh using Flot */
+Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
+
+  defaults: function ($super) {
+    return Backshift.extend($super(), {
+      width: '100%',
+      height: '100%',
+      title: undefined,
+      verticalLabel: undefined,
+      zoom: true // whether to allow zooming
+    });
+  },
+
+  onInit: function () {
+    var container = $(this.element);
+    // Set the container dimensions, Flot's canvas will use 100% of the container div
+    container.width(this.width);
+    container.height(this.height);
+    // Used to hold a reference to the div that holds the status text
+    this.statusBlock = null;
+  },
+
+
+  onBeforeQuery: function () {
+    this.updateStatus("Loading...");
+  },
+
+  updateStatus: function (status) {
+    if (this.statusBlock) {
+      this.statusBlock.text(status);
+    } else {
+      this.statusBlock = d3.select(this.element).append("h3").attr("align", "center").text(status);
+    }
+  },
+
+  onQueryFailed: function () {
+    this.updateStatus("Query failed.");
+  },
+
+  onQuerySuccess: function (results) {
+    this.drawChart(results);
+  },
+
+  _shouldStack: function (k) {
+    // If there's stack following the area, set the area to stack
+    if (this.series[k].type === "area") {
+      var n = this.series.length;
+      for (var i = k; i < n; i++) {
+        if (this.series[i].type === "stack") {
+          return 1;
+        }
+      }
+    }
+    return this.series[k].type === "stack";
+  },
+
+  drawChart: function (results) {
+    var self = this;
+    var container = $(this.element);
+
+    var timestamps = results.columns[0];
+    var series, values, i, j, numSeries, numValues, X, Y, columnName, shouldStack, shouldFill, seriesValues, shouldShow;
+    numSeries = this.series.length;
+    numValues = timestamps.length;
+
+    var from = timestamps[0];
+    var to = timestamps[timestamps.length - 1];
+
+    this.flotSeries = [];
+    this.hiddenFlotSeries = [];
+
+    var lastSeriesToStackWith = null;
+
+    // Build the columns for the series
+    for (i = 0; i < numSeries; i++) {
+      columnName = "data" + i;
+      series = this.series[i];
+      values = results.columns[results.columnNameToIndex[series.metric]];
+
+      shouldStack = this._shouldStack(i);
+      shouldFill = this.series[i].type === "stack" || this.series[i].type === "area";
+      shouldShow = this.series[i].type !== "hidden";
+
+      seriesValues = [];
+      for (j = 0; j < numValues; j++) {
+        var yOffset = 0;
+        if (shouldStack && lastSeriesToStackWith != null) {
+          yOffset = lastSeriesToStackWith.data[j][1];
+        }
+        var yVal = values[j] + yOffset;
+
+        seriesValues.push([timestamps[j], yVal, yOffset]);
+      }
+
+      var flotSeries = {
+        label: series.name,
+        color: series.color,
+        lines: {
+          show: true,
+          fill: shouldFill,
+          fillColor: series.color
+        },
+        data: seriesValues,
+        id: columnName,
+        metric: series.metric
+      };
+
+      if (shouldShow) {
+        this.flotSeries.push(flotSeries);
+
+        if (shouldStack) {
+          lastSeriesToStackWith = flotSeries;
+        }
+      } else {
+        this.hiddenFlotSeries.push(flotSeries);
+      }
+    }
+
+    var options = {
+      canvas: true,
+      title: self.title,
+      axisLabels: {
+        show: true
+      },
+      hooks: {
+        draw: [self.drawHook]
+      },
+      series: {
+        lines:  {
+          zero: false
+        },
+        bars:   {
+          fill: 1,
+          barWidth: 1,
+          zero: false,
+          lineWidth: 0
+        },
+        points: {
+          fill: 1,
+          fillColor: false
+        },
+        shadowSize: 1
+      },
+      yaxis: {
+        tickFormatter: d3.format(".2s")
+      },
+      yaxes: [{
+        position: 'left',
+        axisLabel: self.verticalLabel,
+        axisLabelUseHtml: false,
+        axisLabelUseCanvas: true
+      }],
+      xaxis: { },
+      grid: {
+        minBorderMargin: 0,
+        markings: [],
+        backgroundColor: null,
+        borderWidth: 0,
+        hoverable: true,
+        color: '#c8c8c8',
+        margin: { left: 0, right: 0, top: 25, bottom: 0 }
+      },
+      selection: {
+        mode: "x",
+        color: '#666'
+      },
+      legend: {
+        show: false,
+        statements: self.printStatements
+      },
+      hiddenSeries: this.hiddenFlotSeries,
+      tooltip: {
+        show: true
+      }
+    };
+
+    this.addTimeAxis(options, from, to);
+
+    $.plot(container, this.flotSeries, options);
+  },
+
+  drawHook: function(plot, canvascontext) {
+    var cx = canvascontext.canvas.clientWidth / 2;
+    canvascontext.font="15px sans-serif";
+    canvascontext.textAlign = 'center';
+    canvascontext.fillText(plot.getOptions().title, cx, 15);
+  },
+
+  addTimeAxis: function(options, from, to) {
+    var elem = $(this.element);
+    var ticks = elem.width() / 100;
+
+    options.xaxis = {
+      mode: "time",
+      min: from,
+      max: to,
+      label: "Datetime",
+      ticks: ticks,
+      timeformat: this.time_format(ticks, from, to)
+    };
+  },
+
+  time_format: function(ticks, min, max) {
+    if (min && max && ticks) {
+      var secPerTick = ((max - min) / ticks) / 1000;
+
+      if (secPerTick <= 45) {
+        return "%H:%M:%S";
+      }
+      if (secPerTick <= 7200) {
+        return "%H:%M";
+      }
+      if (secPerTick <= 80000) {
+        return "%m/%d %H:%M";
+      }
+      if (secPerTick <= 2419200) {
+        return "%m/%d";
+      }
+      return "%Y-%m";
+    }
+
+    return "%H:%M";
   }
 });
 
@@ -1663,39 +1979,24 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
     this.dateDimension = this.crossfilter.dimension(function(d) {
       return d.timestamp;
     });
-
+    this.statusMessage = "Loading...";
     this.renderGraphs();
   },
 
-  onBeforeQuery: function () {
-    this.timeBeforeQuery = Date.now();
-    this.updateStatus("Querying...");
-  },
-
   onQuerySuccess: function (results) {
+    this.statusMessage = null;
     this.updateData(results);
-    var timeAfterQuery = Date.now();
-    var queryDuration = Number((timeAfterQuery - this.timeBeforeQuery) / 1000).toFixed(2);
-    this.updateStatus("Successfully retrieved data in " + queryDuration + " seconds.");
   },
 
-  onQueryFailed: function () {
-    this.updateStatus("Query failed.");
+  onQueryFailed: function($super, reason) {
+    $super(reason);
+    this.statusMessage = "Query failed.";
+    this.renderGraphs();
   },
 
   onCancel: function () {
     this.crossfilter.groupAll();
     this.crossfilter.remove();
-  },
-
-  updateStatus: function (status) {
-    /*
-    if (this.statusBlock) {
-      this.statusBlock.text(status);
-    } else {
-      this.statusBlock = d3.select(this.element).append("p").attr("align", "right").text(status);
-    }
-    */
   },
 
   updateData: function (results) {
@@ -1759,16 +2060,17 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
         .x(d3.time.scale().domain([minTime, maxTime]))
         .round(xunits.round)
         .xUnits(xunits)
-        .render()
-        .redraw();
+        .render();
     }
+
+    self.renderGraphs();
   },
 
   renderGraphs: function () {
     var self = this, i, k;
 
     var timeFormat = d3.time.format('%Y-%m-%d %H:%M:%S');
-    var numberFormat = d3.format('0.2f');
+    var numberFormat = d3.format('.2s');
 
     /* make this element unique so we can refer to it when rendering */
     var dgName = self.element.getAttribute('data-graph-model');
@@ -1955,7 +2257,7 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
       chart.legend(legend);
 
       chart.xAxis().ticks(6);
-      chart.yAxis().tickFormat(d3.format('.2s'));
+      chart.yAxis().tickFormat(numberFormat);
 
       if (self.title) {
         chart.on('renderlet', function(chart) {
@@ -1985,6 +2287,21 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
         .brushOn(false)
         .render();
       self.chart = chart;
+    }
+
+    // Draw the status message
+    var svg = self.chart.svg();
+    svg.select('#' + id + '-chart-status').remove();
+    if (this.statusMessage !== null) {
+      var boundingRect = svg.node().getBoundingClientRect();
+
+      svg.append('text')
+          .attr("id", id + '-chart-status')
+          .attr('x', boundingRect.width / 2)
+          .attr('y', boundingRect.height / 2.5)
+          .attr('text-anchor', 'middle')
+          .style('font-size', '2.5em')
+          .text(this.statusMessage);
     }
   }
 });
