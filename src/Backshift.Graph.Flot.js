@@ -13,7 +13,10 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       height: '100%',
       title: undefined,
       verticalLabel: undefined,
-      zoom: true // whether to allow zooming
+      zoom: true, // whether to allow zooming
+      xaxisFont: undefined, // flot "font" spec, see http://flot.googlecode.com/svn/trunk/API.txt for details
+      yaxisFont: undefined, // flot "font" spec
+      legendFontSize: undefined, // font size (integer)
     });
   },
 
@@ -182,7 +185,52 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
 
     this.addTimeAxis(options, from, to);
 
+    if (self.xaxisFont) {
+      options.xaxis.font = self.getFontSpec(self.xaxisFont);
+    }
+    if (self.yaxisFont) {
+      options.yaxis.font = self.getFontSpec(self.yaxisFont);
+    }
+    if (self.legendFontSize) {
+      if (!options.legend.style) {
+        options.legend.style = {};
+      }
+      options.legend.style.fontSize = this.legendFontSize;
+    }
+
     jQuery.plot(container, this.flotSeries, options);
+  },
+
+  getFontSpec: function(fontSpec) {
+    var ret = {
+      size: 'inherit',
+      family: 'inherit',
+      style: 'inherit',
+      weight: 'inherit',
+      variant: 'inherit',
+      color: 'inherit',
+    };
+    if (fontSpec) {
+      if (fontSpec.size) {
+        ret.size = fontSpec.size;
+      }
+      if (fontSpec.family) {
+        ret.family = fontSpec.family;
+      }
+      if (fontSpec.style) {
+        ret.style = fontSpec.style;
+      }
+      if (fontSpec.weight) {
+        ret.weight = fontSpec.weight;
+      }
+      if (fontSpec.variant) {
+        ret.variant = fontSpec.variant;
+      }
+      if (fontSpec.color) {
+        ret.color = fontSpec.color;
+      }
+    }
+    return ret;
   },
 
   drawHook: function(plot, canvascontext) {
