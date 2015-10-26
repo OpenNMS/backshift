@@ -1,8 +1,8 @@
 {
   "name": "backshift",
   "description": "Time series graphing",
-  "version": "1.0.1-beta.5",
-  "homepage": "https://github.com/j-white/backshift",
+  "version": "1.0.1-beta.7",
+  "homepage": "https://github.com/OpenNMS/backshift",
   "private": true,
   "main": [
     "dist/backshift.min.js"

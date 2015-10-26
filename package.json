@@ -1,11 +1,11 @@
 {
   "name": "backshift",
-  "version": "1.0.1-beta.5",
+  "version": "1.0.1-beta.7",
   "repository": {
     "type": "git",
-    "url": "https://github.com/j-white/backshift.git"
+    "url": "https://github.com/OpenNMS/backshift.git"
   },
-  "homepage": "https://github.com/j-white/backshif",
+  "homepage": "https://github.com/OpenNMS/backshift",
   "devDependencies": {
     "grunt": "~0.4.5",
     "grunt-contrib-jshint": "~0.11.2",
