@@ -17,6 +17,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       xaxisFont: undefined, // flot "font" spec, see http://flot.googlecode.com/svn/trunk/API.txt for details
       yaxisFont: undefined, // flot "font" spec
       legendFontSize: undefined, // font size (integer)
+      ticks: undefined, // number of x-axis ticks, defaults to a value based on the width
     });
   },
 
@@ -242,7 +243,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
 
   addTimeAxis: function(options, from, to) {
     var elem = jQuery(this.element);
-    var ticks = elem.width() / 100;
+    var ticks = this.ticks || (elem.width() / 100);
 
     options.xaxis = {
       mode: "time",
