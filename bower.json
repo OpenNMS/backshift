@@ -19,7 +19,7 @@
     "flot-axislabels": "https://github.com/j-white/flot-axislabels.git#0d6ae9a79338",
     "flot.tooltip": "~0.8.5",
     "flot-legend": "https://github.com/j-white/flot-legend.git#9de1ab2461ca9ef903d",
-    "flot-saveas": "https://github.com/j-white/flot-saveas.git#44d514f90942b4cdab0"
+    "flot-saveas": "https://github.com/j-white/flot-saveas.git#43fc6f14dd996346560"
   },
   "resolutions": {
     "d3": "~3.5.6"
