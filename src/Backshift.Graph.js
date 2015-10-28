@@ -18,11 +18,14 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
 
     this.element = args.element;
     this.model = args.model || {};
-    if (!this.model.printStatements) {
-      this.model.printStatements = [];
-    }
     if (!this.model.metrics) {
       this.model.metrics = [];
+    }
+    if (!this.model.series) {
+      this.model.series = [];
+    }
+    if (!this.model.printStatements) {
+      this.model.printStatements = [];
     }
     this._title = args.title || this.model.title;
     this._verticalLabel = args.verticalLabel || this.model.verticalLabel;
