@@ -714,7 +714,8 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
     this.model = {
       metrics: [],
       series: [],
-      printStatements: []
+      printStatements: [],
+      properties: {}
     };
 
     this.rpnConverter = new Backshift.Utilities.RpnToJexlConverter();
@@ -723,8 +724,7 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
     var propertyValue, i, j, n, m, metric;
     for (i = 0, n = this.graphDef.propertiesValues.length; i < n; i++) {
       propertyValue = this.graphDef.propertiesValues[i];
-      var re = new RegExp("\\{" + propertyValue + "}", "g");
-      this.graphDef.command = this.graphDef.command.replace(re, propertyValue);
+      this.model.properties[propertyValue] = undefined;
     }
 
     this._visit(this.graphDef);
@@ -777,6 +777,7 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
     var columnIndex = parseInt(/\{rrd(\d+)}/.exec(path)[1]) - 1;
     var attribute = this.graphDef.columns[columnIndex];
 
+    this.prefix = attribute;
     this.model.metrics.push({
       name: name,
       attribute: attribute,
@@ -786,10 +787,16 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
     });
   },
 
+  _expressionRegexp: new RegExp('\\{([^}]*)}', 'g'),
+
   _onCDEF: function (name, rpnExpression) {
+    var expression = this.rpnConverter.convert(rpnExpression);
+    if (this.prefix) {
+      expression = expression.replace(this._expressionRegexp, this.prefix + '.$1');
+    }
     this.model.metrics.push({
       name: name,
-      expression: this.rpnConverter.convert(rpnExpression)
+      expression: expression
     });
   },
 
@@ -870,11 +877,18 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
     if (args.element === undefined) {
       Backshift.fail('Graph needs an element.');
     }
+
     this.element = args.element;
-
-    this.series = args.series;
-
-    this.printStatements = args.printStatements;
+    this.model = args.model || {};
+    if (!this.model.printStatements) {
+      this.model.printStatements = [];
+    }
+    if (!this.model.metrics) {
+      this.model.metrics = [];
+    }
+    this._title = args.title || this.model.title;
+    this._verticalLabel = args.verticalLabel || this.model.verticalLabel;
+    this._regexes = {};
 
     this.configure(args);
 
@@ -969,6 +983,7 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
     this.dataSource.query(timeSpan.start, timeSpan.end, this.getResolution()).then(function (results) {
       self.queryInProgress = false;
       self.lastSuccessfulQuery = Date.now();
+      self.updateTextFields(results);
       self.onQuerySuccess(results);
       self.onAfterQuery();
     }, function (reason) {
@@ -976,6 +991,35 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
       self.onQueryFailed(reason);
       self.onAfterQuery();
     })
+  },
+
+  updateTextFields: function(results) {
+    var self = this;
+
+    var title = self._title,
+      verticalLabel = self._verticalLabel,
+      value,
+      re;
+
+    if (self.model.properties) {
+      for (var prop in self.model.properties) {
+        if (!self._regexes[prop]) {
+          self._regexes[prop] = new RegExp("\\{" + prop + "}", "g");
+        }
+        re = self._regexes[prop];
+
+        if (results.constants && results.constants[prop]) {
+          value = results.constants[prop];
+        } else {
+          value = prop;
+        }
+        if (title) { title = title.replace(re, value); }
+        if (verticalLabel) { verticalLabel = verticalLabel.replace(re, value); }
+      }
+    }
+
+    self.title = title;
+    self.verticalLabel = verticalLabel;
   },
 
   shouldRefresh: function () {
@@ -1218,8 +1262,8 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
       return self.dateDimension.group().reduce(reduceAdd, reduceDel, reduceInitial);
     };
 
-    for (i = 0; i < self.series.length; i++) {
-      var columnName = self.series[i].metric;
+    for (i = 0; i < self.model.series.length; i++) {
+      var columnName = self.model.series[i].metric;
 
       columnGroups[i] = getGroup(columnName);
     }
@@ -1238,18 +1282,18 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
         }
       ;
 
-      for (i = 0; i < self.series.length; i++) {
+      for (i = 0; i < self.model.series.length; i++) {
         var lastChart, lastSeries, nextSeries;
         if (charts.length > 0) {
           lastChart = charts[charts.length - 1];
         }
 
-        ser = self.series[i];
+        ser = self.model.series[i];
         if (i > 0) {
-          lastSeries = self.series[i-1];
+          lastSeries = self.model.series[i-1];
         }
-        if (self.series[i+1]) {
-          nextSeries = self.series[i+1];
+        if (self.model.series[i+1]) {
+          nextSeries = self.model.series[i+1];
         }
 
         var currentChart;
@@ -1417,7 +1461,11 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       height: '100%',
       title: undefined,
       verticalLabel: undefined,
-      zoom: true // whether to allow zooming
+      zoom: true, // whether to allow zooming
+      xaxisFont: undefined, // flot "font" spec, see http://flot.googlecode.com/svn/trunk/API.txt for details
+      yaxisFont: undefined, // flot "font" spec
+      legendFontSize: undefined, // font size (integer)
+      ticks: undefined, // number of x-axis ticks, defaults to a value based on the width
     });
   },
 
@@ -1453,15 +1501,15 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
 
   _shouldStack: function (k) {
     // If there's stack following the area, set the area to stack
-    if (this.series[k].type === "area") {
-      var n = this.series.length;
+    if (this.model.series[k].type === "area") {
+      var n = this.model.series.length;
       for (var i = k; i < n; i++) {
-        if (this.series[i].type === "stack") {
+        if (this.model.series[i].type === "stack") {
           return 1;
         }
       }
     }
-    return this.series[k].type === "stack";
+    return this.model.series[k].type === "stack";
   },
 
   drawChart: function (results) {
@@ -1470,7 +1518,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
 
     var timestamps = results.columns[0];
     var series, values, i, j, numSeries, numValues, X, Y, columnName, shouldStack, shouldFill, seriesValues, shouldShow;
-    numSeries = this.series.length;
+    numSeries = this.model.series.length;
     numValues = timestamps.length;
 
     var from = timestamps[0];
@@ -1484,12 +1532,12 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
     // Build the columns for the series
     for (i = 0; i < numSeries; i++) {
       columnName = "data" + i;
-      series = this.series[i];
+      series = this.model.series[i];
       values = results.columns[results.columnNameToIndex[series.metric]];
 
       shouldStack = this._shouldStack(i);
-      shouldFill = this.series[i].type === "stack" || this.series[i].type === "area";
-      shouldShow = this.series[i].type !== "hidden";
+      shouldFill = this.model.series[i].type === "stack" || this.model.series[i].type === "area";
+      shouldShow = this.model.series[i].type !== "hidden";
 
       seriesValues = [];
       for (j = 0; j < numValues; j++) {
@@ -1576,7 +1624,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       },
       legend: {
         show: false,
-        statements: self.printStatements
+        statements: self.model.printStatements
       },
       hiddenSeries: this.hiddenFlotSeries,
       tooltip: {
@@ -1586,7 +1634,52 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
 
     this.addTimeAxis(options, from, to);
 
+    if (self.xaxisFont) {
+      options.xaxis.font = self.getFontSpec(self.xaxisFont);
+    }
+    if (self.yaxisFont) {
+      options.yaxis.font = self.getFontSpec(self.yaxisFont);
+    }
+    if (self.legendFontSize) {
+      if (!options.legend.style) {
+        options.legend.style = {};
+      }
+      options.legend.style.fontSize = this.legendFontSize;
+    }
+
     jQuery.plot(container, this.flotSeries, options);
+  },
+
+  getFontSpec: function(fontSpec) {
+    var ret = {
+      size: 'inherit',
+      family: 'inherit',
+      style: 'inherit',
+      weight: 'inherit',
+      variant: 'inherit',
+      color: 'inherit',
+    };
+    if (fontSpec) {
+      if (fontSpec.size) {
+        ret.size = fontSpec.size;
+      }
+      if (fontSpec.family) {
+        ret.family = fontSpec.family;
+      }
+      if (fontSpec.style) {
+        ret.style = fontSpec.style;
+      }
+      if (fontSpec.weight) {
+        ret.weight = fontSpec.weight;
+      }
+      if (fontSpec.variant) {
+        ret.variant = fontSpec.variant;
+      }
+      if (fontSpec.color) {
+        ret.color = fontSpec.color;
+      }
+    }
+    return ret;
   },
 
   drawHook: function(plot, canvascontext) {
@@ -1598,7 +1691,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
 
   addTimeAxis: function(options, from, to) {
     var elem = jQuery(this.element);
-    var ticks = elem.width() / 100;
+    var ticks = this.ticks || (elem.width() / 100);
 
     options.xaxis = {
       mode: "time",
@@ -1774,7 +1867,7 @@ Backshift.DataSource.OpenNMS = Backshift.Class.create(Backshift.DataSource, {
   },
 
   _parseResponse: function (json) {
-    var k, columns, columnNames, columnNameToIndex, numMetrics = json.labels.length;
+    var k, columns, columnNames, columnNameToIndex, constants, numMetrics = json.labels.length;
 
     columns = new Array(1 + numMetrics);
     columnNames = new Array(1 + numMetrics);
@@ -1790,10 +1883,27 @@ Backshift.DataSource.OpenNMS = Backshift.Class.create(Backshift.DataSource, {
       columnNameToIndex[columnNames[1 + k]] = 1 + k;
     }
 
+    if (json.constants) {
+      constants = {};
+      for (var c=0, len=json.constants.length, key, value, label; c < len; c++) {
+        key = json.constants[c].key;
+        value = json.constants[c].value;
+        for (var l=0; l < numMetrics; l++) {
+          label = json.labels[l];
+          if (key.indexOf(label+'.') === 0) {
+            // constant matches the label, extract the constant name
+            key = key.substring((label+'.').length);
+            constants[key] = (value === undefined? null: value);
+          }
+        }
+      }
+    }
+
     return {
       columns: columns,
       columnNames: columnNames,
-      columnNameToIndex: columnNameToIndex
+      columnNameToIndex: columnNameToIndex,
+      constants: constants,
     };
   }
 });
