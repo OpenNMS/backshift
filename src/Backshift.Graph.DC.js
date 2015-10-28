@@ -28,24 +28,51 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
     this.dateDimension = this.crossfilter.dimension(function(d) {
       return d.timestamp;
     });
-    this.statusMessage = "Loading...";
     this.renderGraphs();
   },
 
+  onBeforeQuery: function() {
+    this.showStatus('Loading...');
+  },
+
   onQuerySuccess: function (results) {
-    this.statusMessage = null;
+    this.hideStatus();
     this.updateData(results);
   },
 
   onQueryFailed: function($super, reason) {
     $super(reason);
-    this.statusMessage = "Query failed.";
+    this.showStatus('Query failed.');
     this.renderGraphs();
   },
 
   onCancel: function () {
     this.crossfilter.groupAll();
     this.crossfilter.remove();
+  },
+
+  showStatus: function(statusText) {
+    var svg = this.chart.svg();
+
+    if (svg) {
+      var boundingRect = svg.node().getBoundingClientRect();
+
+      svg.select('#chart-status-text').remove();
+      if (statusText) {
+        svg.append('text')
+          .attr("id", "chart-status-text")
+          .attr('x', boundingRect.width / 2)
+          .attr('y', boundingRect.height / 2.5)
+          .attr('text-anchor', 'middle')
+          .style('font-size', '2.5em')
+          .text(statusText);
+      }
+    }
+  },
+
+  hideStatus: function() {
+    var svg = this.chart.svg();
+    svg.select("#chart-status-text").remove();
   },
 
   updateData: function (results) {
@@ -336,21 +363,6 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
         .brushOn(false)
         .render();
       self.chart = chart;
-    }
-
-    // Draw the status message
-    var svg = self.chart.svg();
-    svg.select('#' + id + '-chart-status').remove();
-    if (this.statusMessage !== null) {
-      var boundingRect = svg.node().getBoundingClientRect();
-
-      svg.append('text')
-          .attr("id", id + '-chart-status')
-          .attr('x', boundingRect.width / 2)
-          .attr('y', boundingRect.height / 2.5)
-          .attr('text-anchor', 'middle')
-          .style('font-size', '2.5em')
-          .text(this.statusMessage);
     }
   }
 });

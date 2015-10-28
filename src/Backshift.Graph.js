@@ -197,6 +197,25 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
     }
   },
 
+  showStatus: function (statusText) {
+    if (this.statusElement) {
+      this.statusElement.text(statusText);
+    } else {
+      this.statusElement = d3.select(this.element)
+        .insert('div', ':first-child');
+      this.statusElement
+        .attr('align', 'center')
+        .attr('class', 'backshift-status')
+        .text(statusText);
+    }
+  },
+
+  hideStatus: function () {
+    if (this.statusElement) {
+      this.statusElement.remove();
+    }
+  },
+
   onInit: function (args) {
     // Implemented by subclasses
   },
