@@ -34,13 +34,15 @@ describe('Backshift.Graph.DC.Test', function () {
       dataSource: ds,
       title: "Wave",
       verticalLabel: "Units",
-      series: [
-        {
-          name: "Sine Wave",
-          metric: "sineWave",
-          type: "line"
-        }
-      ]
+      model: {
+        series: [
+          {
+            name: "Sine Wave",
+            metric: "sineWave",
+            type: "line"
+          }
+        ]
+      }
     });
 
     dcGraph.render();

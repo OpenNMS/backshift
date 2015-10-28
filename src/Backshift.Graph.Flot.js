@@ -53,15 +53,15 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
 
   _shouldStack: function (k) {
     // If there's stack following the area, set the area to stack
-    if (this.series[k].type === "area") {
-      var n = this.series.length;
+    if (this.model.series[k].type === "area") {
+      var n = this.model.series.length;
       for (var i = k; i < n; i++) {
-        if (this.series[i].type === "stack") {
+        if (this.model.series[i].type === "stack") {
           return 1;
         }
       }
     }
-    return this.series[k].type === "stack";
+    return this.model.series[k].type === "stack";
   },
 
   drawChart: function (results) {
@@ -70,7 +70,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
 
     var timestamps = results.columns[0];
     var series, values, i, j, numSeries, numValues, X, Y, columnName, shouldStack, shouldFill, seriesValues, shouldShow;
-    numSeries = this.series.length;
+    numSeries = this.model.series.length;
     numValues = timestamps.length;
 
     var from = timestamps[0];
@@ -84,12 +84,12 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
     // Build the columns for the series
     for (i = 0; i < numSeries; i++) {
       columnName = "data" + i;
-      series = this.series[i];
+      series = this.model.series[i];
       values = results.columns[results.columnNameToIndex[series.metric]];
 
       shouldStack = this._shouldStack(i);
-      shouldFill = this.series[i].type === "stack" || this.series[i].type === "area";
-      shouldShow = this.series[i].type !== "hidden";
+      shouldFill = this.model.series[i].type === "stack" || this.model.series[i].type === "area";
+      shouldShow = this.model.series[i].type !== "hidden";
 
       seriesValues = [];
       for (j = 0; j < numValues; j++) {
@@ -176,7 +176,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       },
       legend: {
         show: false,
-        statements: self.printStatements
+        statements: self.model.printStatements
       },
       hiddenSeries: this.hiddenFlotSeries,
       tooltip: {

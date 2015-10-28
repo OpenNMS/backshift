@@ -81,15 +81,15 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
 
   _shouldStack: function (k) {
     // If there's stack following the area, set the area to stack
-    if (this.series[k].type === "area") {
-      var n = this.series.length;
+    if (this.model.series[k].type === "area") {
+      var n = this.model.series.length;
       for (var i = k; i < n; i++) {
-        if (this.series[i].type === "stack") {
+        if (this.model.series[i].type === "stack") {
           return 1;
         }
       }
     }
-    return this.series[k].type === "stack";
+    return this.model.series[k].type === "stack";
   },
 
   _getDisplayName: function (name) {
@@ -122,7 +122,7 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
   onQuerySuccess: function (results) {
     var timestamps = results.columns[0];
     var series, values, i, j, numSeries, numValues, X, Y, columnName, shouldStack;
-    numSeries = this.series.length;
+    numSeries = this.model.series.length;
     numValues = timestamps.length;
 
     // Reset the array of columns
@@ -142,7 +142,7 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
     // Build the columns for the series
     for (i = 0; i < numSeries; i++) {
       columnName = "data" + i;
-      series = this.series[i];
+      series = this.model.series[i];
       values = results.columns[results.columnNameToIndex[series.metric]];
 
       Y = [columnName];

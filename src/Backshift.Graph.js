@@ -15,11 +15,18 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
     if (args.element === undefined) {
       Backshift.fail('Graph needs an element.');
     }
+
     this.element = args.element;
-
-    this.series = args.series;
-
-    this.printStatements = args.printStatements;
+    this.model = args.model || {};
+    if (!this.model.printStatements) {
+      this.model.printStatements = [];
+    }
+    if (!this.model.metrics) {
+      this.model.metrics = [];
+    }
+    this._title = args.title || this.model.title;
+    this._verticalLabel = args.verticalLabel || this.model.verticalLabel;
+    this._regexes = {};
 
     this.configure(args);
 
@@ -114,6 +121,7 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
     this.dataSource.query(timeSpan.start, timeSpan.end, this.getResolution()).then(function (results) {
       self.queryInProgress = false;
       self.lastSuccessfulQuery = Date.now();
+      self.updateTextFields(results);
       self.onQuerySuccess(results);
       self.onAfterQuery();
     }, function (reason) {
@@ -121,6 +129,35 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
       self.onQueryFailed(reason);
       self.onAfterQuery();
     })
+  },
+
+  updateTextFields: function(results) {
+    var self = this;
+
+    var title = self._title,
+      verticalLabel = self._verticalLabel,
+      value,
+      re;
+
+    if (self.model.properties) {
+      for (var prop in self.model.properties) {
+        if (!self._regexes[prop]) {
+          self._regexes[prop] = new RegExp("\\{" + prop + "}", "g");
+        }
+        re = self._regexes[prop];
+
+        if (results.constants && results.constants[prop]) {
+          value = results.constants[prop];
+        } else {
+          value = prop;
+        }
+        if (title) { title = title.replace(re, value); }
+        if (verticalLabel) { verticalLabel = verticalLabel.replace(re, value); }
+      }
+    }
+
+    self.title = title;
+    self.verticalLabel = verticalLabel;
   },
 
   shouldRefresh: function () {
