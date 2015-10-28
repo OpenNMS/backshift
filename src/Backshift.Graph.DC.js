@@ -171,8 +171,8 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
       return self.dateDimension.group().reduce(reduceAdd, reduceDel, reduceInitial);
     };
 
-    for (i = 0; i < self.series.length; i++) {
-      var columnName = self.series[i].metric;
+    for (i = 0; i < self.model.series.length; i++) {
+      var columnName = self.model.series[i].metric;
 
       columnGroups[i] = getGroup(columnName);
     }
@@ -191,18 +191,18 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
         }
       ;
 
-      for (i = 0; i < self.series.length; i++) {
+      for (i = 0; i < self.model.series.length; i++) {
         var lastChart, lastSeries, nextSeries;
         if (charts.length > 0) {
           lastChart = charts[charts.length - 1];
         }
 
-        ser = self.series[i];
+        ser = self.model.series[i];
         if (i > 0) {
-          lastSeries = self.series[i-1];
+          lastSeries = self.model.series[i-1];
         }
-        if (self.series[i+1]) {
-          nextSeries = self.series[i+1];
+        if (self.model.series[i+1]) {
+          nextSeries = self.model.series[i+1];
         }
 
         var currentChart;

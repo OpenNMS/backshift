@@ -9,7 +9,8 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
     this.model = {
       metrics: [],
       series: [],
-      printStatements: []
+      printStatements: [],
+      properties: {}
     };
 
     this.rpnConverter = new Backshift.Utilities.RpnToJexlConverter();
@@ -18,8 +19,7 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
     var propertyValue, i, j, n, m, metric;
     for (i = 0, n = this.graphDef.propertiesValues.length; i < n; i++) {
       propertyValue = this.graphDef.propertiesValues[i];
-      var re = new RegExp("\\{" + propertyValue + "}", "g");
-      this.graphDef.command = this.graphDef.command.replace(re, propertyValue);
+      this.model.properties[propertyValue] = undefined;
     }
 
     this._visit(this.graphDef);
@@ -72,6 +72,7 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
     var columnIndex = parseInt(/\{rrd(\d+)}/.exec(path)[1]) - 1;
     var attribute = this.graphDef.columns[columnIndex];
 
+    this.prefix = attribute;
     this.model.metrics.push({
       name: name,
       attribute: attribute,
@@ -81,10 +82,16 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
     });
   },
 
+  _expressionRegexp: new RegExp('\\{([^}]*)}', 'g'),
+
   _onCDEF: function (name, rpnExpression) {
+    var expression = this.rpnConverter.convert(rpnExpression);
+    if (this.prefix) {
+      expression = expression.replace(this._expressionRegexp, this.prefix + '.$1');
+    }
     this.model.metrics.push({
       name: name,
-      expression: this.rpnConverter.convert(rpnExpression)
+      expression: expression
     });
   },
 

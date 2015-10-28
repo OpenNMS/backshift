@@ -88,6 +88,14 @@ module.exports = function(config) {
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
         browsers: ['PhantomJS'],
 
+        customLaunchers: {
+          Chrome_Without_Security: {
+            base: 'Chrome',
+            flags: ['--disable-web-security'],
+          },
+        },
+
+
 
         // Continuous Integration mode
         // if true, Karma captures browsers, runs the tests and exits

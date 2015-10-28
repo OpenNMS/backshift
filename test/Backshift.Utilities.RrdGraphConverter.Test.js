@@ -88,6 +88,7 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
         "CDEF:minPercentOut=minOctOut,8,*,{ifSpeed},/,100,* " +
         "CDEF:maxPercentOut=maxOctOut,8,*,{ifSpeed},/,100,* " +
         "CDEF:percentOutNeg=0,percentOut,- AREA:percentIn#73d216 " +
+        "CDEF:weirdTestThing=octOut,8,*,{ifSpeed},/,{ifSpeed},*,{ifSpeed},/,100,* " +
         "LINE1:percentIn#4e9a06:\"In \" " +
         "GPRINT:percentIn:AVERAGE:\"Avg \\: %8.2lf %s\" " +
         "GPRINT:percentIn:MIN:\"Min \\: %8.2lf %s\" " +
@@ -117,18 +118,27 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
         resourceId: 'node[1].nodeSnmp[]'
       });
       var model = rrdGraphConverter.model;
-      expect(model.metrics.length).toBe(13);
+      expect(model.metrics.length).toBe(14);
 
       // Find a specific metric that reference a value from strings.properties
-      var metric, k, n = model.metrics.length;
+      var percentIn, weirdThing, metric, k, n = model.metrics.length;
       for (k = 0; k < n; k++) {
         metric = model.metrics[k];
         if (metric.name === "minPercentIn") {
-          break;
+          percentIn = metric;
+        } else if (metric.name === "weirdTestThing") {
+          weirdThing = metric;
         }
       }
-      expect(metric.name).toBe("minPercentIn");
-      expect(metric.expression).toBe("(((minOctIn * 8) / ifSpeed) * 100)");
+
+      // make sure it parses and replaces prefixes
+      expect(percentIn).toBeDefined();
+      expect(percentIn.name).toBe("minPercentIn");
+      expect(percentIn.expression).toBe("(((minOctIn * 8) / ifHCOutOctets.ifSpeed) * 100)");
+
+      // make sure it parses and replaces prefixes in *multiple* tokens
+      expect(weirdThing).toBeDefined();
+      expect(weirdThing.expression).toBe("(((((octOut * 8) / ifHCOutOctets.ifSpeed) * ifHCOutOctets.ifSpeed) / ifHCOutOctets.ifSpeed) * 100)");
 
       expect(model.series.length).toBe(5);
       expect(model.printStatements.length).toBe(8);
@@ -275,7 +285,7 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
       expect(model.series.length).toBe(2);
       expect(model.series[1].name).toBe("Temperature:");
 
-      expect(model.title).toBe("Temperature on lms-tempdevice");
+      expect(model.title).toBe("Temperature on {lms-tempdevice}");
     });
 
     it('should convert strafeping', function () {

@@ -54,41 +54,51 @@
 
     <div class="row">
         <div class="col-md-6">
-            <div data-graph-report="mib2.tcpopen" data-graph-resource="node[44].nodeSnmp[]"
-                 data-original-graph="rrd0" data-graph-model="graph0"></div>
+            <div data-graph-report="lmsensors.fan" data-graph-resource="node[35].lmFanIndex[5]"
+                 data-original-graph="rrd9" data-graph-model="graph9"></div>
         </div>
         <div class="col-md-6">
-            <div id="rrd0"></div>
+            <div id="rrd9"></div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div data-graph-report="mib2.tcpopen" data-graph-resource="node[44].nodeSnmp[]"
+                 data-original-graph="rrd8" data-graph-model="graph8"></div>
+        </div>
+        <div class="col-md-6">
+            <div id="rrd8"></div>
         </div>
     </div>
 
     <div class="row">
         <div class="col-md-6">
             <div data-graph-report="netsnmp.memStats" data-graph-resource="node[44].nodeSnmp[]"
-                 data-original-graph="rrd1" data-graph-model="graph1"></div>
+                 data-original-graph="rrd7" data-graph-model="graph7"></div>
         </div>
         <div class="col-md-6">
-            <div id="rrd1"></div>
+            <div id="rrd7"></div>
         </div>
     </div>
 
     <div class="row">
         <div class="col-md-6">
             <div data-graph-report="netsnmp.hrMemory" data-graph-resource="node[44].nodeSnmp[]"
-                 data-original-graph="rrd2" data-graph-model="graph2"></div>
+                 data-original-graph="rrd6" data-graph-model="graph6"></div>
         </div>
         <div class="col-md-6">
-            <div id="rrd2"></div>
+            <div id="rrd6"></div>
         </div>
     </div>
 
     <div class="row">
         <div class="col-md-6">
             <div data-graph-report="netsnmp.hrSystemProcesses" data-graph-resource="node[44].nodeSnmp[]"
-                 data-original-graph="rrd3"></div>
+                 data-original-graph="rrd5"></div>
         </div>
         <div class="col-md-6">
-            <div id="rrd3"></div>
+            <div id="rrd5"></div>
         </div>
     </div>
 
@@ -105,30 +115,30 @@
     <div class="row">
         <div class="col-md-6">
             <div data-graph-report="netsnmp.cpuUsageFull" data-graph-resource="node[44].nodeSnmp[]"
-                 data-original-graph="rrd5"></div>
+                 data-original-graph="rrd3"></div>
         </div>
         <div class="col-md-6">
-            <div id="rrd5"></div>
+            <div id="rrd3"></div>
         </div>
     </div>
 
     <div class="row">
         <div class="col-md-6">
             <div data-graph-report="netsnmp.cpuStatsFull" data-graph-resource="node[44].nodeSnmp[]"
-                 data-original-graph="rrd6"></div>
+                 data-original-graph="rrd2"></div>
         </div>
         <div class="col-md-6">
-            <div id="rrd6"></div>
+            <div id="rrd2"></div>
         </div>
     </div>
 
     <div class="row">
         <div class="col-md-6">
-            <div data-graph-report="icmp" data-graph-resource="node[44].responseTime[192.168.211.16]"
-                 data-original-graph="rrd11"></div>
+            <div data-graph-report="icmp" data-graph-resource="node[44].responseTime[172.20.1.208]"
+                 data-original-graph="rrd1"></div>
         </div>
         <div class="col-md-6">
-            <div id="rrd11"></div>
+            <div id="rrd1"></div>
         </div>
     </div>
 
@@ -186,8 +196,7 @@
                     start: start,
                     end: end,
                     dataSource: ds,
-                    series: graphModel.series,
-                    printStatements: graphModel.printStatements,
+                    model: graphModel,
                     step: false,
                     title: graphModel.title,
                     verticalLabel: graphModel.verticalLabel,

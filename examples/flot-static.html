@@ -54,40 +54,42 @@
         height: 480,
         title: "Wave",
         verticalLabel: "Units",
-        series: [
-            {
-                name: "Sine Wave",
-                metric: "sineWave",
-                type: "line",
-                color: "#0000ff"
-            }
-        ],
-        printStatements: [
-            {
-                metric: 'sineWave',
-                value: '%g Units '
-            },
-            {
-                metric: 'sineWave',
-                aggregation: 'AVERAGE',
-                value: 'Avg: %8.2lf %s'
-            },
-            {
-                metric: 'sineWave',
-                aggregation: 'MIN',
-                value: 'Min: %8.2lf %s'
-            },
-            {
-                metric: 'sineWave',
-                aggregation: 'MAX',
-                value: 'Max: %8.2lf %s'
-            },
-            {
-                metric: 'sineWave',
-                aggregation: 'LAST',
-                value: 'Last: %8.2lf %s'
-            }
-        ]
+        model: {
+            series: [
+                {
+                    name: "Sine Wave",
+                    metric: "sineWave",
+                    type: "line",
+                    color: "#0000ff"
+                }
+            ],
+            printStatements: [
+                {
+                    metric: 'sineWave',
+                    value: '%g Units '
+                },
+                {
+                    metric: 'sineWave',
+                    aggregation: 'AVERAGE',
+                    value: 'Avg: %8.2lf %s'
+                },
+                {
+                    metric: 'sineWave',
+                    aggregation: 'MIN',
+                    value: 'Min: %8.2lf %s'
+                },
+                {
+                    metric: 'sineWave',
+                    aggregation: 'MAX',
+                    value: 'Max: %8.2lf %s'
+                },
+                {
+                    metric: 'sineWave',
+                    aggregation: 'LAST',
+                    value: 'Last: %8.2lf %s'
+                }
+            ],
+        },
     });
 
     flotGraph.render();
