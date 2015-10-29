@@ -880,11 +880,14 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
 
     this.element = args.element;
     this.model = args.model || {};
-    if (!this.model.printStatements) {
-      this.model.printStatements = [];
-    }
     if (!this.model.metrics) {
       this.model.metrics = [];
+    }
+    if (!this.model.series) {
+      this.model.series = [];
+    }
+    if (!this.model.printStatements) {
+      this.model.printStatements = [];
     }
     this._title = args.title || this.model.title;
     this._verticalLabel = args.verticalLabel || this.model.verticalLabel;
@@ -1056,6 +1059,25 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
     }
   },
 
+  showStatus: function (statusText) {
+    if (this.statusElement) {
+      this.statusElement.text(statusText);
+    } else {
+      this.statusElement = d3.select(this.element)
+        .insert('div', ':first-child');
+      this.statusElement
+        .attr('align', 'center')
+        .attr('class', 'backshift-status')
+        .text(statusText);
+    }
+  },
+
+  hideStatus: function () {
+    if (this.statusElement) {
+      this.statusElement.remove();
+    }
+  },
+
   onInit: function (args) {
     // Implemented by subclasses
   },
@@ -1119,24 +1141,51 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
     this.dateDimension = this.crossfilter.dimension(function(d) {
       return d.timestamp;
     });
-    this.statusMessage = "Loading...";
     this.renderGraphs();
   },
 
+  onBeforeQuery: function() {
+    this.showStatus('Loading...');
+  },
+
   onQuerySuccess: function (results) {
-    this.statusMessage = null;
+    this.hideStatus();
     this.updateData(results);
   },
 
   onQueryFailed: function($super, reason) {
     $super(reason);
-    this.statusMessage = "Query failed.";
+    this.showStatus('Query failed.');
     this.renderGraphs();
   },
 
   onCancel: function () {
     this.crossfilter.groupAll();
     this.crossfilter.remove();
+  },
+
+  showStatus: function(statusText) {
+    var svg = this.chart.svg();
+
+    if (svg) {
+      var boundingRect = svg.node().getBoundingClientRect();
+
+      svg.select('#chart-status-text').remove();
+      if (statusText) {
+        svg.append('text')
+          .attr("id", "chart-status-text")
+          .attr('x', boundingRect.width / 2)
+          .attr('y', boundingRect.height / 2.5)
+          .attr('text-anchor', 'middle')
+          .style('font-size', '2.5em')
+          .text(statusText);
+      }
+    }
+  },
+
+  hideStatus: function() {
+    var svg = this.chart.svg();
+    svg.select("#chart-status-text").remove();
   },
 
   updateData: function (results) {
@@ -1428,21 +1477,6 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
         .render();
       self.chart = chart;
     }
-
-    // Draw the status message
-    var svg = self.chart.svg();
-    svg.select('#' + id + '-chart-status').remove();
-    if (this.statusMessage !== null) {
-      var boundingRect = svg.node().getBoundingClientRect();
-
-      svg.append('text')
-          .attr("id", id + '-chart-status')
-          .attr('x', boundingRect.width / 2)
-          .attr('y', boundingRect.height / 2.5)
-          .attr('text-anchor', 'middle')
-          .style('font-size', '2.5em')
-          .text(this.statusMessage);
-    }
   }
 });
 
@@ -1474,28 +1508,19 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
     // Set the container dimensions, Flot's canvas will use 100% of the container div
     container.width(this.width);
     container.height(this.height);
-    // Used to hold a reference to the div that holds the status text
-    this.statusBlock = null;
   },
 
 
   onBeforeQuery: function () {
-    this.updateStatus("Loading...");
-  },
-
-  updateStatus: function (status) {
-    if (this.statusBlock) {
-      this.statusBlock.text(status);
-    } else {
-      this.statusBlock = d3.select(this.element).append("h3").attr("align", "center").text(status);
-    }
+    this.showStatus('Loading...');
   },
 
   onQueryFailed: function () {
-    this.updateStatus("Query failed.");
+    this.showStatus('Query failed.');
   },
 
   onQuerySuccess: function (results) {
+    this.hideStatus();
     this.drawChart(results);
   },
 

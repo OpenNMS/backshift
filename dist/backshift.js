@@ -1066,11 +1066,14 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
 
     this.element = args.element;
     this.model = args.model || {};
-    if (!this.model.printStatements) {
-      this.model.printStatements = [];
-    }
     if (!this.model.metrics) {
       this.model.metrics = [];
+    }
+    if (!this.model.series) {
+      this.model.series = [];
+    }
+    if (!this.model.printStatements) {
+      this.model.printStatements = [];
     }
     this._title = args.title || this.model.title;
     this._verticalLabel = args.verticalLabel || this.model.verticalLabel;
@@ -1239,6 +1242,25 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
       return this.resolution;
     } else {
       return this.width;
+    }
+  },
+
+  showStatus: function (statusText) {
+    if (this.statusElement) {
+      this.statusElement.text(statusText);
+    } else {
+      this.statusElement = d3.select(this.element)
+        .insert('div', ':first-child');
+      this.statusElement
+        .attr('align', 'center')
+        .attr('class', 'backshift-status')
+        .text(statusText);
+    }
+  },
+
+  hideStatus: function () {
+    if (this.statusElement) {
+      this.statusElement.remove();
     }
   },
 
@@ -1431,28 +1453,19 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
     // Set the container dimensions, Flot's canvas will use 100% of the container div
     container.width(this.width);
     container.height(this.height);
-    // Used to hold a reference to the div that holds the status text
-    this.statusBlock = null;
   },
 
 
   onBeforeQuery: function () {
-    this.updateStatus("Loading...");
-  },
-
-  updateStatus: function (status) {
-    if (this.statusBlock) {
-      this.statusBlock.text(status);
-    } else {
-      this.statusBlock = d3.select(this.element).append("h3").attr("align", "center").text(status);
-    }
+    this.showStatus('Loading...');
   },
 
   onQueryFailed: function () {
-    this.updateStatus("Query failed.");
+    this.showStatus('Query failed.');
   },
 
   onQuerySuccess: function (results) {
+    this.hideStatus();
     this.drawChart(results);
   },
 
@@ -1731,7 +1744,6 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
     this.colorMap = {};
     this.typeMap = {};
     this.nameMap = {};
-    this.chartMessage = "Loading...";
 
     this.clipboardPrimed = false;
     // Only add the event listener if the export icon is enabled
@@ -1804,6 +1816,10 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
     return derivedType;
   },
 
+  onBeforeQuery: function() {
+    this.showStatus('Loading...');
+  },
+
   onQuerySuccess: function (results) {
     var timestamps = results.columns[0];
     var series, values, i, j, numSeries, numValues, X, Y, columnName, shouldStack;
@@ -1852,13 +1868,38 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
       this.typeMap[columnName] = this._getType(series.type, shouldStack);
     }
 
-    this.chartMessage = null;
+    this.hideStatus();
     this._updatePlot();
   },
 
   onQueryFailed: function($super, reason) {
     $super(reason);
-    this.chartMessage = "Query failed.";
+    this.showStatus('Query failed.');
+  },
+
+  showStatus: function(statusText) {
+    var svg = d3.select(this.element).select('svg');
+    if (svg) {
+      var boundingRect = svg.node().getBoundingClientRect();
+
+      svg.select('#chart-status-text').remove();
+      if (statusText) {
+        svg.append('text')
+          .attr("id", "chart-status-text")
+          .attr('x', boundingRect.width / 2)
+          .attr('y', boundingRect.height / 2.5)
+          .attr('text-anchor', 'middle')
+          .style('font-size', '2.5em')
+          .text(statusText);
+      }
+    }
+  },
+
+  hideStatus: function() {
+    var svg = d3.select(this.element).select('svg');
+    if (svg) {
+      svg.select("#chart-status-text").remove();
+    }
   },
 
   _onToggleCsvExport: function(el) {
@@ -1913,17 +1954,6 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
     var self = this;
     var svg = d3.select(this.element).select("svg");
     var boundingRect = svg.node().getBoundingClientRect();
-
-    svg.select("#chart-title").remove();
-    if (this.chartMessage !== null) {
-      svg.append('text')
-        .attr("id", "chart-title")
-        .attr('x', boundingRect.width / 2)
-        .attr('y', boundingRect.height / 2.5)
-        .attr('text-anchor', 'middle')
-        .style('font-size', '2.5em')
-        .text(this.chartMessage);
-    }
 
     svg.select("#export-to-csv").remove();
     if (this.columns.length > 0 && this.exportIconSizeRatio > 0) {
@@ -2072,24 +2102,51 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
     this.dateDimension = this.crossfilter.dimension(function(d) {
       return d.timestamp;
     });
-    this.statusMessage = "Loading...";
     this.renderGraphs();
   },
 
+  onBeforeQuery: function() {
+    this.showStatus('Loading...');
+  },
+
   onQuerySuccess: function (results) {
-    this.statusMessage = null;
+    this.hideStatus();
     this.updateData(results);
   },
 
   onQueryFailed: function($super, reason) {
     $super(reason);
-    this.statusMessage = "Query failed.";
+    this.showStatus('Query failed.');
     this.renderGraphs();
   },
 
   onCancel: function () {
     this.crossfilter.groupAll();
     this.crossfilter.remove();
+  },
+
+  showStatus: function(statusText) {
+    var svg = this.chart.svg();
+
+    if (svg) {
+      var boundingRect = svg.node().getBoundingClientRect();
+
+      svg.select('#chart-status-text').remove();
+      if (statusText) {
+        svg.append('text')
+          .attr("id", "chart-status-text")
+          .attr('x', boundingRect.width / 2)
+          .attr('y', boundingRect.height / 2.5)
+          .attr('text-anchor', 'middle')
+          .style('font-size', '2.5em')
+          .text(statusText);
+      }
+    }
+  },
+
+  hideStatus: function() {
+    var svg = this.chart.svg();
+    svg.select("#chart-status-text").remove();
   },
 
   updateData: function (results) {
@@ -2380,21 +2437,6 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
         .brushOn(false)
         .render();
       self.chart = chart;
-    }
-
-    // Draw the status message
-    var svg = self.chart.svg();
-    svg.select('#' + id + '-chart-status').remove();
-    if (this.statusMessage !== null) {
-      var boundingRect = svg.node().getBoundingClientRect();
-
-      svg.append('text')
-          .attr("id", id + '-chart-status')
-          .attr('x', boundingRect.width / 2)
-          .attr('y', boundingRect.height / 2.5)
-          .attr('text-anchor', 'middle')
-          .style('font-size', '2.5em')
-          .text(this.statusMessage);
     }
   }
 });
