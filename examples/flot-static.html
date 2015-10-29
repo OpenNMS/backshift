@@ -37,10 +37,16 @@
     var ds = new Backshift.DataSource.SineWave({
         metrics: [
             {
-                name: "sineWave",
+                name: "wave1",
                 amplitude: 5,
                 hshift: 5,
                 period: 32 * Math.PI * 60
+            },
+            {
+                name: "wave2",
+                amplitude: 2.5,
+                hshift: 1000,
+                period: 16 * Math.PI * 60
             }
         ]
     });
@@ -53,38 +59,68 @@
         width: 640,
         height: 480,
         title: "Wave",
-        verticalLabel: "Units",
+        verticalLabel: "Voltage",
         model: {
             series: [
                 {
-                    name: "Sine Wave",
-                    metric: "sineWave",
+                    name: "Source #1",
+                    metric: "wave1",
                     type: "line",
                     color: "#0000ff"
+                },
+                {
+                    name: "Source #2",
+                    metric: "wave2",
+                    type: "line",
+                    color: "#ff0000"
                 }
             ],
             printStatements: [
                 {
-                    metric: 'sineWave',
-                    value: '%g Units '
+                    metric: 'wave1',
+                    value: '%g Source #1 '
                 },
                 {
-                    metric: 'sineWave',
+                    metric: 'wave1',
                     aggregation: 'AVERAGE',
                     value: 'Avg: %8.2lf %s'
                 },
                 {
-                    metric: 'sineWave',
+                    metric: 'wave1',
                     aggregation: 'MIN',
                     value: 'Min: %8.2lf %s'
                 },
                 {
-                    metric: 'sineWave',
+                    metric: 'wave1',
                     aggregation: 'MAX',
                     value: 'Max: %8.2lf %s'
                 },
                 {
-                    metric: 'sineWave',
+                    metric: 'wave1',
+                    aggregation: 'LAST',
+                    value: 'Last: %8.2lf %s \\n'
+                },
+                {
+                    metric: 'wave2',
+                    value: '%g Source #2 '
+                },
+                {
+                    metric: 'wave2',
+                    aggregation: 'AVERAGE',
+                    value: 'Avg: %8.2lf %s'
+                },
+                {
+                    metric: 'wave2',
+                    aggregation: 'MIN',
+                    value: 'Min: %8.2lf %s'
+                },
+                {
+                    metric: 'wave2',
+                    aggregation: 'MAX',
+                    value: 'Max: %8.2lf %s'
+                },
+                {
+                    metric: 'wave2',
                     aggregation: 'LAST',
                     value: 'Last: %8.2lf %s'
                 }
