@@ -112,7 +112,8 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
         },
         data: seriesValues,
         id: columnName,
-        metric: series.metric
+        metric: series.metric,
+        nodatatable: (series.name === undefined || series.name === null || series.name === '')
       };
 
       if (shouldShow) {
@@ -125,6 +126,8 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
         this.hiddenFlotSeries.push(flotSeries);
       }
     }
+
+    var yaxisTickFormat = d3.format(".2s");
 
     var options = {
       canvas: true,
@@ -152,7 +155,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
         shadowSize: 1
       },
       yaxis: {
-        tickFormatter: d3.format(".2s")
+        tickFormatter: yaxisTickFormat
       },
       yaxes: [{
         position: 'left',
@@ -181,6 +184,31 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       hiddenSeries: this.hiddenFlotSeries,
       tooltip: {
         show: true
+      },
+      datatable: {
+        xaxis: {
+          label: 'Date/Time',
+          format: function(x) {
+            var format = d3.time.format("%c");
+            return format(new Date(x));
+          }
+        },
+        yaxis: {
+          ignoreColumnsWithNoLabel: true,
+          format: function(y) {
+            try {
+              return yaxisTickFormat(y);
+            } catch (err) {
+              return NaN;
+            }
+          }
+        }
+      },
+      zoom: {
+        interactive: true
+      },
+      pan: {
+        interactive: true
       }
     };
 
@@ -199,7 +227,13 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       options.legend.style.fontSize = this.legendFontSize;
     }
 
-    jQuery.plot(container, this.flotSeries, options);
+    var chart = jQuery.plot(container, this.flotSeries, options);
+
+    // Limit the zooming and panning so that at least one point is always visible
+    var yaxis = chart.getAxes().yaxis;
+    chart.ranges = {
+      yaxis: { panRange: [yaxis.min, yaxis.max], zoomRange: false}, xaxis: { panRange: [from,to], zoomRange: null }
+    };
   },
 
   getFontSpec: function(fontSpec) {

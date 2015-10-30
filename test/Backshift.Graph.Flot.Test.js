@@ -25,7 +25,7 @@ describe('Backshift.Graph.DC.Test', function () {
       ]
     });
 
-    var dcGraph = new Backshift.Graph.Flot({
+    var flotGraph = new Backshift.Graph.Flot({
       element: div.node(),
       width: 640,
       height: 480,
@@ -45,7 +45,7 @@ describe('Backshift.Graph.DC.Test', function () {
       }
     });
 
-    dcGraph.render();
+    flotGraph.render();
 
     setTimeout(function(){
       var html = "" + div.node().innerHTML;
