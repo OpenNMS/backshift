@@ -1,7 +1,7 @@
 {
   "name": "backshift",
   "description": "Time series graphing",
-  "version": "1.1.0-beta.3",
+  "version": "1.1.0-beta.4",
   "homepage": "https://github.com/OpenNMS/backshift",
   "private": true,
   "main": [
@@ -20,7 +20,7 @@
     "flot.tooltip": "~0.8.5",
     "flot-legend": "https://github.com/j-white/flot-legend.git#v1.0.0",
     "flot-saveas": "https://github.com/j-white/flot-saveas.git#v1.0.0",
-    "flot-datatable": "https://github.com/j-white/flot-datatable.git#v1.0.1",
+    "flot-datatable": "https://github.com/j-white/flot-datatable.git#v1.0.3",
     "flot-navigate": "https://github.com/j-white/flot-navigate.git#v1.3-CUSTOM"
   },
   "resolutions": {
