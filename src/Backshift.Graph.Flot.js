@@ -26,28 +26,19 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
     // Set the container dimensions, Flot's canvas will use 100% of the container div
     container.width(this.width);
     container.height(this.height);
-    // Used to hold a reference to the div that holds the status text
-    this.statusBlock = null;
   },
 
 
   onBeforeQuery: function () {
-    this.updateStatus("Loading...");
-  },
-
-  updateStatus: function (status) {
-    if (this.statusBlock) {
-      this.statusBlock.text(status);
-    } else {
-      this.statusBlock = d3.select(this.element).append("h3").attr("align", "center").text(status);
-    }
+    this.showStatus('Loading...');
   },
 
   onQueryFailed: function () {
-    this.updateStatus("Query failed.");
+    this.showStatus('Query failed.');
   },
 
   onQuerySuccess: function (results) {
+    this.hideStatus();
     this.drawChart(results);
   },
 
