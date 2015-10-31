@@ -1515,7 +1515,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
         if (shouldStack && lastSeriesToStackWith != null) {
           yOffset = lastSeriesToStackWith.data[j][1];
         }
-        var yVal = values[j] + yOffset;
+        var yVal = isNaN(values[j]) ? values[j] : values[j] + yOffset;
 
         seriesValues.push([timestamps[j], yVal, yOffset]);
       }
