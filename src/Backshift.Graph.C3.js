@@ -46,7 +46,6 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
     this.colorMap = {};
     this.typeMap = {};
     this.nameMap = {};
-    this.chartMessage = "Loading...";
 
     this.clipboardPrimed = false;
     // Only add the event listener if the export icon is enabled
@@ -119,6 +118,10 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
     return derivedType;
   },
 
+  onBeforeQuery: function() {
+    this.showStatus('Loading...');
+  },
+
   onQuerySuccess: function (results) {
     var timestamps = results.columns[0];
     var series, values, i, j, numSeries, numValues, X, Y, columnName, shouldStack;
@@ -167,13 +170,38 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
       this.typeMap[columnName] = this._getType(series.type, shouldStack);
     }
 
-    this.chartMessage = null;
+    this.hideStatus();
     this._updatePlot();
   },
 
   onQueryFailed: function($super, reason) {
     $super(reason);
-    this.chartMessage = "Query failed.";
+    this.showStatus('Query failed.');
+  },
+
+  showStatus: function(statusText) {
+    var svg = d3.select(this.element).select('svg');
+    if (svg) {
+      var boundingRect = svg.node().getBoundingClientRect();
+
+      svg.select('#chart-status-text').remove();
+      if (statusText) {
+        svg.append('text')
+          .attr("id", "chart-status-text")
+          .attr('x', boundingRect.width / 2)
+          .attr('y', boundingRect.height / 2.5)
+          .attr('text-anchor', 'middle')
+          .style('font-size', '2.5em')
+          .text(statusText);
+      }
+    }
+  },
+
+  hideStatus: function() {
+    var svg = d3.select(this.element).select('svg');
+    if (svg) {
+      svg.select("#chart-status-text").remove();
+    }
   },
 
   _onToggleCsvExport: function(el) {
@@ -228,17 +256,6 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
     var self = this;
     var svg = d3.select(this.element).select("svg");
     var boundingRect = svg.node().getBoundingClientRect();
-
-    svg.select("#chart-title").remove();
-    if (this.chartMessage !== null) {
-      svg.append('text')
-        .attr("id", "chart-title")
-        .attr('x', boundingRect.width / 2)
-        .attr('y', boundingRect.height / 2.5)
-        .attr('text-anchor', 'middle')
-        .style('font-size', '2.5em')
-        .text(this.chartMessage);
-    }
 
     svg.select("#export-to-csv").remove();
     if (this.columns.length > 0 && this.exportIconSizeRatio > 0) {
