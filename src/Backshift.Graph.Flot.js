@@ -42,10 +42,6 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
     this.drawChart(results);
   },
 
-  onRender: function() {
-    this.drawChart();
-  },
-
   _shouldStack: function (k) {
     // If there's stack following the area, set the area to stack
     if (this.model.series[k].type === "area") {
@@ -63,19 +59,13 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
     var self = this;
     var container = jQuery(this.element);
 
-    var timestamps = [];
-    if (results && results.columns) {
-      timestamps = results.columns[0];
-    }
-    var series = {}, values, i, j, numSeries, numValues, X, Y, columnName, shouldStack, shouldFill, seriesValues, shouldShow;
+    var timestamps = results.columns[0];
+    var series, values, i, j, numSeries, numValues, X, Y, columnName, shouldStack, shouldFill, seriesValues, shouldShow;
     numSeries = this.model.series.length;
     numValues = timestamps.length;
 
-    var from, to;
-    if (numValues >= 2) {
-      from = timestamps[0];
-      to = timestamps[timestamps.length - 1];
-    }
+    var from = timestamps[0];
+    var to = timestamps[timestamps.length - 1];
 
     this.flotSeries = [];
     this.hiddenFlotSeries = [];
@@ -86,9 +76,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
     for (i = 0; i < numSeries; i++) {
       columnName = "data" + i;
       series = this.model.series[i];
-      if (series.metric && results && results.columns) {
-        values = results.columns[results.columnNameToIndex[series.metric]];
-      }
+      values = results.columns[results.columnNameToIndex[series.metric]];
 
       shouldStack = this._shouldStack(i);
       shouldFill = this.model.series[i].type === "stack" || this.model.series[i].type === "area";
@@ -134,7 +122,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
 
     var options = {
       canvas: true,
-      title: self.title || '',
+      title: self.title,
       axisLabels: {
         show: true
       },
@@ -162,7 +150,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       },
       yaxes: [{
         position: 'left',
-        axisLabel: self.verticalLabel || '',
+        axisLabel: self.verticalLabel,
         axisLabelUseHtml: false,
         axisLabelUseCanvas: true
       }],
