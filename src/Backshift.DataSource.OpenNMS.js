@@ -9,36 +9,62 @@ Backshift.DataSource.OpenNMS = Backshift.Class.create(Backshift.DataSource, {
     return Backshift.extend($super(), {
       url: "http://127.0.0.1:8980/opennms/rest/measurements",
       username: null,
-      password: null
+      password: null,
+      fetchFunction: null,
     });
   },
 
-  query: function (start, end, resolution, args) {
-    var withCredentials = this.username !== null && this.password !== null;
-    var headers = {};
+  onInit: function(args) {
+    if (!this.fetchFunction) {
+      this.fetchFunction = this.post;
+    }
+  },
+
+  /* An overridable post method.
+   *
+   * @param {object} data A JSON object with data to POST.
+   * @param {function} onSuccess A function to call on success.
+   * @param {function} onFailure A function to call on failure.
+   */
+  post: function(url, data, onSuccess, onFailure) {
+    var self = this,
+      withCredentials = self.username !== null && self.password !== null,
+      headers = {};
+
     if (withCredentials) {
-      headers['Authorization'] = "Basic " + window.btoa(this.username + ":" + this.password);
+      headers['Authorization'] = "Basic " + window.btoa(self.username + ":" + self.password);
     }
 
-    var self = this;
-    var dfd = jQuery.Deferred();
     jQuery.ajax({
-      url: self.url,
+      url: url,
       xhrFields: {
         withCredentials: withCredentials
       },
       headers: headers,
-      type: "POST",
-      data: JSON.stringify(self._getQueryRequest(start, end, resolution)),
-      contentType: "application/json",
-      dataType: "json",
-      success: function (json) {
-        dfd.resolve(self._parseResponse(json));
-      },
-      error: function (jqXhr, textStatus) {
-        dfd.reject(textStatus);
-      }
+      type: 'POST',
+      data: JSON.stringify(data),
+      contentType: 'application/json',
+      dataType: 'json',
+      success: onSuccess,
+      error: onFailure
     });
+
+  },
+
+  query: function (start, end, resolution, args) {
+    var self = this;
+    var dfd = jQuery.Deferred();
+
+    var data = self._getQueryRequest(start, end, resolution),
+      success = function QuerySuccess(response) {
+        dfd.resolve(self._parseResponse(response));
+      },
+      failure = function QueryFailure(jqXmr, textStatus) {
+        dfd.reject(textStatus);
+      };
+
+    self.fetchFunction(self.url, data, success, failure);
+
     return dfd.promise();
   },
 
