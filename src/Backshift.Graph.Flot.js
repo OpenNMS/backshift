@@ -118,7 +118,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       }
     }
 
-    var yaxisTickFormat = d3.format(".2s");
+    var yaxisTickFormat = d3.format(".3s");
 
     var options = {
       canvas: true,
