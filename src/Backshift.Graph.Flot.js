@@ -272,6 +272,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
 
     options.xaxis = {
       mode: "time",
+      timezone: "browser",
       min: from,
       max: to,
       label: "Datetime",
