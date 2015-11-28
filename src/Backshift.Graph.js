@@ -33,10 +33,6 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
 
     this.configure(args);
 
-    if (this.start === 0 && this.end === 0 && this.last === 0) {
-      Backshift.fail('Graph needs start and end, or last to be non-zero.');
-    }
-
     this.queryInProgress = false;
     this.lastSuccessfulQuery = 0;
     this.timer = null;
@@ -54,6 +50,7 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
       last: 0,
       refreshRate: 0,
       beginOnRender: true,
+      stream: true,
       checkInterval: 15 * 1000 // 15 seconds
     };
   },
@@ -74,10 +71,14 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
     this.onBegin();
     this.refresh();
     this.createTimer();
+    if (this.stream) {
+      this.startStreaming();
+    }
   },
 
   cancel: function () {
     this.destroyTimer();
+    this.stopStreaming();
     this.onCancel();
   },
 
@@ -118,6 +119,11 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
 
   refresh: function () {
     var self = this;
+
+    if (!self.dataSource.supportsQueries()) {
+      return;
+    }
+
     var timeSpan = this.getTimeSpan();
     this.queryInProgress = true;
     this.onBeforeQuery();
@@ -131,7 +137,28 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
       self.queryInProgress = false;
       self.onQueryFailed(reason);
       self.onAfterQuery();
-    })
+    });
+  },
+
+  startStreaming: function () {
+    var self = this;
+    if (self.dataSource.supportsStreaming() && !self.isStreaming) {
+      self.isStreaming = true;
+      self.dataSource.callback = function(results) {
+        self.onQuerySuccess(results);
+      };
+      this.dataSource.startStreaming();
+    }
+  },
+
+  stopStreaming: function() {
+    var self = this;
+    if (self.isStreaming) {
+      self.isStreaming = false;
+      if (self.dataSource.supportsStreaming()) {
+        self.dataSource.stopStreaming();
+      }
+    }
   },
 
   updateTextFields: function(results) {
@@ -178,6 +205,10 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
   },
 
   getTimeSpan: function () {
+    if (this.start === 0 && this.end === 0 && this.last === 0) {
+      Backshift.fail('Graph needs start and end, or last to be non-zero.');
+    }
+
     var timeSpan = {};
     if (this.last > 0) {
       timeSpan.end = Date.now();

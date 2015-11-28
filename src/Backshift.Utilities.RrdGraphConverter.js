@@ -5,6 +5,7 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
   onInit: function (args) {
     this.graphDef = args.graphDef;
     this.resourceId = args.resourceId;
+    this.convertRpnToJexl = args.convertRpnToJexl === undefined ? true : args.convertRpnToJexl;
 
     this.model = {
       metrics: [],
@@ -85,7 +86,10 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
   _expressionRegexp: new RegExp('\\{([^}]*)}', 'g'),
 
   _onCDEF: function (name, rpnExpression) {
-    var expression = this.rpnConverter.convert(rpnExpression);
+    var expression = rpnExpression;
+    if(this.convertRpnToJexl) {
+      expression = this.rpnConverter.convert(rpnExpression);
+    }
     if (this.prefix) {
       expression = expression.replace(this._expressionRegexp, this.prefix + '.$1');
     }

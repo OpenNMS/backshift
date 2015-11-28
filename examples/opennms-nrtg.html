@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="../bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="../bower_components/d3/d3.min.js"></script>
+
+    <script src="../bower_components/flot/jquery.flot.js"></script>
+    <script src="../bower_components/flot/jquery.flot.time.js"></script>
+    <script src="../bower_components/flot/jquery.flot.canvas.js"></script>
+    <script src="../bower_components/flot-legend/jquery.flot.legend.js"></script>
+    <script src="../bower_components/flot-axislabels/jquery.flot.axislabels.js"></script>
+    <script src="../bower_components/flot.tooltip/js/jquery.flot.tooltip.min.js"></script>
+    <script src="../bower_components/flot-saveas/jquery.flot.saveas.js"></script>
+    <script src="../bower_components/flot-datatable/jquery.flot.datatable.js"></script>
+    <script src="../bower_components/flot-navigate/jquery.flot.navigate.js"></script>
+
+    <script src="../src/Compat.js"></script>
+    <script src="../src/Backshift.js"></script>
+    <script src="../src/Backshift.Class.js"></script>
+    <script src="../src/Backshift.Class.Configurable.js"></script>
+    <script src="../src/Backshift.Math.js"></script>
+    <script src="../src/Backshift.Stats.js"></script>
+    <script src="../src/Backshift.Utilities.Url.js"></script>
+    <script src="../src/Backshift.Utilities.RpnEvaluator.js"></script>
+    <script src="../src/Backshift.Utilities.RpnToJexlConverter.js"></script>
+    <script src="../src/Backshift.Utilities.RrdGraphVisitor.js"></script>
+    <script src="../src/Backshift.Utilities.RrdGraphConverter.js"></script>
+    <script src="../src/Backshift.DataSource.js"></script>
+    <script src="../src/Backshift.DataSource.NRTG.js"></script>
+    <script src="../src/Backshift.Graph.js"></script>
+    <script src="../src/Backshift.Graph.Flot.js"></script>
+
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+
+    <style>
+        .row {
+            margin-top: 25px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <h2>NRTG Demo</h2>
+
+    <div class="row">
+        <div class="col-md-6">
+
+            <div data-graph-report="netsnmp.memStats" data-graph-resource="node[1].nodeSnmp[]"></div>
+            <hr/>
+            <form class="form-inline">
+                <div class="form-group">
+                    <label for="nrtgInterval">Interval</label>
+                    <select id="nrtgInterval" class="form-control">
+                        <option value="250">0.25s</option>
+                        <option value="1000">1.00s</option>
+                        <option value="5000">5.00s</option>
+                        <option value="10000">10.00s</option>
+                        <option value="30000">30.00s</option>
+                        <option value="60000">60.00s</option>
+                    </select>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input id="nrtgPause" type="checkbox"> Pause
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input id="nrtgCompress" type="checkbox"> Compress
+                    </label>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-6">
+            <div data-graph-report="netsnmp.loadavg" data-graph-resource="node[1].nodeSnmp[]"></div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div data-graph-report="netsnmp.cpuStatsFull" data-graph-resource="node[1].nodeSnmp[]"></div>
+        </div>
+        <div class="col-md-6">
+            <div data-graph-report="netsnmp.rawinterrupts" data-graph-resource="node[1].nodeSnmp[]"></div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div data-graph-report="mib2.HCbits" data-graph-resource="node[1].interfaceSnmp[wlp3s0-e82aea803130]"></div>
+        </div>
+        <div class="col-md-6">
+            <div data-graph-report="netsnmp.cpuUsageFull" data-graph-resource="node[1].nodeSnmp[]"></div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div data-graph-report="netsnmp.hrSystemProcesses" data-graph-resource="node[1].nodeSnmp[]"></div>
+        </div>
+        <div class="col-md-6">
+            <div data-graph-report="mib2.tcpopen" data-graph-resource="node[1].nodeSnmp[]"></div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var onmsHost = "localhost",
+            onmsPort = 8980,
+            onmsUsername = 'admin',
+            onmsPassword = 'admin';
+
+    var defaultPollingInterval = 1000,
+            defaultSlidingWindow = 30;
+
+    function getBaseHref() {
+        return "http://" + onmsHost + ":" + onmsPort;
+    }
+
+    $(document).ready(function () {
+        var first = true;
+        $("div[data-graph-report]").each(function () {
+            var report = $(this).data('graph-report');
+            var resource = $(this).data('graph-resource');
+
+            var url = getBaseHref() + '/opennms/rest/graphs/' + encodeURIComponent(report);
+
+            // Pull in the graph definition
+            $.ajax({
+                url: url,
+                dataType: 'json',
+                headers: {"Authorization": "Basic " + window.btoa(onmsUsername + ":" + onmsPassword)},
+                xhrFields: {
+                    withCredentials: true
+                },
+                context: $(this)
+            }).done(function (graphDef) {
+                // Convert the graph definition to a supported model
+                var rrdGraphConverter = new Backshift.Utilities.RrdGraphConverter({
+                    graphDef: graphDef,
+                    resourceId: resource
+                });
+                var graphModel = rrdGraphConverter.model;
+
+                // Build the data-source
+                var ds = new Backshift.DataSource.NRTG({
+                    url: getBaseHref() + "/opennms/nrt/starter",
+                    username: onmsUsername,
+                    password: onmsPassword,
+                    pollingInterval: defaultPollingInterval,
+                    metrics: [
+                        {
+                            resourceId: resource,
+                            report: report
+                        }
+                    ]
+                });
+
+                // Build and render the graph
+                var graph = new Backshift.Graph.Flot({
+                    width: 640,
+                    height: 480,
+                    element: $(this)[0],
+                    dataSource: ds,
+                    model: graphModel,
+                    title: graphModel.title,
+                    verticalLabel: graphModel.verticalLabel
+                });
+                graph.render();
+
+
+                if (first) {
+                    first = false;
+
+                    var nrtgInterval = $('#nrtgInterval');
+                    nrtgInterval.val(defaultPollingInterval);
+                    nrtgInterval.bind('change', function() {
+                        console.log("Updating NRTG polling interval to " + nrtgInterval.val() + "ms");
+                        ds.updatePollingInterval(nrtgInterval.val());
+                    });
+
+                    var nrtgPause = $('#nrtgPause');
+                    nrtgPause.bind('change', function() {
+                        var isPaused = $(this).is(':checked');
+
+                        if (isPaused) {
+                            console.log("Pausing NRTG stream.");
+                            ds.stopStreaming();
+                        } else {
+                            console.log("Resuming NRTG stream.");
+                            ds.startStreaming();
+                        }
+                    });
+
+                    var nrtgCompress = $('#nrtgCompress');
+                    nrtgCompress.bind('change', function() {
+                        var isCompressed = $(this).is(':checked');
+
+                        if (isCompressed) {
+                            console.log("Enabling NRTG graph compression.");
+                            ds.updateSlidingWindow(0);
+                        } else {
+                            console.log("Disabling NRTG graph compression.");
+                            ds.updateSlidingWindow(defaultSlidingWindow);
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

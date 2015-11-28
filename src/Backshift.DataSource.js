@@ -39,6 +39,14 @@ Backshift.DataSource = Backshift.Class.create(Backshift.Class.Configurable, {
     // Defined by subclasses
   },
 
+  supportsQueries: function() {
+    return true;
+  },
+
+  supportsStreaming: function() {
+    return false;
+  },
+
   onInit: function (args) {
     // Defined by subclasses
   }
