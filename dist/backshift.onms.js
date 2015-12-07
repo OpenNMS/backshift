@@ -542,6 +542,148 @@ Backshift.Utilities.RpnToJexlConverter = Backshift.Class.create({
 
 });
 
+Backshift.namespace('Backshift.Utilities.RpnEvaluator');
+
+/**
+ * References:
+ *   http://oss.oetiker.ch/rrdtool/doc/rrdgraph_rpn.en.html
+ *   http://commons.apache.org/proper/commons-jexl/reference/syntax.html
+ *
+ * @author jesse
+ */
+Backshift.Utilities.RpnEvaluator = Backshift.Class.create({
+  initialize: function () {
+    this.operators = {};
+    this._buildOperators();
+  },
+
+  _valueOf: function(token, context) {
+    // Attempt to retrieve the named value from the context
+    if (token in context) {
+      if (context.hasOwnProperty(token)) {
+         return context[token];
+      }
+    }
+
+    // Otherwise, assume it's a number
+    return parseFloat(token);
+  },
+
+  _buildOperators: function () {
+    var self = this;
+
+    var funcOp = function (op, numArgs) {
+      return function (stack, context) {
+        var values = new Array(numArgs);
+        for (var i = 0; i < numArgs; i++) {
+          values[i] = self._valueOf(stack.pop(), context);
+        }
+        values.reverse();
+        return op.apply(null, values);
+      };
+    };
+
+    var limitOp = function (stack, context) {
+      var max = self._valueOf(stack.pop(), context);
+      var min = self._valueOf(stack.pop(), context);
+      var val = self._valueOf(stack.pop(), context);
+
+      if (val === Number.POSITIVE_INFINITY || val === Number.NEGATIVE_INFINITY) {
+        return NaN;
+      }
+      if (min == Number.POSITIVE_INFINITY || min === Number.NEGATIVE_INFINITY) {
+        return NaN;
+      }
+      if (max == Number.POSITIVE_INFINITY || max === Number.NEGATIVE_INFINITY) {
+        return NaN;
+      }
+      if (val < min || val > max) {
+        return NaN;
+      }
+      return val;
+    };
+
+    var addNanOp = function (stack, context) {
+      var b = self._valueOf(stack.pop(), context);
+      var a = self._valueOf(stack.pop(), context);
+      if (isNaN(a) && isNaN(b)) {
+        return NaN;
+      } else if (isNaN(a)) {
+        return b;
+      } else if (isNaN(b)) {
+        return a;
+      } else {
+        return a + b;
+      }
+    };
+
+    this.operators['+'] = funcOp(function(a,b) { return a + b; }, 2);
+    this.operators['-'] = funcOp(function(a,b) { return a - b; }, 2);
+    this.operators['*'] = funcOp(function(a,b) { return a * b; }, 2);
+    this.operators['/'] = funcOp(function(a,b) { return a / b; }, 2);
+    this.operators['%'] = funcOp(function(a,b) { return a % b; }, 2);
+    this.operators['IF'] = funcOp(function(a,b,c) { return a != 0 ? b : c; }, 3);
+    this.operators['UN'] = funcOp(function(a) { return isNaN(a) ? 0 : 1; }, 1);
+    this.operators['LT'] = funcOp(function(a,b) { return a < b ? 1 : 0; }, 2);
+    this.operators['LE'] = funcOp(function(a,b) { return a <= b ? 1 : 0; }, 2);
+    this.operators['GT'] = funcOp(function(a,b) { return a > b ? 1 : 0; }, 2);
+    this.operators['GE'] = funcOp(function(a,b) { return a >= b ? 1 : 0; }, 2);
+    this.operators['EQ'] = funcOp(function(a,b) { return a == b ? 1 : 0; }, 2);
+    this.operators['NE'] = funcOp(function(a,b) { return a != b ? 1 : 0; }, 2);
+    this.operators['MIN'] = funcOp(function(a,b) { return Math.min(a,b); }, 2);
+    this.operators['MAX'] = funcOp(function(a,b) { return Math.max(a,b); }, 2);
+    this.operators['MINNAN'] = funcOp(function(a,b) { if (isNaN(a)) { return b; } if (isNaN(b)) { return a; } return Math.min(a,b); }, 2);
+    this.operators['MAXNAN'] = funcOp(function(a,b) { if (isNaN(a)) { return b; } if (isNaN(b)) { return a; } return Math.max(a,b); }, 2);
+    this.operators['ISINF'] = funcOp(function(a) { return (a === Number.POSITIVE_INFINITY || a === Number.NEGATIVE_INFINITY) ? 1 : 0; }, 1);
+    this.operators['LIMIT'] = limitOp;
+    this.operators['ADDNAN'] = addNanOp;
+    this.operators['SIN'] = funcOp(function(a) { return Math.sin(a); }, 1);
+    this.operators['COS'] = funcOp(function(a) { return Math.cos(a); }, 1);
+    this.operators['LOG'] = funcOp(function(a) { return Math.log(a); }, 1);
+    this.operators['EXP'] = funcOp(function(a) { return Math.exp(a); }, 1);
+    this.operators['SQRT'] = funcOp(function(a) { return Math.sqrt(a); }, 1);
+    this.operators['ATAN'] = funcOp(function(a) { return Math.atan(a); }, 1);
+    this.operators['ATAN2'] = funcOp(function(a,b) { return Math.atan(a,b); }, 2);
+    this.operators['FLOOR'] = funcOp(function(a) { return Math.floor(a); }, 1);
+    this.operators['CEIL'] = funcOp(function(a) { return Math.ceil(a); }, 1);
+    this.operators['RAD2DEG'] = funcOp(function(a) { return a * (180/Math.PI) }, 1);
+    this.operators['DEG2RAD'] = funcOp(function(a) { return a * (Math.PI/180) }, 1);
+    this.operators['ABS'] = funcOp(function(a) { return Math.abs(a) }, 1);
+    this.operators['UNKN'] = funcOp(function() { return NaN; }, 0);
+    this.operators['INF'] = funcOp(function() { return Number.POSITIVE_INFINITY; }, 0);
+    this.operators['NEGINF'] = funcOp(function() { return Number.NEGATIVE_INFINITY; }, 0);
+  },
+
+  evaluate: function(rpn, context) {
+    var token, tokens, n, i, stack = [];
+    tokens = rpn.split(",");
+    n = tokens.length;
+    for (i = 0; i < n; i++) {
+      token = tokens[i];
+      if (this._isOperator(token)) {
+        stack.push(this._eval(token, stack, context));
+      } else {
+        stack.push(token);
+      }
+    }
+
+    if (stack.length === 1) {
+      return stack.pop();
+    } else {
+      Backshift.fail('Too many input values in RPN express. RPN: ' + rpn + ' Stack: ' + JSON.stringify(stack));
+    }
+  },
+
+  _isOperator: function (token) {
+    return token in this.operators;
+  },
+
+  _eval: function (token, stack, context) {
+    return this.operators[token](stack, context);
+  }
+
+});
+
 Backshift.namespace('Backshift.Utilities.RrdGraphConverter');
 
 Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
@@ -710,6 +852,7 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
   onInit: function (args) {
     this.graphDef = args.graphDef;
     this.resourceId = args.resourceId;
+    this.convertRpnToJexl = args.convertRpnToJexl === undefined ? true : args.convertRpnToJexl;
 
     this.model = {
       metrics: [],
@@ -790,7 +933,10 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
   _expressionRegexp: new RegExp('\\{([^}]*)}', 'g'),
 
   _onCDEF: function (name, rpnExpression) {
-    var expression = this.rpnConverter.convert(rpnExpression);
+    var expression = rpnExpression;
+    if(this.convertRpnToJexl) {
+      expression = this.rpnConverter.convert(rpnExpression);
+    }
     if (this.prefix) {
       expression = expression.replace(this._expressionRegexp, this.prefix + '.$1');
     }
@@ -895,10 +1041,6 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
 
     this.configure(args);
 
-    if (this.start === 0 && this.end === 0 && this.last === 0) {
-      Backshift.fail('Graph needs start and end, or last to be non-zero.');
-    }
-
     this.queryInProgress = false;
     this.lastSuccessfulQuery = 0;
     this.timer = null;
@@ -916,6 +1058,7 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
       last: 0,
       refreshRate: 0,
       beginOnRender: true,
+      stream: true,
       checkInterval: 15 * 1000 // 15 seconds
     };
   },
@@ -936,10 +1079,14 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
     this.onBegin();
     this.refresh();
     this.createTimer();
+    if (this.stream) {
+      this.startStreaming();
+    }
   },
 
   cancel: function () {
     this.destroyTimer();
+    this.stopStreaming();
     this.onCancel();
   },
 
@@ -980,6 +1127,11 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
 
   refresh: function () {
     var self = this;
+
+    if (!self.dataSource.supportsQueries()) {
+      return;
+    }
+
     var timeSpan = this.getTimeSpan();
     this.queryInProgress = true;
     this.onBeforeQuery();
@@ -993,7 +1145,28 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
       self.queryInProgress = false;
       self.onQueryFailed(reason);
       self.onAfterQuery();
-    })
+    });
+  },
+
+  startStreaming: function () {
+    var self = this;
+    if (self.dataSource.supportsStreaming() && !self.isStreaming) {
+      self.isStreaming = true;
+      self.dataSource.callback = function(results) {
+        self.onQuerySuccess(results);
+      };
+      this.dataSource.startStreaming();
+    }
+  },
+
+  stopStreaming: function() {
+    var self = this;
+    if (self.isStreaming) {
+      self.isStreaming = false;
+      if (self.dataSource.supportsStreaming()) {
+        self.dataSource.stopStreaming();
+      }
+    }
   },
 
   updateTextFields: function(results) {
@@ -1040,6 +1213,10 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
   },
 
   getTimeSpan: function () {
+    if (this.start === 0 && this.end === 0 && this.last === 0) {
+      Backshift.fail('Graph needs start and end, or last to be non-zero.');
+    }
+
     var timeSpan = {};
     if (this.last > 0) {
       timeSpan.end = Date.now();
@@ -1231,7 +1408,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       }
     }
 
-    var yaxisTickFormat = d3.format(".2s");
+    var yaxisTickFormat = d3.format(".3s");
 
     var options = {
       canvas: true,
@@ -1385,6 +1562,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
 
     options.xaxis = {
       mode: "time",
+      timezone: "browser",
       min: from,
       max: to,
       label: "Datetime",
@@ -1457,6 +1635,14 @@ Backshift.DataSource = Backshift.Class.create(Backshift.Class.Configurable, {
     // Defined by subclasses
   },
 
+  supportsQueries: function() {
+    return true;
+  },
+
+  supportsStreaming: function() {
+    return false;
+  },
+
   onInit: function (args) {
     // Defined by subclasses
   }
@@ -1473,36 +1659,62 @@ Backshift.DataSource.OpenNMS = Backshift.Class.create(Backshift.DataSource, {
     return Backshift.extend($super(), {
       url: "http://127.0.0.1:8980/opennms/rest/measurements",
       username: null,
-      password: null
+      password: null,
+      fetchFunction: null,
     });
   },
 
-  query: function (start, end, resolution, args) {
-    var withCredentials = this.username !== null && this.password !== null;
-    var headers = {};
+  onInit: function(args) {
+    if (!this.fetchFunction) {
+      this.fetchFunction = this.post;
+    }
+  },
+
+  /* An overridable post method.
+   *
+   * @param {object} data A JSON object with data to POST.
+   * @param {function} onSuccess A function to call on success.
+   * @param {function} onFailure A function to call on failure.
+   */
+  post: function(url, data, onSuccess, onFailure) {
+    var self = this,
+      withCredentials = self.username !== null && self.password !== null,
+      headers = {};
+
     if (withCredentials) {
-      headers['Authorization'] = "Basic " + window.btoa(this.username + ":" + this.password);
+      headers['Authorization'] = "Basic " + window.btoa(self.username + ":" + self.password);
     }
 
-    var self = this;
-    var dfd = jQuery.Deferred();
     jQuery.ajax({
-      url: self.url,
+      url: url,
       xhrFields: {
         withCredentials: withCredentials
       },
       headers: headers,
-      type: "POST",
-      data: JSON.stringify(self._getQueryRequest(start, end, resolution)),
-      contentType: "application/json",
-      dataType: "json",
-      success: function (json) {
-        dfd.resolve(self._parseResponse(json));
-      },
-      error: function (jqXhr, textStatus) {
-        dfd.reject(textStatus);
-      }
+      type: 'POST',
+      data: JSON.stringify(data),
+      contentType: 'application/json',
+      dataType: 'json',
+      success: onSuccess,
+      error: onFailure
     });
+
+  },
+
+  query: function (start, end, resolution, args) {
+    var self = this;
+    var dfd = jQuery.Deferred();
+
+    var data = self._getQueryRequest(start, end, resolution),
+      success = function QuerySuccess(response) {
+        dfd.resolve(self._parseResponse(response));
+      },
+      failure = function QueryFailure(jqXmr, textStatus) {
+        dfd.reject(textStatus);
+      };
+
+    self.fetchFunction(self.url, data, success, failure);
+
     return dfd.promise();
   },
 
@@ -1598,6 +1810,302 @@ Backshift.DataSource.OpenNMS = Backshift.Class.create(Backshift.DataSource, {
   }
 });
 
+/**
+ * Datasource for OpenNMS' Near Real-Time Graphing (NRTG) feature.
+ *
+ * Requires Horizon 17.1.0 or greater.
+ *
+ * Created by jwhite on 11/29/2015.
+ */
+Backshift.namespace('Backshift.DataSource.NRTG');
+
+Backshift.DataSource.NRTG = Backshift.Class.create(Backshift.DataSource, {
+  defaults: function ($super) {
+    return Backshift.extend($super(), {
+      url: "http://127.0.0.1:8980/opennms/nrt/starter",
+      callback: function(){},
+      username: null,
+      password: null,
+      getFunction: null,
+      slidingWindow: 30,
+      pollingInterval: 1000
+    });
+  },
+
+  onInit: function(args) {
+    if (!this.getFunction) {
+      this.getFunction = this.get;
+    }
+
+    if (this.metrics.length !== 1) {
+      Backshift.fail('NRTG only supports streaming a single metric.');
+    }
+
+    // The last measurement set
+    this.lastMeasurementSet = {};
+    // Calculated rows
+    this.rows = [];
+    // Instance of the interval
+    this.pollingIntervalId = null;
+  },
+
+  supportsQueries: function() {
+    return false;
+  },
+
+  supportsStreaming: function() {
+    return true;
+  },
+
+  startStreaming: function() {
+    var self = this;
+    var dfd = jQuery.Deferred();
+
+    self.getFunction(this.url, {
+      resourceId: self.metrics[0].resourceId,
+      report: self.metrics[0].report
+    }, function(nrtgCollectionDetails) {
+      self.handleCollectionDetails(nrtgCollectionDetails);
+      dfd.resolve();
+    }, function(jqXmr, textStatus) {
+      dfd.reject(textStatus);
+    });
+
+    return dfd.promise();
+  },
+
+  stopStreaming: function () {
+    var self = this;
+    if (self.pollingIntervalId !== null) {
+      clearInterval(self.pollingIntervalId);
+      self.pollingIntervalId = null;
+    }
+  },
+
+  updatePollingInterval: function(pollingInterval) {
+    var self = this;
+    self.pollingInterval = pollingInterval;
+    if (self.pollingIntervalId !== null) {
+      clearInterval(self.pollingIntervalId);
+      var poll = function() {self.poll();}.bind(self);
+      self.pollingIntervalId = setInterval(poll, self.pollingInterval);
+    }
+  },
+
+  updateSlidingWindow: function(slidingWindow) {
+    var self = this;
+    self.slidingWindow = slidingWindow;
+    self._processRowsAndNotify();
+  },
+
+  handleCollectionDetails: function(nrtgCollectionDetails) {
+    var self = this;
+
+    // Build a graph definition using the data from the collection details
+    var graph = {
+      "command": nrtgCollectionDetails.rrdGraphString,
+      "externalValues": [],
+      "propertiesValues": [],
+      "columns": self._metricMappingsToColumns(nrtgCollectionDetails.metricsMapping)
+    };
+
+    // Generate the model from the graph definition
+    var rrdGraphConverter = new Backshift.Utilities.RrdGraphConverter({
+      graphDef: graph,
+      resourceId: self.metrics[0].resourceId,
+      convertRpnToJexl: false
+    });
+    self.model = rrdGraphConverter.model;
+
+    // Start polling
+    self.collectionTaskId = nrtgCollectionDetails.collectionTaskId;
+    var poll = function() {self.poll();}.bind(self);
+    poll();
+    self.pollingIntervalId = setInterval(poll, self.pollingInterval);
+  },
+
+  poll: function() {
+    var self = this;
+    if (self.pollInProgress === true) {
+      // If another poll is already in progress, then skip this one
+      return;
+    }
+
+    self.pollInProgress = true;
+    self.getFunction(self.url, {
+      poll: true,
+      nrtCollectionTaskId: self.collectionTaskId
+    }, function(data) {
+      self.pollInProgress = false;
+
+      // Compute the measurements
+      self._calculateMeasurements(data.measurement_sets);
+
+      // Issue the callback
+      self._processRowsAndNotify();
+    }, function(jqXmr, textStatus) {
+      // If a poll fails, log it, but don't take any actions, we'll just try again next time
+      self.pollInProgress = false;
+      console.log("NRTG: Poll failed with '" + textStatus + "'.");
+    });
+  },
+
+  _metricMappingsToColumns: function(metricsMapping) {
+    var columns = [];
+    for (var i = 1, nmetrics = Object.keys(metricsMapping).length; i <= nmetrics; i++) {
+      var found = false;
+      for (var key in metricsMapping) {
+        if (metricsMapping.hasOwnProperty(key)) {
+          if (metricsMapping[key].indexOf("{rrd" + i + "}") > -1) {
+            columns.push(key);
+            found = true;
+            break;
+          }
+        }
+      }
+
+      if (!found) {
+        Backshift.fail("Missing {rrd" + i + "}");
+      }
+    }
+    return columns;
+  },
+
+  _calculateMeasurements: function(measurementSets) {
+    var self = this;
+    for (var i = 0, nsets = measurementSets.length; i < nsets; i++) {
+
+      // Index the metrics by metricId
+      var metricsById = {};
+      var timestamp = 0;
+      for (var j = 0, nmetrics = measurementSets[i].length; j < nmetrics; j++) {
+        var metric = measurementSets[i][j];
+        metricsById[metric.metricId] = metric;
+        timestamp = metric.timeStamp;
+      }
+
+      // Calculate the measurements
+      var rpnEvaluator = new Backshift.Utilities.RpnEvaluator();
+      var row = {
+        timestamp: timestamp
+      };
+      for (j = 0, nmetrics = self.model.metrics.length; j < nmetrics; j++) {
+        var modelMetric = self.model.metrics[j];
+        var isExpression = "expression" in modelMetric;
+
+        var value = NaN;
+        if (!isExpression) {
+          if (modelMetric.attribute in metricsById) {
+            var metric = metricsById[modelMetric.attribute];
+            value = metric.value;
+
+            // Convert counters to rates
+            var isCounter = metric.metricType.indexOf("counter") > -1;
+            if (isCounter) {
+              var lastValue = NaN;
+              if (modelMetric.attribute in self.lastMeasurementSet) {
+                lastValue = self.lastMeasurementSet[modelMetric.attribute].value;
+              }
+              value = value - lastValue;
+            }
+          }
+        } else {
+          value = rpnEvaluator.evaluate(modelMetric.expression, row);
+        }
+
+        row[modelMetric.name] = value;
+      }
+
+      // Save the results
+      self.rows.push(row);
+      self.lastMeasurementSet = metricsById;
+    }
+  },
+
+  _processRowsAndNotify: function() {
+    var self = this;
+
+    // Limit the amount of rows processed if we're using a sliding window
+    var indexOfFirstRow = 0;
+    if (self.slidingWindow > 0) {
+      // Only use a subset of the rows
+      indexOfFirstRow = self.rows.length - self.slidingWindow;
+      if (indexOfFirstRow < 0) {
+        indexOfFirstRow = 0;
+      }
+    }
+
+    // Convert the rows to columns
+    var columns = {};
+    for (var i = indexOfFirstRow, nrows = self.rows.length; i < nrows; i++) {
+      var row = self.rows[i];
+      for (var key in row) {
+        if (!row.hasOwnProperty(key)) {
+          continue;
+        }
+
+        if (key in columns) {
+          columns[key].push(row[key]);
+        } else {
+          columns[key] = [row[key]];
+        }
+      }
+    }
+
+    // Drop any transient columns
+    for (j = 0, nmetrics = self.model.metrics.length; j < nmetrics; j++) {
+      var modelMetric = self.model.metrics[j];
+      if (modelMetric.transient) {
+        delete columns[modelMetric.name];
+      }
+    }
+
+    // Index the columns
+    var results = {
+      columns: [],
+      columnNames: [],
+      columnNameToIndex: {}
+    };
+
+    $.each(columns, function (columnName, columnValues) {
+      results.columns.push(columnValues);
+      results.columnNames.push(columnName);
+      results.columnNameToIndex[columnName] = results.columns.length - 1;
+    });
+
+    // Issue the callback
+    self.callback(results);
+  },
+
+  /* An overridable GET method.
+   *
+   * @param {function} onSuccess A function to call on success.
+   * @param {function} onFailure A function to call on failure.
+   */
+  get: function(url,  data, onSuccess, onFailure) {
+    var self = this,
+        withCredentials = self.username !== null && self.password !== null,
+        headers = {};
+
+    if (withCredentials) {
+      headers['Authorization'] = "Basic " + window.btoa(self.username + ":" + self.password);
+    }
+
+    jQuery.ajax({
+      url: url,
+      xhrFields: {
+        withCredentials: withCredentials
+      },
+      headers: headers,
+      type: 'GET',
+      cache: false,
+      data: data,
+      dataType: 'json',
+      success: onSuccess,
+      error: onFailure
+    });
+  }
+});
 // Register as an AMD module,
 if ( typeof define === "function" && define.amd ) {
     define(['d3'], Backshift);
