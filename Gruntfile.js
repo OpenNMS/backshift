@@ -19,7 +19,6 @@ module.exports = function (grunt) {
     'src/Backshift.DataSource.NRTG.js',
     'src/Backshift.Legend.js',
     'src/Backshift.Legend.Rickshaw.js',
-    'src/Backshift.Graph.js',
     'src/Backshift.Graph.Matrix.js',
     'src/Backshift.Graph.Flot.js',
     'src/Backshift.Graph.Rickshaw.js',
