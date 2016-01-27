@@ -56,6 +56,10 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
   },
 
   drawChart: function (results) {
+    if (!results || !results.columns) {
+      return;
+    }
+
     var self = this;
     var container = jQuery(this.element);
 

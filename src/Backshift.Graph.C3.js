@@ -123,6 +123,9 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
   },
 
   onQuerySuccess: function (results) {
+    if (!results || !results.columns) {
+      return;
+    }
     var timestamps = results.columns[0];
     var series, values, i, j, numSeries, numValues, X, Y, columnName, shouldStack;
     numSeries = this.model.series.length;
