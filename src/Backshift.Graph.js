@@ -88,6 +88,7 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
 
   destroy: function() {
     this.destroyTimer();
+    this.onDestroy();
   },
 
   createTimer: function () {
@@ -276,6 +277,10 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
   },
 
   onAfterQuery: function () {
+    // Implemented by subclasses
+  },
+
+  onDestroy: function () {
     // Implemented by subclasses
   }
 });
