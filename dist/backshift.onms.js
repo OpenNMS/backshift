@@ -1095,7 +1095,9 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
   },
 
   destroy: function() {
+    this.hideStatus();
     this.destroyTimer();
+    this.onDestroy();
   },
 
   createTimer: function () {
@@ -1239,7 +1241,7 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
   showStatus: function (statusText) {
     if (this.statusElement) {
       this.statusElement.text(statusText);
-    } else {
+    } else if (this.element) {
       this.statusElement = d3.select(this.element)
         .insert('div', ':first-child');
       this.statusElement
@@ -1285,6 +1287,10 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
 
   onAfterQuery: function () {
     // Implemented by subclasses
+  },
+
+  onDestroy: function () {
+    // Implemented by subclasses
   }
 });
 
@@ -1318,9 +1324,31 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
     container.height(this.height);
   },
 
+  showStatus: function(text) {
+    if (this.chart) {
+      var options = this.chart.getOptions();
+      if (!options._oldTitle) {
+        options._oldTitle = options.title;
+      }
+      options.title = text;
+      this.chart.draw();
+    }
+  },
+
+  hideStatus: function() {
+    if (this.chart) {
+      var options = this.chart.getOptions();
+      if (options._oldTitle) {
+        options.title = options._oldTitle;
+        delete options._oldTitle;
+      }
+      this.chart.draw();
+    }
+  },
 
   onBeforeQuery: function () {
     this.showStatus('Loading...');
+    this.doRender = true;
   },
 
   onQueryFailed: function () {
@@ -1329,7 +1357,19 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
 
   onQuerySuccess: function (results) {
     this.hideStatus();
-    this.drawChart(results);
+    if (this.doRender) {
+      this.drawChart(results);
+    }
+  },
+
+  onRender: function() {
+    this.doRender = true;
+    this.drawChart();
+  },
+
+  onCancel: function() {
+    this.doRender = false;
+    this.drawChart();
   },
 
   _shouldStack: function (k) {
@@ -1349,13 +1389,19 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
     var self = this;
     var container = jQuery(this.element);
 
-    var timestamps = results.columns[0];
-    var series, values, i, j, numSeries, numValues, X, Y, columnName, shouldStack, shouldFill, seriesValues, shouldShow;
+    var timestamps = [];
+    if (results && results.columns) {
+      timestamps = results.columns[0];
+    }
+    var series = {}, values, i, j, numSeries, numValues, X, Y, columnName, shouldStack, shouldFill, seriesValues, shouldShow;
     numSeries = this.model.series.length;
     numValues = timestamps.length;
 
-    var from = timestamps[0];
-    var to = timestamps[timestamps.length - 1];
+    var from, to;
+    if (numValues >= 2) {
+      from = timestamps[0];
+      to = timestamps[timestamps.length - 1];
+    }
 
     this.flotSeries = [];
     this.hiddenFlotSeries = [];
@@ -1366,7 +1412,9 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
     for (i = 0; i < numSeries; i++) {
       columnName = "data" + i;
       series = this.model.series[i];
-      values = results.columns[results.columnNameToIndex[series.metric]];
+      if (series.metric && results && results.columns) {
+        values = results.columns[results.columnNameToIndex[series.metric]];
+      }
 
       shouldStack = this._shouldStack(i);
       shouldFill = this.model.series[i].type === "stack" || this.model.series[i].type === "area";
@@ -1412,7 +1460,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
 
     var options = {
       canvas: true,
-      title: self.title,
+      title: self.title || '',
       axisLabels: {
         show: true
       },
@@ -1440,7 +1488,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       },
       yaxes: [{
         position: 'left',
-        axisLabel: self.verticalLabel,
+        axisLabel: self.verticalLabel || '',
         axisLabelUseHtml: false,
         axisLabelUseCanvas: true
       }],
@@ -1508,11 +1556,11 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       options.legend.style.fontSize = this.legendFontSize;
     }
 
-    var chart = jQuery.plot(container, this.flotSeries, options);
+    this.chart = jQuery.plot(container, this.flotSeries, options);
 
     // Limit the zooming and panning so that at least one point is always visible
-    var yaxis = chart.getAxes().yaxis;
-    chart.ranges = {
+    var yaxis = this.chart.getAxes().yaxis;
+    this.chart.ranges = {
       yaxis: { panRange: [yaxis.min, yaxis.max], zoomRange: false}, xaxis: { panRange: [from,to], zoomRange: null }
     };
   },
@@ -1591,6 +1639,13 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
     }
 
     return "%H:%M";
+  },
+
+  onDestroy: function() {
+    if (this.chart && this.chart.destroy) {
+      this.chart.shutdown();
+      this.chart.destroy();
+    }
   }
 });
 
