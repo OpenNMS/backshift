@@ -56,6 +56,10 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
   },
 
   drawChart: function (results) {
+    if (!results || !results.columns) {
+      return;
+    }
+
     var self = this;
     var container = jQuery(this.element);
 
@@ -218,11 +222,11 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       options.legend.style.fontSize = this.legendFontSize;
     }
 
-    var chart = jQuery.plot(container, this.flotSeries, options);
+    this.chart = jQuery.plot(container, this.flotSeries, options);
 
     // Limit the zooming and panning so that at least one point is always visible
-    var yaxis = chart.getAxes().yaxis;
-    chart.ranges = {
+    var yaxis = this.chart.getAxes().yaxis;
+    this.chart.ranges = {
       yaxis: { panRange: [yaxis.min, yaxis.max], zoomRange: false}, xaxis: { panRange: [from,to], zoomRange: null }
     };
   },
@@ -301,5 +305,12 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
     }
 
     return "%H:%M";
+  },
+
+  onDestroy: function() {
+    if (this.chart && this.chart.destroy) {
+      this.chart.shutdown();
+      this.chart.destroy();
+    }
   }
 });
