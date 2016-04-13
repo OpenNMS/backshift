@@ -87,6 +87,7 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
   },
 
   destroy: function() {
+    this.hideStatus();
     this.destroyTimer();
     this.onDestroy();
   },
@@ -232,7 +233,7 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
   showStatus: function (statusText) {
     if (this.statusElement) {
       this.statusElement.text(statusText);
-    } else {
+    } else if (this.element) {
       this.statusElement = d3.select(this.element)
         .insert('div', ':first-child');
       this.statusElement

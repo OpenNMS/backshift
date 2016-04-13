@@ -1,26 +1,28 @@
 {
   "name": "backshift",
-  "version": "1.1.1-SNAPSHOT",
+  "version": "1.1.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/OpenNMS/backshift.git"
   },
   "homepage": "https://github.com/OpenNMS/backshift",
   "devDependencies": {
-    "bower": "~1.4.1",
-    "grunt": "~0.4.5",
-    "grunt-contrib-concat": "~0.5.1",
-    "grunt-contrib-copy": "~0.8.1",
-    "grunt-contrib-jshint": "~0.11.2",
-    "grunt-contrib-nodeunit": "~0.4.1",
-    "grunt-contrib-uglify": "~0.9.1",
-    "grunt-jsdoc": "~1.0.0",
-    "http-server": "~0.8.0",
-    "jsdoc": "~3.3.2",
+    "bower": "~1.7.9",
+    "grunt": "~1.0.1",
+    "grunt-contrib-concat": "~1.0.0",
+    "grunt-contrib-copy": "~1.0.0",
+    "grunt-contrib-jshint": "~1.0.0",
+    "grunt-contrib-nodeunit": "~1.0.0",
+    "grunt-contrib-uglify": "~1.0.1",
+    "grunt-jsdoc": "~1.1.0",
+    "http-server": "~0.9.0",
+    "jasmine-core": "^2.4.1",
+    "jsdoc": "~3.4.0",
     "karma": "~0.13.9",
     "karma-chrome-launcher": "^0.2.1",
     "karma-jasmine": "~0.3.5",
-    "karma-phantomjs-launcher": "~0.2.1"
+    "karma-phantomjs-launcher": "~1.0.0",
+    "phantomjs-prebuilt": "^2.1.7"
   },
   "scripts": {
     "postinstall": "bower install",
