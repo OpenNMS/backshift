@@ -62,5 +62,9 @@ describe('Backshift.Utilities.RpnToJexlConverter', function () {
     it('should convert number constants', function () {
       checkRpnConversion("UNKN,INF,ATAN2", "math:atan2(NaN,__inf)");
     });
+
+    it('should support diffTime placeholders', function () {
+      checkRpnConversion("bitsOut,{diffTime},*", "(bitsOut * (__diff_time / 1000))");
+    });
   });
 });
