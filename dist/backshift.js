@@ -695,6 +695,7 @@ Backshift.Utilities.RpnToJexlConverter = Backshift.Class.create({
     this.operators['UNKN'] = function() { return 'NaN'; };
     this.operators['INF'] = function() { return '__inf'; };
     this.operators['NEGINF'] = function() { return '__neg_inf'; };
+    this.operators['{diffTime}'] = function() { return '(__diff_time / 1000)'; };
 
   },
 
@@ -1106,7 +1107,7 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
     var columnIndex = parseInt(/\{rrd(\d+)}/.exec(path)[1]) - 1;
     var attribute = this.graphDef.columns[columnIndex];
 
-    this.prefix = attribute;
+    this.prefix = name;
     this.model.metrics.push({
       name: name,
       attribute: attribute,
