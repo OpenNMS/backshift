@@ -73,7 +73,7 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
     var columnIndex = parseInt(/\{rrd(\d+)}/.exec(path)[1]) - 1;
     var attribute = this.graphDef.columns[columnIndex];
 
-    this.prefix = attribute;
+    this.prefix = name;
     this.model.metrics.push({
       name: name,
       attribute: attribute,

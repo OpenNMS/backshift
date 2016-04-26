@@ -134,11 +134,11 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
       // make sure it parses and replaces prefixes
       expect(percentIn).toBeDefined();
       expect(percentIn.name).toBe("minPercentIn");
-      expect(percentIn.expression).toBe("(((minOctIn * 8) / ifHCOutOctets.ifSpeed) * 100)");
+      expect(percentIn.expression).toBe("(((minOctIn * 8) / maxOctOut.ifSpeed) * 100)");
 
       // make sure it parses and replaces prefixes in *multiple* tokens
       expect(weirdThing).toBeDefined();
-      expect(weirdThing.expression).toBe("(((((octOut * 8) / ifHCOutOctets.ifSpeed) * ifHCOutOctets.ifSpeed) / ifHCOutOctets.ifSpeed) * 100)");
+      expect(weirdThing.expression).toBe("(((((octOut * 8) / maxOctOut.ifSpeed) * maxOctOut.ifSpeed) / maxOctOut.ifSpeed) * 100)");
 
       expect(model.series.length).toBe(5);
       expect(model.printStatements.length).toBe(8);
