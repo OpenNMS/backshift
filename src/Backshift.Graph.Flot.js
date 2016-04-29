@@ -30,23 +30,33 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
 
   showStatus: function(text) {
     if (this.chart) {
-      var options = this.chart.getOptions();
-      if (!options._oldTitle) {
-        options._oldTitle = options.title;
+      var options = this.chart.getOptions(),
+        canvas = this.chart.getCanvas();
+      if (options) {
+        if (!options._oldTitle) {
+          options._oldTitle = options.title;
+        }
+        options.title = text;
+        if (options.canvas && canvas) {
+          this.chart.draw();
+        }
       }
-      options.title = text;
-      this.chart.draw();
     }
   },
 
   hideStatus: function() {
     if (this.chart) {
-      var options = this.chart.getOptions();
-      if (options._oldTitle) {
-        options.title = options._oldTitle;
-        delete options._oldTitle;
+      var options = this.chart.getOptions(),
+        canvas = this.chart.getCanvas();
+      if (options) {
+        if (options._oldTitle) {
+          options.title = options._oldTitle;
+          delete options._oldTitle;
+        }
+        if (options.canvas && canvas) {
+          this.chart.draw();
+        }
       }
-      this.chart.draw();
     }
   },
 
