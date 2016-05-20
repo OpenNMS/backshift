@@ -57,6 +57,14 @@ Backshift.DataSource.OpenNMS = Backshift.Class.create(Backshift.DataSource, {
 
     var data = self._getQueryRequest(start, end, resolution),
       success = function QuerySuccess(response) {
+        if (response === undefined) {
+          // This can happen if/when the server returns a 204
+          response = {
+            labels: [],
+            timestamps: [],
+            columns: []
+          }
+        }
         dfd.resolve(self._parseResponse(response));
       },
       failure = function QueryFailure(jqXmr, textStatus) {
@@ -129,7 +137,8 @@ Backshift.DataSource.OpenNMS = Backshift.Class.create(Backshift.DataSource, {
   },
 
   _parseResponse: function (json) {
-    var k, columns, columnNames, columnNameToIndex, constants, numMetrics = json.labels.length;
+    var k, columns, columnNames, columnNameToIndex, constants,
+        numMetrics = json.labels.length;
 
     columns = new Array(1 + numMetrics);
     columnNames = new Array(1 + numMetrics);

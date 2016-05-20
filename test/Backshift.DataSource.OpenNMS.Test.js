@@ -105,4 +105,43 @@ describe('Backshift.DataSource.OpenNMS.Test', function () {
       done.fail();
     });
   });
+
+
+  it('should support empty responses', function (done) {
+    var results = {};
+
+    spyOn(jQuery, "ajax").and.callFake(function (params) {
+      // Verify the URL
+      expect(params.url).toBe("http://127.0.0.1:9000/");
+
+      // Return empty results
+      params.success();
+    });
+
+    var ds = new Backshift.DataSource.OpenNMS({
+      url: "http://127.0.0.1:9000/",
+      metrics: [
+        {
+          aggregation: "AVERAGE",
+          attribute: "SysRawContext",
+          name: "context",
+          resourceId: "node[1].nodeSnmp[]"
+        }
+      ]
+    });
+
+    ds.query(0, 1000, 1).then(function (results) {
+      // The timestamps column should always exist
+      var ts = results.columns[0];
+      // But it should be emtpy in this case
+      expect(ts.length).toBe(0);
+
+      // And there should be no other columns
+      expect(results.columns.length).toBe(1);
+
+      done();
+    }, function () {
+      done.fail();
+    });
+  });
 });
