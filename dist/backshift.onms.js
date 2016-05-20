@@ -1327,23 +1327,33 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
 
   showStatus: function(text) {
     if (this.chart) {
-      var options = this.chart.getOptions();
-      if (!options._oldTitle) {
-        options._oldTitle = options.title;
+      var options = this.chart.getOptions(),
+        canvas = this.chart.getCanvas();
+      if (options) {
+        if (!options._oldTitle) {
+          options._oldTitle = options.title;
+        }
+        options.title = text;
+        if (options.canvas && canvas) {
+          this.chart.draw();
+        }
       }
-      options.title = text;
-      this.chart.draw();
     }
   },
 
   hideStatus: function() {
     if (this.chart) {
-      var options = this.chart.getOptions();
-      if (options._oldTitle) {
-        options.title = options._oldTitle;
-        delete options._oldTitle;
+      var options = this.chart.getOptions(),
+        canvas = this.chart.getCanvas();
+      if (options) {
+        if (options._oldTitle) {
+          options.title = options._oldTitle;
+          delete options._oldTitle;
+        }
+        if (options.canvas && canvas) {
+          this.chart.draw();
+        }
       }
-      this.chart.draw();
     }
   },
 
@@ -1763,6 +1773,14 @@ Backshift.DataSource.OpenNMS = Backshift.Class.create(Backshift.DataSource, {
 
     var data = self._getQueryRequest(start, end, resolution),
       success = function QuerySuccess(response) {
+        if (response === undefined) {
+          // This can happen if/when the server returns a 204
+          response = {
+            labels: [],
+            timestamps: [],
+            columns: []
+          }
+        }
         dfd.resolve(self._parseResponse(response));
       },
       failure = function QueryFailure(jqXmr, textStatus) {
@@ -1780,7 +1798,8 @@ Backshift.DataSource.OpenNMS = Backshift.Class.create(Backshift.DataSource, {
       "end": end,
       "step": resolution > 0 ? Math.floor((end - start) / resolution) : 1,
       "source": [],
-      "expression": []
+      "expression": [],
+      "filter": []
     };
 
     var timeDeltaInSeconds = end - start;
@@ -1802,6 +1821,11 @@ Backshift.DataSource.OpenNMS = Backshift.Class.create(Backshift.DataSource, {
           qrSource.datasource = metric.datasource;
         }
         queryRequest.source.push(qrSource);
+      } else if (metric.type === 'filter') {
+        queryRequest.filter.push({
+          name: metric.name,
+          parameter: metric.parameter
+        });
       } else {
         qrSource = {
           value: metric.expression,
@@ -1821,11 +1845,16 @@ Backshift.DataSource.OpenNMS = Backshift.Class.create(Backshift.DataSource, {
       delete queryRequest.expression;
     }
 
+    if (queryRequest.filter.length === 0) {
+      delete queryRequest.filter;
+    }
+
     return queryRequest;
   },
 
   _parseResponse: function (json) {
-    var k, columns, columnNames, columnNameToIndex, constants, numMetrics = json.labels.length;
+    var k, columns, columnNames, columnNameToIndex, constants,
+        numMetrics = json.labels.length;
 
     columns = new Array(1 + numMetrics);
     columnNames = new Array(1 + numMetrics);
