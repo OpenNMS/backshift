@@ -37,6 +37,17 @@ describe('Backshift.DataSource.OpenNMS.Test', function () {
           "label": "expr",
           "transient": true
         }
+      ],
+      "filter": [
+        {
+          "name":"Chomp",
+          "parameter":[
+            {
+              "key":"stripNaNs",
+              "value":"expr"
+            }
+          ]
+        }
       ]
     };
 
@@ -64,6 +75,14 @@ describe('Backshift.DataSource.OpenNMS.Test', function () {
           name: "expr",
           expression: "1 * 2.0",
           transient: true
+        },
+        {
+          type: "filter",
+          name: "Chomp",
+          parameter: [{
+            key: "stripNaNs",
+            value: "expr"
+          }]
         }
       ]
     });

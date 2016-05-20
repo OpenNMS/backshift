@@ -74,7 +74,8 @@ Backshift.DataSource.OpenNMS = Backshift.Class.create(Backshift.DataSource, {
       "end": end,
       "step": resolution > 0 ? Math.floor((end - start) / resolution) : 1,
       "source": [],
-      "expression": []
+      "expression": [],
+      "filter": []
     };
 
     var timeDeltaInSeconds = end - start;
@@ -96,6 +97,11 @@ Backshift.DataSource.OpenNMS = Backshift.Class.create(Backshift.DataSource, {
           qrSource.datasource = metric.datasource;
         }
         queryRequest.source.push(qrSource);
+      } else if (metric.type === 'filter') {
+        queryRequest.filter.push({
+          name: metric.name,
+          parameter: metric.parameter
+        });
       } else {
         qrSource = {
           value: metric.expression,
@@ -113,6 +119,10 @@ Backshift.DataSource.OpenNMS = Backshift.Class.create(Backshift.DataSource, {
 
     if (queryRequest.expression.length === 0) {
       delete queryRequest.expression;
+    }
+
+    if (queryRequest.filter.length === 0) {
+      delete queryRequest.filter;
     }
 
     return queryRequest;
