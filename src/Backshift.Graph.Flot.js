@@ -111,6 +111,13 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
     numSeries = this.model.series.length;
     numValues = timestamps.length;
 
+    // Rendering will silently fail if the timestamps are not ordered, throw an exception if this is detected
+    for (i = 1; i < numValues; i++) {
+      if (timestamps[i] < timestamps[i-1]) {
+        throw "Timestamps are not properly ordered! (" + timestamps[i] + " < " + timestamps[i-1] + ")";
+      }
+    }
+
     var from, to;
     if (numValues >= 2) {
       from = timestamps[0];
