@@ -137,7 +137,7 @@ Backshift.DataSource.OpenNMS = Backshift.Class.create(Backshift.DataSource, {
   },
 
   _parseResponse: function (json) {
-    var k, columns, columnNames, columnNameToIndex, constants,
+    var k, columns, columnNames, columnNameToIndex, constants, parts,
         numMetrics = json.labels.length;
 
     columns = new Array(1 + numMetrics);
@@ -159,13 +159,14 @@ Backshift.DataSource.OpenNMS = Backshift.Class.create(Backshift.DataSource, {
       for (var c=0, len=json.constants.length, key, value, label; c < len; c++) {
         key = json.constants[c].key;
         value = json.constants[c].value;
-        for (var l=0; l < numMetrics; l++) {
-          label = json.labels[l];
-          if (key.indexOf(label+'.') === 0) {
-            // constant matches the label, extract the constant name
-            key = key.substring((label+'.').length);
-            constants[key] = (value === undefined? null: value);
-          }
+
+        // All of the constants are prefixed with the label of the associated source, but
+        // the graph definitions don't support this prefix, so we just cut the prefix
+        // off the constant name
+        parts = key.split('.');
+        if (parts.length > 1) {
+          key = parts[1];
+          constants[key] = (value === undefined? null: value);
         }
       }
     }
@@ -174,7 +175,7 @@ Backshift.DataSource.OpenNMS = Backshift.Class.create(Backshift.DataSource, {
       columns: columns,
       columnNames: columnNames,
       columnNameToIndex: columnNameToIndex,
-      constants: constants,
+      constants: constants
     };
   }
 });
