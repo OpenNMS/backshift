@@ -181,7 +181,7 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
         if (results.constants && results.constants[prop]) {
           value = results.constants[prop];
         } else {
-          value = prop;
+          value = "null";
         }
         if (title) { title = title.replace(re, value); }
         if (verticalLabel) { verticalLabel = verticalLabel.replace(re, value); }
