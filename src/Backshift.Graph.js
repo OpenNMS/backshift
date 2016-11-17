@@ -24,12 +24,17 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
     if (!this.model.series) {
       this.model.series = [];
     }
+    if (!this.model.values) {
+      this.model.values = [];
+    }
     if (!this.model.printStatements) {
       this.model.printStatements = [];
     }
     this._title = args.title || this.model.title;
     this._verticalLabel = args.verticalLabel || this.model.verticalLabel;
     this._regexes = {};
+
+    this._values = {};
 
     this.configure(args);
 
@@ -132,6 +137,7 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
     this.dataSource.query(timeSpan.start, timeSpan.end, this.getResolution()).then(function (results) {
       self.queryInProgress = false;
       self.lastSuccessfulQuery = Date.now();
+      self.updateValues(results);
       self.updateTextFields(results);
       self.onQuerySuccess(results);
       self.onAfterQuery();
@@ -160,6 +166,20 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
       if (self.dataSource.supportsStreaming()) {
         self.dataSource.stopStreaming();
       }
+    }
+  },
+
+  updateValues: function(results) {
+    this._values = {};
+    for (var i = 0; i < this.model.values.length; i++) {
+      var value = this.model.values[i];
+
+      this._values[value.name] = {
+        metricName: value.expression.metricName,
+        functionName: value.expression.functionName,
+        argument: value.expression.argument,
+        value: value.expression.consolidate(results),
+      };
     }
   },
 

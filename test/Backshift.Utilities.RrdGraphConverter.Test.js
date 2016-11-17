@@ -48,19 +48,21 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
       });
       var model = rrdGraphConverter.model;
       expect(model.metrics.length).toBe(7);
+
+      console.log(model.series);
+
       expect(model.series.length).toBe(5);
+      expect(model.values.length).toBe(6);
 
       expect(model.printStatements.length).toBe(8);
-      expect(model.printStatements[0].value).toBe("%g In (Passive)");
-      expect(model.printStatements[1].value).toBe("Avg  : %8.2lf %s");
-      expect(model.printStatements[2].value).toBe("Min  : %8.2lf %s");
-      expect(model.printStatements[3].value).toBe("Max  : %8.2lf %s\\n");
-
-      expect(model.printStatements.length).toBe(8);
-      expect(model.printStatements[0].value).toBe("%g In (Passive)");
-      expect(model.printStatements[1].value).toBe("Avg  : %8.2lf %s");
-      expect(model.printStatements[2].value).toBe("Min  : %8.2lf %s");
-      expect(model.printStatements[3].value).toBe("Max  : %8.2lf %s\\n");
+      expect(model.printStatements[0].format).toBe("%g In (Passive)");
+      expect(model.printStatements[1].format).toBe("Avg  : %8.2lf %s");
+      expect(model.printStatements[2].format).toBe("Min  : %8.2lf %s");
+      expect(model.printStatements[3].format).toBe("Max  : %8.2lf %s\\n");
+      expect(model.printStatements[4].format).toBe("%g Out (Active)");
+      expect(model.printStatements[5].format).toBe("Avg  : %8.2lf %s");
+      expect(model.printStatements[6].format).toBe("Min  : %8.2lf %s");
+      expect(model.printStatements[7].format).toBe("Max  : %8.2lf %s\\n");
 
       expect(model.title).toBe("TCP Open Connections");
       expect(model.verticalLabel).toBe("TCP Opens Per Second");
@@ -141,6 +143,7 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
       expect(weirdThing.expression).toBe("(((((octOut * 8) / maxOctOut.ifSpeed) * maxOctOut.ifSpeed) / maxOctOut.ifSpeed) * 100)");
 
       expect(model.series.length).toBe(5);
+      expect(model.values.length).toBe(6);
       expect(model.printStatements.length).toBe(8);
     });
 
@@ -244,6 +247,7 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
       });
       var model = rrdGraphConverter.model;
       expect(model.metrics.length).toBe(39);
+      expect(model.values.length).toBe(21);
       expect(model.series.length).toBe(7);
       expect(model.printStatements.length).toBe(28);
 
@@ -316,6 +320,7 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
       var model = rrdGraphConverter.model;
 
       expect(model.metrics.length).toBe(87);
+      expect(model.values.length).toBe(4);
       expect(model.series.length).toBe(37);
       expect(model.printStatements.length).toBe(13);
 
@@ -324,6 +329,57 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
       expect(model.metrics[0].datasource).toBe("ping1");
 
       expect(model.title).toBe("StrafePing Response Time");
+    });
+
+    it('should convert graphs with VDEFs', function () {
+      var def = {
+        "name": "example.test",
+        "title": "VDEF Test Graph",
+        "columns": [
+          "netBytesRcvdPerSec",
+          "netBytesSentPerSec",
+        ],
+        "command": "--title=\"Bit Totals\" " +
+                   "DEF:octIn={rrd1}:netBytesRcvdPerSec:AVERAGE " +
+                   "DEF:octOut={rrd2}:netBytesSentPerSec:AVERAGE " +
+                   "CDEF:bits=octIn,8,*,octOut,8,*,+ " +
+                   "VDEF:sum=bits,TOTAL " +
+                   "VDEF:perc=bits,95,PERCENT " +
+                   "GPRINT:sum:\"Total      \\: %8.2lf %s\" " +
+                   "GPRINT:perc:\"Percentage \\: %8.2lf %s\" ",
+        "externalValues": [],
+        "propertiesValues": [],
+        "order": 36865,
+        "types": [
+          "nodeSnmp"
+        ],
+        "description": null,
+        "width": null,
+        "height": null,
+        "suppress": []
+      };
+
+      var rrdGraphConverter = new Backshift.Utilities.RrdGraphConverter({
+        graphDef: def,
+        resourceId: 'node[1].nodeSnmp[]'
+      });
+      var model = rrdGraphConverter.model;
+      expect(model.metrics.length).toBe(3);
+      expect(model.series.length).toBe(1);
+
+      expect(model.values.length).toBe(2);
+      expect(model.values[0].name).toBe("sum");
+      expect(model.values[0].expression.metricName).toBe("bits");
+      expect(model.values[0].expression.functionName).toBe("total");
+      expect(model.values[0].expression.argument).toBeNaN();
+      expect(model.values[1].name).toBe("perc");
+      expect(model.values[1].expression.metricName).toBe("bits");
+      expect(model.values[1].expression.functionName).toBe("percent");
+      expect(model.values[1].expression.argument).toBe(95.0);
+
+      expect(model.printStatements.length).toBe(2);
+      expect(model.printStatements[0].metric).toBe("sum");
+      expect(model.printStatements[1].metric).toBe("perc");
     });
 
   });

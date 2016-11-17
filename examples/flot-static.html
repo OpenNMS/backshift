@@ -24,6 +24,7 @@
     <script src="../src/Backshift.Math.js"></script>
     <script src="../src/Backshift.Stats.js"></script>
     <script src="../src/Backshift.Utilities.Url.js"></script>
+    <script src="../src/Backshift.Utilities.Consolidator.js"></script>
     <script src="../src/Backshift.DataSource.js"></script>
     <script src="../src/Backshift.DataSource.SineWave.js"></script>
     <script src="../src/Backshift.Graph.js"></script>
@@ -53,6 +54,8 @@
         ]
     });
 
+    var consolidator = new Backshift.Utilities.Consolidator();
+
     var flotGraph = new Backshift.Graph.Flot({
         element: document.querySelector("#chart-graph"),
         start: 0,
@@ -77,54 +80,96 @@
                     color: "#ff0000"
                 }
             ],
+            values: [
+                {
+                    name: 'wave1_avg',
+                    expression: consolidator.average('wave1')
+                },
+                {
+                    name: 'wave1_min',
+                    expression: consolidator.minimum('wave1')
+                },
+                {
+                    name: 'wave1_max',
+                    expression: consolidator.maximum('wave1')
+                },
+                {
+                    name: 'wave1_lst',
+                    expression: consolidator.last('wave1')
+                },
+                {
+                    name: 'wave1_p95',
+                    expression: consolidator.percent('wave1', 95.0)
+                },
+                {
+                    name: 'wave2_avg',
+                    expression: consolidator.average('wave2')
+                },
+                {
+                    name: 'wave2_min',
+                    expression: consolidator.minimum('wave2')
+                },
+                {
+                    name: 'wave2_max',
+                    expression: consolidator.maximum('wave2')
+                },
+                {
+                    name: 'wave2_lst',
+                    expression: consolidator.last('wave2')
+                },
+                {
+                    name: 'wave2_p95',
+                    expression: consolidator.percent('wave2', 95.0)
+                },
+            ],
             printStatements: [
                 {
                     metric: 'wave1',
-                    value: '%g Source #1 '
+                    format: '%g Source #1 '
                 },
                 {
-                    metric: 'wave1',
-                    aggregation: 'AVERAGE',
-                    value: 'Avg: %8.2lf %s'
+                    metric: 'wave1_avg',
+                    format: 'Avg: %8.2lf %s'
                 },
                 {
-                    metric: 'wave1',
-                    aggregation: 'MIN',
-                    value: 'Min: %8.2lf %s'
+                    metric: 'wave1_min',
+                    format: 'Min: %8.2lf %s'
                 },
                 {
-                    metric: 'wave1',
-                    aggregation: 'MAX',
-                    value: 'Max: %8.2lf %s'
+                    metric: 'wave1_max',
+                    format: 'Max: %8.2lf %s'
                 },
                 {
-                    metric: 'wave1',
-                    aggregation: 'LAST',
-                    value: 'Last: %8.2lf %s \\n'
+                    metric: 'wave1_lst',
+                    format: 'Last: %8.2lf %s'
                 },
                 {
-                    metric: 'wave2',
-                    value: '%g Source #2 '
+                    metric: 'wave1_p95',
+                    format: '95%: %8.2lf %s \\n'
                 },
                 {
                     metric: 'wave2',
-                    aggregation: 'AVERAGE',
-                    value: 'Avg: %8.2lf %s'
+                    format: '%g Source #2 '
                 },
                 {
-                    metric: 'wave2',
-                    aggregation: 'MIN',
-                    value: 'Min: %8.2lf %s'
+                    metric: 'wave2_avg',
+                    format: 'Avg: %8.2lf %s'
                 },
                 {
-                    metric: 'wave2',
-                    aggregation: 'MAX',
-                    value: 'Max: %8.2lf %s'
+                    metric: 'wave2_min',
+                    format: 'Min: %8.2lf %s'
                 },
                 {
-                    metric: 'wave2',
-                    aggregation: 'LAST',
-                    value: 'Last: %8.2lf %s'
+                    metric: 'wave2_max',
+                    format: 'Max: %8.2lf %s'
+                },
+                {
+                    metric: 'wave2_lst',
+                    format: 'Last: %8.2lf %s'
+                },
+                {
+                    metric: 'wave2_p95',
+                    format: '95%: %8.2lf %s'
                 }
             ],
         },

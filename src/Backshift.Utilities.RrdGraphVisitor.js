@@ -74,6 +74,11 @@ Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
         name = subParts[0];
         rpnExpression = subParts[1];
         this._onCDEF(name, rpnExpression);
+      } else if (command === "VDEF") {
+        subParts = args[1].split("=");
+        name = subParts[0];
+        rpnExpression = subParts[1];
+        this._onVDEF(name, rpnExpression);
       } else if (command.match(/LINE/)) {
         width = parseInt(/LINE(\d+)/.exec(command));
         subParts = args[1].split("#");
@@ -94,9 +99,15 @@ Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
         legend = this._decodeString(args[2]);
         this._onStack(srcName, color, legend);
       } else if (command === "GPRINT") {
-        srcName = args[1];
-        aggregation = args[2];
-        value = this._decodeString(args[3]);
+        if (args.length == 3) {
+          srcName = args[1];
+          aggregation = undefined;
+          value = this._decodeString(args[2]);
+        } else {
+          srcName = args[1];
+          aggregation = args[2];
+          value = this._decodeString(args[3]);
+        }
         this._onGPrint(srcName, aggregation, value);
       } else if (command === "COMMENT") {
         value = this._decodeString(args[1]);
@@ -114,6 +125,9 @@ Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
 
   },
   _onCDEF: function (name, rpnExpression) {
+
+  },
+  _onVDEF: function (name, rpnExpression) {
 
   },
   _onLine: function (srcName, color, legend, width) {

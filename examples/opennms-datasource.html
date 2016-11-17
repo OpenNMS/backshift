@@ -11,6 +11,7 @@
     <script src="../src/Backshift.Stats.js"></script>
     <script src="../src/Backshift.Utilities.Url.js"></script>
     <script src="../src/Backshift.Utilities.RpnToJexlConverter.js"></script>
+    <script src="../src/Backshift.Utilities.Consolidator.js"></script>
     <script src="../src/Backshift.Utilities.RrdGraphVisitor.js"></script>
     <script src="../src/Backshift.Utilities.RrdGraphConverter.js"></script>
     <script src="../src/Backshift.DataSource.js"></script>
@@ -33,7 +34,7 @@
 
 <script type="text/javascript">
     var onmsHost = "demo.opennms.org",
-            onmsPort = 80,
+            onmsPort = 443,
             onmsUsername = 'demo',
             onmsPassword = 'demo',
             end = Date.now(),
@@ -41,7 +42,7 @@
             resolution = 100;
 
     function getBaseHref() {
-        return "http://" + onmsHost + ":" + onmsPort;
+        return "https://" + onmsHost + ":" + onmsPort;
     }
 
     $(document).ready(function () {
