@@ -35,6 +35,7 @@ module.exports = function(config) {
             'src/Backshift.Utilities.Url.js',
             'src/Backshift.Utilities.RpnToJexlConverter.js',
             'src/Backshift.Utilities.RpnEvaluator.js',
+            'src/Backshift.Utilities.Consolidator.js',
             'src/Backshift.Utilities.RrdGraphVisitor.js',
             'src/Backshift.Utilities.RrdGraphConverter.js',
             'src/Backshift.Graph.js',

@@ -9,15 +9,17 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
 
     this.model = {
       metrics: [],
+      values: [],
       series: [],
       printStatements: [],
       properties: {}
     };
 
     this.rpnConverter = new Backshift.Utilities.RpnToJexlConverter();
+    this.consolidator = new Backshift.Utilities.Consolidator();
 
     // Replace strings.properties tokens
-    var propertyValue, i, j, n, m, metric;
+    var propertyValue, i, j, n, m;
     for (i = 0, n = this.graphDef.propertiesValues.length; i < n; i++) {
       propertyValue = this.graphDef.propertiesValues[i];
       this.model.properties[propertyValue] = undefined;
@@ -25,8 +27,8 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
 
     this._visit(this.graphDef);
 
-    for (i = 0, n = this.model.printStatements.length; i < n; i++) {
-      metric = this.model.printStatements[i].metric;
+    for (i = 0, n = this.model.values.length; i < n; i++) {
+      var metric = this.model.values[i].expression.metricName;
       if (metric === undefined) {
         continue;
       }
@@ -99,6 +101,13 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
     });
   },
 
+  _onVDEF: function (name, rpnExpression) {
+    this.model.values.push({
+      name: name,
+      expression:  this.consolidator.parse(rpnExpression),
+    });
+  },
+
   _onLine: function (srcName, color, legend, width) {
     var series = {
       name: this.displayString(legend),
@@ -106,7 +115,7 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
       type: "line",
       color: color
     };
-    this.maybeAddPrintStatementForSeries(series.metric, legend);
+    this.maybeAddPrintStatementForSeries(srcName, legend);
     this.model.series.push(series);
   },
 
@@ -117,7 +126,7 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
       type: "area",
       color: color
     };
-    this.maybeAddPrintStatementForSeries(series.metric, legend);
+    this.maybeAddPrintStatementForSeries(srcName, legend);
     this.model.series.push(series);
   },
 
@@ -129,32 +138,49 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
       color: color,
       legend: legend
     };
-    this.maybeAddPrintStatementForSeries(series.metric, legend);
+    this.maybeAddPrintStatementForSeries(srcName, legend);
     this.model.series.push(series);
   },
 
-  _onGPrint: function (srcName, aggregation, value) {
+  _onGPrint: function (srcName, aggregation, format) {
+    if (typeof aggregation === "undefined") {
+      // Modern form
+      this.model.printStatements.push({
+        metric: srcName,
+        format: format,
+      });
+
+    } else {
+      // Deprecated form - create a intermediate VDEF
+      var metricName = srcName + "_" + aggregation + "_" + Math.random().toString(36).substring(2);
+
+      this.model.values.push({
+        name: metricName,
+        expression:  this.consolidator.parse([srcName, aggregation]),
+      });
+
+      this.model.printStatements.push({
+        metric: metricName,
+        format: format,
+      });
+    }
+  },
+
+  _onComment: function (format) {
     this.model.printStatements.push({
-      metric: srcName,
-      aggregation: aggregation,
-      value: value
+      format: format
     });
   },
 
-  _onComment: function (value) {
-    this.model.printStatements.push({
-      value: value
-    });
-  },
-
-  maybeAddPrintStatementForSeries: function(metric, legend) {
+  maybeAddPrintStatementForSeries: function(series, legend) {
     if (legend === undefined || legend === null || legend === "") {
       return;
     }
 
     this.model.printStatements.push({
-      metric: metric,
-      value: "%g " + legend
+      metric: series,
+      value: NaN,
+      format: "%g " + legend
     });
  }
 });

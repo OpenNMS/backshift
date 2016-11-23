@@ -29,6 +29,7 @@
     <script src="../src/Backshift.Stats.js"></script>
     <script src="../src/Backshift.Utilities.Url.js"></script>
     <script src="../src/Backshift.Utilities.RpnToJexlConverter.js"></script>
+    <script src="../src/Backshift.Utilities.Consolidator.js"></script>
     <script src="../src/Backshift.Utilities.RrdGraphVisitor.js"></script>
     <script src="../src/Backshift.Utilities.RrdGraphConverter.js"></script>
     <script src="../src/Backshift.DataSource.js"></script>
@@ -40,10 +41,10 @@
     -->
     <script src="../src/Backshift.Graph.Flot.js"></script>
 
-    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
-    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
     <!--
     <link rel="stylesheet" href="../bower_components/c3/c3.min.css">
     <link rel="stylesheet" href="../bower_components/dcjs/dc.css">
@@ -173,14 +174,14 @@
 
 <script type="text/javascript">
     var onmsHost = "demo.opennms.org",
-            onmsPort = 80,
+            onmsPort = 443,
             onmsUsername = 'demo',
             onmsPassword = 'demo',
             end = Date.now(),
             start = end - (12*60*60*1000); // (30*24*60*60*1000); // 30 days ago
 
     function getBaseHref() {
-        return "http://" + onmsHost + ":" + onmsPort;
+        return "https://" + onmsHost + ":" + onmsPort;
     }
 
     $(document).ready(function () {
@@ -236,7 +237,7 @@
                 }, 1000);
 
                 // Pull in the RRD graph for comparison
-                var rrdGraphImageUrl = "http://" + onmsUsername + ":" + onmsPassword + "@" + onmsHost + ":" + onmsPort + "/opennms/graph/graph.png?resourceId=" + resource +
+                var rrdGraphImageUrl = "https://" + onmsUsername + ":" + onmsPassword + "@" + onmsHost + ":" + onmsPort + "/opennms/graph/graph.png?resourceId=" + resource +
                         "&report=" + encodeURIComponent(report) +
                         "&start=" + start +
                         "&end=" + end +

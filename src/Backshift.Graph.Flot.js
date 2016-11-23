@@ -4,7 +4,7 @@
 
 Backshift.namespace('Backshift.Graph.Flot');
 
-/** Renders the graoh using Flot */
+/** Renders the graph using Flot */
 Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
 
   defaults: function ($super) {
@@ -179,6 +179,31 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
 
     var yaxisTickFormat = d3.format(".3s");
 
+    var legendStatements = [];
+    for (i = 0; i < self.model.printStatements.length; i++) {
+      var printStatement = self.model.printStatements[i];
+
+      if (printStatement.metric in this._values) {
+        // Print statements referencing a VDEF
+        var value = this._values[printStatement.metric];
+        legendStatements.push({
+          metric: value.metricName,
+          value: value.value[1],
+          timestamp: value.value[0],
+          format: printStatement.format,
+        });
+
+      } else if (results) {
+        // Print statements referencing a series without a concrete value (used for %g)
+        legendStatements.push({
+          metric: printStatement.metric,
+          value: NaN,
+          timestamp: undefined,
+          format: printStatement.format,
+        });
+      }
+    }
+
     var options = {
       canvas: true,
       title: self.title || '',
@@ -229,7 +254,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       },
       legend: {
         show: false,
-        statements: self.model.printStatements
+        statements: legendStatements
       },
       hiddenSeries: this.hiddenFlotSeries,
       tooltip: {
