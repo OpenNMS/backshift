@@ -685,6 +685,218 @@ Backshift.Utilities.RpnEvaluator = Backshift.Class.create({
 
 });
 
+Backshift.namespace('Backshift.Utilities.Consolidator');
+
+/**
+ * References:
+ *   http://oss.oetiker.ch/rrdtool/doc/rrdgraph_data.en.html
+ *   http://oss.oetiker.ch/rrdtool/doc/rrdgraph_rpn.en.html
+ *
+ * > Note that currently only aggregation functions work in VDEF rpn expressions.
+ *
+ * RRDtool currently supports a very limited subset of expressions - they must have the following form:
+ * 'SERIES,[PARAMETER,]FUNCTION' whereas SERIES is a existing series and PARAMETER is a value.
+ *
+ * @author fooker
+ */
+Backshift.Utilities.Consolidator = Backshift.Class.create(function() {
+  var functions = {};
+
+  var clazz = {
+    initialize: function () {
+    },
+
+    parse: function(tokens) {
+      // Split tokens if a single expression is passed
+      if (typeof tokens === 'string') {
+        tokens = tokens.split(",");
+      }
+
+      var metricName = tokens.shift();
+
+      var functionName = tokens.pop().toLowerCase();
+      if (!(functionName in functions)) {
+        Backshift.fail('Unknown correlation function: ' + functionName);
+      }
+
+      if (tokens.length > 1) {
+        Backshift.fail('Too many input values in RPN express. RPN: ' + tokens);
+      }
+
+      var argument = parseFloat(tokens[0]); // The remaining token is used as parameter
+
+      return functions[functionName](metricName, argument);
+    },
+  };
+
+  function point(timestamp, value) {
+    return {
+      timestamp: timestamp,
+      value: value,
+    };
+  }
+
+  function wrap(func) {
+    return function (metricName, argument) {
+      return {
+        metricName: metricName,
+        functionName: func.name,
+        argument: argument,
+
+        consolidate: function (data) {
+          return func(data.columns[data.columnNameToIndex["timestamp"]],
+                      data.columns[data.columnNameToIndex[metricName]],
+                      argument);
+        },
+      };
+    };
+  }
+
+  clazz['minimum'] = functions['minimum'] = wrap(function minimum(timestamps, values) {
+    var minimumTimestamp = undefined;
+    var minimumValue = NaN;
+
+    for (var i = 0; i < timestamps.length; i++) {
+      if (!isNaN(values[i]) && (isNaN(minimumValue) || values[i] < minimumValue)) {
+        minimumTimestamp = timestamps[i];
+        minimumValue = values[i];
+      }
+    }
+
+    return [minimumTimestamp, minimumValue];
+  });
+
+  clazz['maximum'] = functions['maximum'] = wrap(function maximum(timestamps, values) {
+    var maximumTimestamp = undefined;
+    var maximumValue = NaN;
+
+    for (var i = 0; i < timestamps.length; i++) {
+      if (!isNaN(values[i]) && (isNaN(maximumValue) || values[i] > maximumValue)) {
+        maximumTimestamp = timestamps[i];
+        maximumValue = values[i];
+      }
+    }
+
+    return [maximumTimestamp, maximumValue];
+  });
+
+  clazz['average'] = functions['average'] = wrap(function average(timestamps, values) {
+    var sum = 0.0;
+    var cnt = 0;
+
+    for (var i = 0; i < timestamps.length; i++) {
+      if (!isNaN(values[i])) {
+        sum += values[i];
+        cnt += 1;
+      }
+    }
+
+    return [undefined, (sum / cnt)];
+  });
+
+  clazz['stdev'] = functions['stdev'] = wrap(function stdev(timestamps, values) {
+    var sum = 0.0;
+    var cnt = 0;
+
+    for (var i = 0; i < timestamps.length; i++) {
+      if (!isNaN(values[i])) {
+        sum += values[i];
+        cnt += 1;
+      }
+    }
+
+    var avg = (sum / cnt);
+
+    var dev = 0.0;
+    for (var i = 0; i < timestamps.length; i++) {
+      if (!isNaN(values[i])) {
+        dev += Math.pow((values[i] - avg), 2.0);
+      }
+    }
+
+    return [undefined, Math.sqrt(dev / cnt)];
+  });
+
+  clazz['last'] = functions['last'] = wrap(function last(timestamps, values) {
+    for (var i = timestamps.length - 1; i >= 0; i--) {
+      if (!isNaN(values[i])) {
+        return [timestamps[i], values[i]];
+      }
+    }
+
+    return [undefined, NaN];
+  });
+
+  clazz['first'] = functions['first'] = wrap(function first(timestamps, values) {
+    for (var i = 0; i < timestamps.length; i++) {
+      if (!isNaN(values[i])) {
+        return [timestamps[i], values[i]];
+      }
+    }
+
+    return [undefined, NaN];
+  });
+
+  clazz['total'] = functions['total'] = wrap(function total(timestamps, values) {
+    var sum = 0.0;
+    var cnt = 0;
+
+    // As we don't have a fixed step size, we can't include the first sample as RRDTool does
+    for (var i = 1; i < timestamps.length; i++) {
+      if (!isNaN(values[i])) {
+        sum += values[i] * (timestamps[i] - timestamps[i - 1]) / 1000.0;
+        cnt += 1;
+      }
+    }
+
+    if (cnt > 0) {
+      return [undefined, sum];
+    } else {
+      return [undefined, NaN];
+    }
+  });
+
+  clazz['percent'] = functions['percent'] = wrap(function percent(timestamps, values, argument) {
+    var sortedValues = Array();
+    for (var i = 0; i < timestamps.length; i++) {
+      sortedValues.push(values[i]);
+    }
+
+    sortedValues.sort(function (a, b) {
+      if (isNaN(a))
+        return -1;
+      if (isNaN(b))
+        return 1;
+
+      if (a < b)
+        return -1;
+      else
+        return 1;
+    });
+
+    return [undefined, sortedValues[Math.round(argument * (sortedValues.length - 1) / 100.0)]];
+  });
+
+  clazz['percentnan'] = functions['percentnan'] = wrap(function percentnan(timestamps, values, argument) {
+    var sortedValues = Array();
+    for (var i = 0; i < timestamps.length; i++) {
+      if (!isNaN(values[i])) {
+        sortedValues.push(values[i]);
+      }
+    }
+
+    sortedValues.sort();
+
+    return [undefined, sortedValues[Math.round(argument * (sortedValues.length - 1) / 100.0)]];
+  });
+
+  // For backward compatibility with deprecated (G)PRINT syntax:
+  functions['min'] = functions['minimum'];
+  functions['max'] = functions['maximum'];
+
+  return clazz;
+}());
+
 Backshift.namespace('Backshift.Utilities.RrdGraphConverter');
 
 Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
@@ -761,6 +973,11 @@ Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
         name = subParts[0];
         rpnExpression = subParts[1];
         this._onCDEF(name, rpnExpression);
+      } else if (command === "VDEF") {
+        subParts = args[1].split("=");
+        name = subParts[0];
+        rpnExpression = subParts[1];
+        this._onVDEF(name, rpnExpression);
       } else if (command.match(/LINE/)) {
         width = parseInt(/LINE(\d+)/.exec(command));
         subParts = args[1].split("#");
@@ -781,9 +998,15 @@ Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
         legend = this._decodeString(args[2]);
         this._onStack(srcName, color, legend);
       } else if (command === "GPRINT") {
-        srcName = args[1];
-        aggregation = args[2];
-        value = this._decodeString(args[3]);
+        if (args.length == 3) {
+          srcName = args[1];
+          aggregation = undefined;
+          value = this._decodeString(args[2]);
+        } else {
+          srcName = args[1];
+          aggregation = args[2];
+          value = this._decodeString(args[3]);
+        }
         this._onGPrint(srcName, aggregation, value);
       } else if (command === "COMMENT") {
         value = this._decodeString(args[1]);
@@ -801,6 +1024,9 @@ Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
 
   },
   _onCDEF: function (name, rpnExpression) {
+
+  },
+  _onVDEF: function (name, rpnExpression) {
 
   },
   _onLine: function (srcName, color, legend, width) {
@@ -857,15 +1083,17 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
 
     this.model = {
       metrics: [],
+      values: [],
       series: [],
       printStatements: [],
       properties: {}
     };
 
     this.rpnConverter = new Backshift.Utilities.RpnToJexlConverter();
+    this.consolidator = new Backshift.Utilities.Consolidator();
 
     // Replace strings.properties tokens
-    var propertyValue, i, j, n, m, metric;
+    var propertyValue, i, j, n, m;
     for (i = 0, n = this.graphDef.propertiesValues.length; i < n; i++) {
       propertyValue = this.graphDef.propertiesValues[i];
       this.model.properties[propertyValue] = undefined;
@@ -873,8 +1101,8 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
 
     this._visit(this.graphDef);
 
-    for (i = 0, n = this.model.printStatements.length; i < n; i++) {
-      metric = this.model.printStatements[i].metric;
+    for (i = 0, n = this.model.values.length; i < n; i++) {
+      var metric = this.model.values[i].expression.metricName;
       if (metric === undefined) {
         continue;
       }
@@ -947,6 +1175,13 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
     });
   },
 
+  _onVDEF: function (name, rpnExpression) {
+    this.model.values.push({
+      name: name,
+      expression:  this.consolidator.parse(rpnExpression),
+    });
+  },
+
   _onLine: function (srcName, color, legend, width) {
     var series = {
       name: this.displayString(legend),
@@ -954,7 +1189,7 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
       type: "line",
       color: color
     };
-    this.maybeAddPrintStatementForSeries(series.metric, legend);
+    this.maybeAddPrintStatementForSeries(srcName, legend);
     this.model.series.push(series);
   },
 
@@ -965,7 +1200,7 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
       type: "area",
       color: color
     };
-    this.maybeAddPrintStatementForSeries(series.metric, legend);
+    this.maybeAddPrintStatementForSeries(srcName, legend);
     this.model.series.push(series);
   },
 
@@ -977,32 +1212,49 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
       color: color,
       legend: legend
     };
-    this.maybeAddPrintStatementForSeries(series.metric, legend);
+    this.maybeAddPrintStatementForSeries(srcName, legend);
     this.model.series.push(series);
   },
 
-  _onGPrint: function (srcName, aggregation, value) {
+  _onGPrint: function (srcName, aggregation, format) {
+    if (typeof aggregation === "undefined") {
+      // Modern form
+      this.model.printStatements.push({
+        metric: srcName,
+        format: format,
+      });
+
+    } else {
+      // Deprecated form - create a intermediate VDEF
+      var metricName = srcName + "_" + aggregation + "_" + Math.random().toString(36).substring(2);
+
+      this.model.values.push({
+        name: metricName,
+        expression:  this.consolidator.parse([srcName, aggregation]),
+      });
+
+      this.model.printStatements.push({
+        metric: metricName,
+        format: format,
+      });
+    }
+  },
+
+  _onComment: function (format) {
     this.model.printStatements.push({
-      metric: srcName,
-      aggregation: aggregation,
-      value: value
+      format: format
     });
   },
 
-  _onComment: function (value) {
-    this.model.printStatements.push({
-      value: value
-    });
-  },
-
-  maybeAddPrintStatementForSeries: function(metric, legend) {
+  maybeAddPrintStatementForSeries: function(series, legend) {
     if (legend === undefined || legend === null || legend === "") {
       return;
     }
 
     this.model.printStatements.push({
-      metric: metric,
-      value: "%g " + legend
+      metric: series,
+      value: NaN,
+      format: "%g " + legend
     });
  }
 });
@@ -1033,12 +1285,17 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
     if (!this.model.series) {
       this.model.series = [];
     }
+    if (!this.model.values) {
+      this.model.values = [];
+    }
     if (!this.model.printStatements) {
       this.model.printStatements = [];
     }
     this._title = args.title || this.model.title;
     this._verticalLabel = args.verticalLabel || this.model.verticalLabel;
     this._regexes = {};
+
+    this._values = {};
 
     this.configure(args);
 
@@ -1141,6 +1398,7 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
     this.dataSource.query(timeSpan.start, timeSpan.end, this.getResolution()).then(function (results) {
       self.queryInProgress = false;
       self.lastSuccessfulQuery = Date.now();
+      self.updateValues(results);
       self.updateTextFields(results);
       self.onQuerySuccess(results);
       self.onAfterQuery();
@@ -1169,6 +1427,20 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
       if (self.dataSource.supportsStreaming()) {
         self.dataSource.stopStreaming();
       }
+    }
+  },
+
+  updateValues: function(results) {
+    this._values = {};
+    for (var i = 0; i < this.model.values.length; i++) {
+      var value = this.model.values[i];
+
+      this._values[value.name] = {
+        metricName: value.expression.metricName,
+        functionName: value.expression.functionName,
+        argument: value.expression.argument,
+        value: value.expression.consolidate(results),
+      };
     }
   },
 
@@ -1301,7 +1573,7 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
 
 Backshift.namespace('Backshift.Graph.Flot');
 
-/** Renders the graoh using Flot */
+/** Renders the graph using Flot */
 Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
 
   defaults: function ($super) {
@@ -1476,6 +1748,31 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
 
     var yaxisTickFormat = d3.format(".3s");
 
+    var legendStatements = [];
+    for (i = 0; i < self.model.printStatements.length; i++) {
+      var printStatement = self.model.printStatements[i];
+
+      if (printStatement.metric in this._values) {
+        // Print statements referencing a VDEF
+        var value = this._values[printStatement.metric];
+        legendStatements.push({
+          metric: value.metricName,
+          value: value.value[1],
+          timestamp: value.value[0],
+          format: printStatement.format,
+        });
+
+      } else if (results) {
+        // Print statements referencing a series without a concrete value (used for %g)
+        legendStatements.push({
+          metric: printStatement.metric,
+          value: NaN,
+          timestamp: undefined,
+          format: printStatement.format,
+        });
+      }
+    }
+
     var options = {
       canvas: true,
       title: self.title || '',
@@ -1526,7 +1823,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       },
       legend: {
         show: false,
-        statements: self.model.printStatements
+        statements: legendStatements
       },
       hiddenSeries: this.hiddenFlotSeries,
       tooltip: {
