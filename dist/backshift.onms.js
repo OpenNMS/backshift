@@ -1414,6 +1414,8 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
     if (self.dataSource.supportsStreaming() && !self.isStreaming) {
       self.isStreaming = true;
       self.dataSource.callback = function(results) {
+        self.updateValues(results);
+        self.updateTextFields(results);
         self.onQuerySuccess(results);
       };
       this.dataSource.startStreaming();
