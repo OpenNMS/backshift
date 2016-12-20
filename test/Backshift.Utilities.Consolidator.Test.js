@@ -79,10 +79,10 @@ describe('Backshift.Utilities.Consolidator', function () {
             buildSeries(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
         )).toBeMetricValue(ts + 1000 * 0, 1.0);
         expect(consolidator['minimum']('my_series').consolidate(
-            buildSeries(NaN, 23.0, NaN, 23.0, NaN, 23.0)
+            buildSeries(NaN, 23.0, NaN, 23.0, Infinity, 23.0)
         )).toBeMetricValue(ts + 1000 * 1, 23.0);
         expect(consolidator['minimum']('my_series').consolidate(
-            buildSeries(NaN, 2.0, NaN, 4.0, NaN, 6.0)
+            buildSeries(NaN, 2.0, NaN, 4.0, -Infinity, 6.0)
         )).toBeMetricValue(ts + 1000 * 1, 2.0);
       });
     });
@@ -106,13 +106,13 @@ describe('Backshift.Utilities.Consolidator', function () {
             buildSeries(23.0, 23.0, 23.0, 23.0, 23.0, 23.0)
         )).toBeMetricValue(ts + 1000 * 0, 23.0);
         expect(consolidator['maximum']('my_series').consolidate(
-            buildSeries(NaN, 23.0, NaN, 23.0, NaN, 23.0)
+            buildSeries(NaN, 23.0, NaN, 23.0, Infinity, 23.0)
         )).toBeMetricValue(ts + 1000 * 1, 23.0);
         expect(consolidator['maximum']('my_series').consolidate(
             buildSeries(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
         )).toBeMetricValue(ts + 1000 * 5, 6.0);
         expect(consolidator['maximum']('my_series').consolidate(
-            buildSeries(1.0, NaN, 3.0, NaN, 5.0, NaN)
+            buildSeries(1.0, NaN, 3.0, -Infinity, 5.0, Infinity)
         )).toBeMetricValue(ts + 1000 * 4, 5.0);
       });
     });
@@ -136,7 +136,7 @@ describe('Backshift.Utilities.Consolidator', function () {
             buildSeries(1.0, 2.0, 3.0, 4.0, 5.0)
         )).toBeMetricValue(undefined, 3.0);
         expect(consolidator['average']('my_series').consolidate(
-            buildSeries(NaN, 1.0, NaN, 2.0, NaN, 3.0)
+            buildSeries(NaN, 1.0, NaN, 2.0, Infinity, 3.0)
         )).toBeMetricValue(undefined, 2.0);
       });
     });
@@ -163,7 +163,7 @@ describe('Backshift.Utilities.Consolidator', function () {
             buildSeries(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
         )).toBeMetricValue(undefined, 1.70782);
         expect(consolidator['stdev']('my_series').consolidate(
-            buildSeries(1.0, NaN, 3.0, NaN, 5.0, NaN)
+            buildSeries(1.0, -Infinity, 3.0, NaN, 5.0, Infinity)
         )).toBeMetricValue(undefined, 1.63299);
         expect(consolidator['stdev']('my_series').consolidate(
             buildSeries(1.2, 1.9, 0.2, 0.6, 9.0, 2.0, 3.0, 4.0, 5.0, 6.0)
@@ -193,7 +193,7 @@ describe('Backshift.Utilities.Consolidator', function () {
             buildSeries(1.0, 2.0, 3.0, 4.0, 5.0)
         )).toBeMetricValue(ts + 1000 * 4, 5.0);
         expect(consolidator['last']('my_series').consolidate(
-            buildSeries(1.0, NaN, 2.0, NaN, 3.0, NaN)
+            buildSeries(1.0, NaN, 2.0, Infinity, 3.0, NaN)
         )).toBeMetricValue(ts + 1000 * 4, 3.0);
       });
     });
@@ -220,7 +220,7 @@ describe('Backshift.Utilities.Consolidator', function () {
             buildSeries(1.0, 2.0, 3.0, 4.0, 5.0)
         )).toBeMetricValue(ts + 1000 * 0, 1.0);
         expect(consolidator['first']('my_series').consolidate(
-            buildSeries(NaN, 1.0, NaN, 2.0, NaN, 3.0)
+            buildSeries(NaN, 1.0, NaN, 2.0, Infinity, 3.0)
         )).toBeMetricValue(ts + 1000 * 1, 1.0);
       });
     });
@@ -244,7 +244,7 @@ describe('Backshift.Utilities.Consolidator', function () {
             buildSeries(1.0, 2.0, 3.0, 4.0, 5.0)
         )).toBeMetricValue(undefined, 14.0);
         expect(consolidator['total']('my_series').consolidate(
-            buildSeries(NaN, 1.0, NaN, 2.0, NaN, 3.0)
+            buildSeries(NaN, 1.0, NaN, 2.0, Infinity, 3.0)
         )).toBeMetricValue(undefined, 6.0);
       });
     });
@@ -280,10 +280,10 @@ describe('Backshift.Utilities.Consolidator', function () {
             buildSeries(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
         )).toBeMetricValue(undefined, 6.0);
         expect(consolidator['percent']('my_series', 70.0).consolidate(
-            buildSeries(1.0, NaN, 3.0, NaN, 5.0, NaN)
+            buildSeries(1.0, -Infinity, 3.0, NaN, 5.0, NaN)
         )).toBeMetricValue(undefined, 3.0);
         expect(consolidator['percent']('my_series', 20.0).consolidate(
-            buildSeries(1.0, NaN, 3.0, NaN, 5.0, NaN)
+            buildSeries(1.0, NaN, 3.0, -Infinity, 5.0, NaN)
         )).toBeMetricValue(undefined, NaN);
       });
     });
@@ -322,7 +322,7 @@ describe('Backshift.Utilities.Consolidator', function () {
             buildSeries(1.0, NaN, 3.0, NaN, 5.0, NaN)
         )).toBeMetricValue(undefined, 3.0);
         expect(consolidator['percentnan']('my_series', 20.0).consolidate(
-            buildSeries(1.0, NaN, 3.0, NaN, 5.0, NaN)
+            buildSeries(1.0, NaN, 3.0, -Infinity, 5.0, NaN)
         )).toBeMetricValue(undefined, 1.0);
       });
     });

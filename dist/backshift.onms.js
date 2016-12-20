@@ -729,11 +729,23 @@ Backshift.Utilities.Consolidator = Backshift.Class.create(function() {
     },
   };
 
-  function point(timestamp, value) {
-    return {
-      timestamp: timestamp,
-      value: value,
-    };
+  function valid(value) {
+    return !isNaN(value) && isFinite(value);
+  }
+
+  function forEach(timestamps, values, cb) {
+    var validCount = 0;
+    for (var i = 0; i < timestamps.length; i++) {
+      if (!valid(values[i])) {
+        continue;
+      }
+
+      validCount++;
+
+      cb(timestamps[i], values[i]);
+    }
+
+    return validCount;
   }
 
   function wrap(func) {
@@ -756,12 +768,12 @@ Backshift.Utilities.Consolidator = Backshift.Class.create(function() {
     var minimumTimestamp = undefined;
     var minimumValue = NaN;
 
-    for (var i = 0; i < timestamps.length; i++) {
-      if (!isNaN(values[i]) && (isNaN(minimumValue) || values[i] < minimumValue)) {
-        minimumTimestamp = timestamps[i];
-        minimumValue = values[i];
+    forEach(timestamps, values, function(timestamp, value) {
+      if (isNaN(minimumValue) || value < minimumValue) {
+        minimumTimestamp = timestamp;
+        minimumValue = value;
       }
-    }
+    });
 
     return [minimumTimestamp, minimumValue];
   });
@@ -770,56 +782,46 @@ Backshift.Utilities.Consolidator = Backshift.Class.create(function() {
     var maximumTimestamp = undefined;
     var maximumValue = NaN;
 
-    for (var i = 0; i < timestamps.length; i++) {
-      if (!isNaN(values[i]) && (isNaN(maximumValue) || values[i] > maximumValue)) {
-        maximumTimestamp = timestamps[i];
-        maximumValue = values[i];
+    forEach(timestamps, values, function(timestamp, value) {
+      if (isNaN(maximumValue) || value > maximumValue) {
+        maximumTimestamp = timestamp;
+        maximumValue = value;
       }
-    }
+    });
 
     return [maximumTimestamp, maximumValue];
   });
 
   clazz['average'] = functions['average'] = wrap(function average(timestamps, values) {
     var sum = 0.0;
-    var cnt = 0;
 
-    for (var i = 0; i < timestamps.length; i++) {
-      if (!isNaN(values[i])) {
-        sum += values[i];
-        cnt += 1;
-      }
-    }
+    var cnt = forEach(timestamps, values, function(timestamp, value) {
+      sum += value;
+    });
 
     return [undefined, (sum / cnt)];
   });
 
   clazz['stdev'] = functions['stdev'] = wrap(function stdev(timestamps, values) {
     var sum = 0.0;
-    var cnt = 0;
 
-    for (var i = 0; i < timestamps.length; i++) {
-      if (!isNaN(values[i])) {
-        sum += values[i];
-        cnt += 1;
-      }
-    }
+    var cnt = forEach(timestamps, values, function(timestamp, value) {
+      sum += value;
+    });
 
     var avg = (sum / cnt);
 
     var dev = 0.0;
-    for (var i = 0; i < timestamps.length; i++) {
-      if (!isNaN(values[i])) {
-        dev += Math.pow((values[i] - avg), 2.0);
-      }
-    }
+    forEach(timestamps, values, function(timestamp, value) {
+      dev += Math.pow((value - avg), 2.0);
+    });
 
     return [undefined, Math.sqrt(dev / cnt)];
   });
 
   clazz['last'] = functions['last'] = wrap(function last(timestamps, values) {
     for (var i = timestamps.length - 1; i >= 0; i--) {
-      if (!isNaN(values[i])) {
+      if (valid(values[i])) {
         return [timestamps[i], values[i]];
       }
     }
@@ -829,7 +831,7 @@ Backshift.Utilities.Consolidator = Backshift.Class.create(function() {
 
   clazz['first'] = functions['first'] = wrap(function first(timestamps, values) {
     for (var i = 0; i < timestamps.length; i++) {
-      if (!isNaN(values[i])) {
+      if (valid(values[i])) {
         return [timestamps[i], values[i]];
       }
     }
@@ -843,7 +845,7 @@ Backshift.Utilities.Consolidator = Backshift.Class.create(function() {
 
     // As we don't have a fixed step size, we can't include the first sample as RRDTool does
     for (var i = 1; i < timestamps.length; i++) {
-      if (!isNaN(values[i])) {
+      if (valid(values[i])) {
         sum += values[i] * (timestamps[i] - timestamps[i - 1]) / 1000.0;
         cnt += 1;
       }
@@ -868,6 +870,15 @@ Backshift.Utilities.Consolidator = Backshift.Class.create(function() {
       if (isNaN(b))
         return 1;
 
+      if (a == Number.POSITIVE_INFINITY)
+          return 1;
+      if (a == Number.NEGATIVE_INFINITY)
+          return -1;
+      if (b == Number.POSITIVE_INFINITY)
+        return -1;
+      if (b == Number.NEGATIVE_INFINITY)
+        return 1;
+
       if (a < b)
         return -1;
       else
@@ -879,11 +890,9 @@ Backshift.Utilities.Consolidator = Backshift.Class.create(function() {
 
   clazz['percentnan'] = functions['percentnan'] = wrap(function percentnan(timestamps, values, argument) {
     var sortedValues = Array();
-    for (var i = 0; i < timestamps.length; i++) {
-      if (!isNaN(values[i])) {
-        sortedValues.push(values[i]);
-      }
-    }
+    forEach(timestamps, values, function(timestamp, value) {
+      sortedValues.push(value);
+    });
 
     sortedValues.sort();
 
