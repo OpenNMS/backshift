@@ -159,6 +159,17 @@ Backshift.DataSource.NRTG = Backshift.Class.create(Backshift.DataSource, {
     return columns;
   },
 
+  _calculateRate: function(lastMetric, newMetric) {
+    if (lastMetric === null || newMetric === null) {
+      return NaN;
+    } else if (isNaN(lastMetric.value) || isNaN(newMetric.value)) {
+      return NaN;
+    }
+    var valueDelta = newMetric.value - lastMetric.value;
+    var timestampDeltaInMs = newMetric.timeStamp - lastMetric.timeStamp;
+    return (valueDelta / timestampDeltaInMs) * 1000;
+  },
+
   _calculateMeasurements: function(measurementSets) {
     var self = this;
     for (var i = 0, nsets = measurementSets.length; i < nsets; i++) {
@@ -190,11 +201,11 @@ Backshift.DataSource.NRTG = Backshift.Class.create(Backshift.DataSource, {
             // Convert counters to rates
             var isCounter = metric.metricType.indexOf("counter") > -1;
             if (isCounter) {
-              var lastValue = NaN;
+              var lastMetric = null;
               if (modelMetric.attribute in self.lastMeasurementSet) {
-                lastValue = self.lastMeasurementSet[modelMetric.attribute].value;
+                  lastMetric = self.lastMeasurementSet[modelMetric.attribute];
               }
-              value = value - lastValue;
+              value = self._calculateRate(lastMetric, metric);
             }
           }
         } else {

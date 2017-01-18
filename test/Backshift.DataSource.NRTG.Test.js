@@ -144,12 +144,12 @@ describe('Backshift.DataSource.NRTG', function () {
       id = results.columnNameToIndex["actOpen"];
       expect(results.columns[id].length).toBe(2);
       expect(results.columns[id][0]).toBeNaN();
-      expect(results.columns[id][1]).toBeCloseTo(100,4);
+      expect(results.columns[id][1]).toBeCloseTo(100,0.2);
 
       id = results.columnNameToIndex["negActOpen"];
       expect(results.columns[id].length).toBe(2);
       expect(results.columns[id][0]).toBeNaN();
-      expect(results.columns[id][1]).toBeCloseTo(-100,4);
+      expect(results.columns[id][1]).toBeCloseTo(-100,0.2);
 
       ds.stopStreaming();
       done();
@@ -165,6 +165,31 @@ describe('Backshift.DataSource.NRTG', function () {
     });
 
     ds.startStreaming();
+  });
+
+  it('can calculate rates', function() {
+      var ds = new Backshift.DataSource.NRTG({
+          pollingInterval: 1000,
+          metrics: [{
+              resourceId: 'node[1].nodeSnmp[]',
+              report: 'mib2.tcpopen'
+          }]
+      });
+      // Both null
+      expect(ds._calculateRate(null, null)).toBeNaN();
+      // One null
+      expect(ds._calculateRate(null, {value: 1, timeStamp: 1000})).toBeNaN();
+      expect(ds._calculateRate({value: 1, timeStamp: 1000}, null)).toBeNaN();
+      // One NaN
+      expect(ds._calculateRate({value: NaN, timeStamp: 1000}, {value: 1, timeStamp: 1001})).toBeNaN();
+      // Same value should always give 0
+      expect(ds._calculateRate({value: 1, timeStamp: 1000}, {value: 1, timeStamp: 1001})).toBe(0);
+      // Non-zero rates
+      expect(ds._calculateRate({value: 0, timeStamp: 1000}, {value: 1000, timeStamp: 2000})).toBe(1000);
+      expect(ds._calculateRate({value: 500, timeStamp: 1000}, {value: 2500, timeStamp: 2000})).toBe(2000);
+      // Same values as above, but with an interval of 2000ms instead of 1000ms
+      expect(ds._calculateRate({value: 0, timeStamp: 1000}, {value: 1000, timeStamp: 3000})).toBe(500);
+      expect(ds._calculateRate({value: 500, timeStamp: 1000}, {value: 2500, timeStamp: 3000})).toBe(1000);
   });
 
   it('can stream measurements from NRTG data for complex graph', function (done) {
