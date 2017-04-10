@@ -127,7 +127,7 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
   refresh: function () {
     var self = this;
 
-    if (!self.dataSource.supportsQueries()) {
+    if (!self.dataSource || !self.dataSource.supportsQueries()) {
       return;
     }
 
@@ -150,7 +150,7 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
 
   startStreaming: function () {
     var self = this;
-    if (self.dataSource.supportsStreaming() && !self.isStreaming) {
+    if (self.dataSource && self.dataSource.supportsStreaming() && !self.isStreaming) {
       self.isStreaming = true;
       self.dataSource.callback = function(results) {
         self.updateValues(results);
@@ -165,7 +165,7 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
     var self = this;
     if (self.isStreaming) {
       self.isStreaming = false;
-      if (self.dataSource.supportsStreaming()) {
+      if (self.dataSource && self.dataSource.supportsStreaming()) {
         self.dataSource.stopStreaming();
       }
     }
@@ -193,7 +193,7 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
       value,
       re;
 
-    if (self.model.properties) {
+    if (self.model && self.model.properties) {
       for (var prop in self.model.properties) {
         if (!self._regexes[prop]) {
           self._regexes[prop] = new RegExp("\\{" + prop + "}", "g");
