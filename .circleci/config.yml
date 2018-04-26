@@ -17,7 +17,7 @@ jobs:
           - v1-dependencies-
 
       - run: npm install bower
-      - run: bower install
+      - run: ./node_modules/bower/bin/bower install
 
       - save_cache:
           paths:
