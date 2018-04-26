@@ -141,6 +141,12 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       shouldFill = this.model.series[i].type === "stack" || this.model.series[i].type === "area";
       shouldShow = this.model.series[i].type !== "hidden";
 
+      if (this.model.series[i].type === "area") {
+          // Reset the last series to stack with everytime we encounter a new area, since the area
+          // itself should stack over any previous areas
+          lastSeriesToStackWith = null;
+      }
+
       seriesValues = [];
       for (j = 0; j < numValues; j++) {
         var yOffset = 0;
