@@ -991,23 +991,23 @@ Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
         width = parseInt(/LINE(\d+)/.exec(command));
         subParts = args[1].split("#");
         srcName = subParts[0];
-        color = '#' + subParts[1];
+        color = this._getColor(subParts[1]);
         legend = this._decodeString(args[2]);
         this._onLine(srcName, color, legend, width);
       } else if (command === "AREA") {
         subParts = args[1].split("#");
         srcName = subParts[0];
-        color = '#' + subParts[1];
+        color = this._getColor(subParts[1]);
         legend = this._decodeString(args[2]);
         this._onArea(srcName, color, legend);
       } else if (command === "STACK") {
         subParts = args[1].split("#");
         srcName = subParts[0];
-        color = '#' + subParts[1];
+        color = this._getColor(subParts[1]);
         legend = this._decodeString(args[2]);
         this._onStack(srcName, color, legend);
       } else if (command === "GPRINT") {
-        if (args.length == 3) {
+        if (args.length === 3) {
           srcName = args[1];
           aggregation = undefined;
           value = this._decodeString(args[2]);
@@ -1022,6 +1022,12 @@ Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
         this._onComment(value);
       }
     }
+  },
+  _getColor: function (color) {
+     if (color === undefined || color === "") {
+       return undefined;
+     }
+     return '#' + color;
   },
   _onTitle: function (title) {
 
@@ -1721,6 +1727,12 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       shouldFill = this.model.series[i].type === "stack" || this.model.series[i].type === "area";
       shouldShow = this.model.series[i].type !== "hidden";
 
+      if (this.model.series[i].type === "area") {
+          // Reset the last series to stack with everytime we encounter a new area, since the area
+          // itself should stack over any previous areas
+          lastSeriesToStackWith = null;
+      }
+
       seriesValues = [];
       for (j = 0; j < numValues; j++) {
         var yOffset = 0;
@@ -1730,6 +1742,11 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
         var yVal = isNaN(values[j]) ? values[j] : values[j] + yOffset;
 
         seriesValues.push([timestamps[j], yVal, yOffset]);
+      }
+
+      if (series.color === undefined) {
+          // If the color is not specified the resulting element should be transparent
+          shouldFill = 0.0; // No opacity
       }
 
       var flotSeries = {

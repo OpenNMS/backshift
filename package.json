@@ -1,6 +1,6 @@
 {
   "name": "backshift",
-  "version": "1.2.3-SNAPSHOT",
+  "version": "1.2.3",
   "repository": {
     "type": "git",
     "url": "https://github.com/OpenNMS/backshift.git"
