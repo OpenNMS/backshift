@@ -158,6 +158,11 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
         seriesValues.push([timestamps[j], yVal, yOffset]);
       }
 
+      if (series.color === undefined) {
+          // If the color is not specified the resulting element should be transparent
+          shouldFill = 0.0; // No opacity
+      }
+
       var flotSeries = {
         label: series.name,
         color: series.color,

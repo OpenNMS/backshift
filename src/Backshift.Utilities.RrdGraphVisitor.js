@@ -83,23 +83,23 @@ Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
         width = parseInt(/LINE(\d+)/.exec(command));
         subParts = args[1].split("#");
         srcName = subParts[0];
-        color = '#' + subParts[1];
+        color = this._getColor(subParts[1]);
         legend = this._decodeString(args[2]);
         this._onLine(srcName, color, legend, width);
       } else if (command === "AREA") {
         subParts = args[1].split("#");
         srcName = subParts[0];
-        color = '#' + subParts[1];
+        color = this._getColor(subParts[1]);
         legend = this._decodeString(args[2]);
         this._onArea(srcName, color, legend);
       } else if (command === "STACK") {
         subParts = args[1].split("#");
         srcName = subParts[0];
-        color = '#' + subParts[1];
+        color = this._getColor(subParts[1]);
         legend = this._decodeString(args[2]);
         this._onStack(srcName, color, legend);
       } else if (command === "GPRINT") {
-        if (args.length == 3) {
+        if (args.length === 3) {
           srcName = args[1];
           aggregation = undefined;
           value = this._decodeString(args[2]);
@@ -114,6 +114,12 @@ Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
         this._onComment(value);
       }
     }
+  },
+  _getColor: function (color) {
+     if (color === undefined || color === "") {
+       return undefined;
+     }
+     return '#' + color;
   },
   _onTitle: function (title) {
 

@@ -49,8 +49,6 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
       var model = rrdGraphConverter.model;
       expect(model.metrics.length).toBe(7);
 
-      console.log(model.series);
-
       expect(model.series.length).toBe(5);
       expect(model.values.length).toBe(6);
 
@@ -323,6 +321,11 @@ describe('Backshift.Utilities.RrdGraphConverter', function () {
       expect(model.values.length).toBe(4);
       expect(model.series.length).toBe(37);
       expect(model.printStatements.length).toBe(13);
+
+      expect(model.series[31].name).toBeUndefined();
+      expect(model.series[31].metric).toBe("meL10");
+      expect(model.series[31].type).toBe("area");
+      expect(model.series[31].color).toBeUndefined();
 
       expect(model.metrics[0].name).toBe("ping1Micro");
       expect(model.metrics[0].attribute).toBe("strafeping");
