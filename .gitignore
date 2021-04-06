@@ -1,7 +1,6 @@
 .*.swp
 .idea
 node_modules/
-bower_components/
 dist/doc
 .DS_Store
 npm-debug.log
