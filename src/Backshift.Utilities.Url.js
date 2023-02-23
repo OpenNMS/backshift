@@ -1,11 +1,13 @@
-Backshift.namespace('Backshift.Utilities.Url');
+import Backshift from './Backshift';
 
-Backshift.Utilities.Url = Backshift.Class.create({
-  initialize: function (baseUrl) {
+class Url extends Backshift {
+  constructor(baseUrl) {
+    super();
     this.url = baseUrl;
     this.paramCount = 0;
-  },
-  andParam: function (kw, parameter) {
+  }
+
+  andParam(kw, parameter) {
     var sep = this.paramCount > 0 ? "&" : "?";
 
     if (parameter !== undefined) {
@@ -14,8 +16,11 @@ Backshift.Utilities.Url = Backshift.Class.create({
     }
 
     return this;
-  },
-  toString: function () {
+  }
+  toString() {
     return this.url;
   }
-});
+}
+
+Backshift.Utilities.Url = Url;
+export default Url;

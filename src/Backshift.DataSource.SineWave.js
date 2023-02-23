@@ -1,21 +1,20 @@
+import { jQuery } from 'jquery';
+
+import Backshift from './Backshift';
+import DataSource from './Backshift.DataSource';
+
 /**
  * Created by jwhite on 5/22/14.
  */
 
-Backshift.namespace('Backshift.DataSource.SineWave');
-
-Backshift.DataSource.SineWave = Backshift.Class.create(Backshift.DataSource, {
-  defaults: function ($super) {
-    return Backshift.extend($super(), {});
-  },
-
-  query: function (start, end, resolution, args) {
+class SineWave extends DataSource {
+  query(start, end, resolution, args) {
     if (resolution <= 0) {
       // Use millisecond resolution if none is specified
       resolution = end - end;
     }
 
-    var self = this;
+    const self = this;
     var dfd = jQuery.Deferred();
     var k, t, column, columns, columnNames, columnNameToIndex, numMetrics = self.metrics.length;
 
@@ -50,9 +49,9 @@ Backshift.DataSource.SineWave = Backshift.Class.create(Backshift.DataSource, {
       columnNameToIndex: columnNameToIndex
     });
     return dfd.promise();
-  },
+  }
 
-  _sin: function (t, metric) {
+  _sin(t, metric) {
     var amplitude = 1, hshift = 0, vshift = 0, period = 2 * Math.PI;
 
     if (metric.amplitude !== undefined) {
@@ -74,4 +73,7 @@ Backshift.DataSource.SineWave = Backshift.Class.create(Backshift.DataSource, {
     var B = (2 * Math.PI) / period;
     return amplitude * Math.sin(B * (t - hshift)) + vshift;
   }
-});
+}
+
+Backshift.DataSource.SineWave = SineWave;
+export default SineWave;

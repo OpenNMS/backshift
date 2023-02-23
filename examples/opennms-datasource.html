@@ -1,21 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script src="../node_modules/jquery/dist/jquery.min.js"></script>
-
-    <script src="../src/Compat.js"></script>
-    <script src="../src/Backshift.js"></script>
-    <script src="../src/Backshift.Class.js"></script>
-    <script src="../src/Backshift.Class.Configurable.js"></script>
-    <script src="../src/Backshift.Math.js"></script>
-    <script src="../src/Backshift.Stats.js"></script>
-    <script src="../src/Backshift.Utilities.Url.js"></script>
-    <script src="../src/Backshift.Utilities.RpnToJexlConverter.js"></script>
-    <script src="../src/Backshift.Utilities.Consolidator.js"></script>
-    <script src="../src/Backshift.Utilities.RrdGraphVisitor.js"></script>
-    <script src="../src/Backshift.Utilities.RrdGraphConverter.js"></script>
-    <script src="../src/Backshift.DataSource.js"></script>
-    <script src="../src/Backshift.DataSource.OpenNMS.js"></script>
+    <!-- <script src="../node_modules/jquery/dist/jquery.min.js"></script> -->
+    <script src="backshift.js"></script>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
@@ -33,16 +20,16 @@
 </div>
 
 <script type="text/javascript">
-    var onmsHost = "demo.opennms.org",
-            onmsPort = 443,
-            onmsUsername = 'demo',
-            onmsPassword = 'demo',
+    var onmsHost = "localhost",
+            onmsPort = 8980,
+            onmsUsername = 'admin',
+            onmsPassword = 'admin',
             end = Date.now(),
             start = end - (8 * 60 * 60 * 1000), // 8 hours ago
             resolution = 100;
 
     function getBaseHref() {
-        return "https://" + onmsHost + ":" + onmsPort;
+        return "http://" + onmsHost + ":" + onmsPort;
     }
 
     $(document).ready(function () {

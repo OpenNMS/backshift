@@ -1,15 +1,16 @@
-Backshift.namespace('Backshift.Utilities.RrdGraphConverter');
+import Backshift from './Backshift';
 
-Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
-  initialize: function (args) {
+class RrdGraphVisitor extends Backshift {
+  constructor(args) {
+    super();
     this.onInit(args);
-  },
+  }
 
-  onInit: function (args) {
+  onInit(args) {
     // Defined by subclasses
-  },
+  }
 
-  _visit: function (graphDef) {
+  _visit(graphDef) {
     // Inspired from http://krasimirtsonev.com/blog/article/Simple-command-line-parser-in-JavaScript
     var CommandLineParser = (function () {
       var parse = function (str, lookForQuotes) {
@@ -22,7 +23,7 @@ Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
             args.push(part);
             part = '';
           } else {
-            if (str.charAt(i) === '\"' && lookForQuotes) {
+            if (str.charAt(i) === '"' && lookForQuotes) {
               readingPart = !readingPart;
               part += str.charAt(i);
             } else {
@@ -114,47 +115,47 @@ Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
         this._onComment(value);
       }
     }
-  },
-  _getColor: function (color) {
+  }
+  _getColor(color) {
      if (color === undefined || color === "") {
        return undefined;
      }
      return '#' + color;
-  },
-  _onTitle: function (title) {
+  }
+  _onTitle(title) {
 
-  },
-  _onVerticalLabel: function (label) {
+  }
+  _onVerticalLabel(label) {
 
-  },
-  _onDEF: function (name, path, dsName, consolFun) {
+  }
+  _onDEF(name, path, dsName, consolFun) {
 
-  },
-  _onCDEF: function (name, rpnExpression) {
+  }
+  _onCDEF(name, rpnExpression) {
 
-  },
-  _onVDEF: function (name, rpnExpression) {
+  }
+  _onVDEF(name, rpnExpression) {
 
-  },
-  _onLine: function (srcName, color, legend, width) {
+  }
+  _onLine(srcName, color, legend, width) {
 
-  },
-  _onArea: function (srcName, color, legend) {
+  }
+  _onArea(srcName, color, legend) {
 
-  },
-  _onStack: function (srcName, color, legend) {
+  }
+  _onStack(srcName, color, legend) {
 
-  },
-  _onGPrint: function (srcName, aggregation, value) {
+  }
+  _onGPrint(srcName, aggregation, value) {
 
-  },
-  _onComment: function (value) {
+  }
+  _onComment(value) {
 
-  },
-  _seriesName: function(string) {
+  }
+  _seriesName(string) {
 
-  },
-  _decodeString: function (string) {
+  }
+  _decodeString(string) {
     if (string === undefined) {
       return string;
     }
@@ -165,8 +166,8 @@ Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
     string = string.replace("\\:", ':');
 
     return string;
-  },
-  displayString: function (string) {
+  }
+  displayString(string) {
     if (string === undefined) {
       return string;
     }
@@ -177,4 +178,7 @@ Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
     string = string.trim();
     return string;
   }
-});
+}
+
+Backshift.Utilities.RrdGraphVisitor = RrdGraphVisitor;
+export default RrdGraphVisitor;

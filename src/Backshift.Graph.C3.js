@@ -1,8 +1,16 @@
+import { d3 } from './d3';
+
+import { c3 } from 'c3';
+import 'c3/c3.css';
+
+window.c3 = c3;
+
+import Backshift from './Backshift';
+import Graph from './Backshift.Graph';
+
 /**
  * Created by jwhite on 31/03/15.
  */
-
-Backshift.namespace('Backshift.Graph.C3');
 
 /**
  * Current issues:
@@ -24,10 +32,9 @@ Backshift.namespace('Backshift.Graph.C3');
  */
 
 /** A graph implementation that uses C3 */
-Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
-
-  defaults: function ($super) {
-    return Backshift.extend($super(), {
+class C3 extends Graph {
+  defaults() {
+    return Object.assign({}, super.defaults(), {
       width: undefined,
       height: undefined,
       title: undefined,
@@ -38,9 +45,9 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
       step: false, // treats points a segments (similar to rrdgraph)
       zoom: true, // whether to allow zooming
     });
-  },
+  }
 
-  onInit: function () {
+  onInit() {
     this.columns = [];
     this.groups = [];
     this.colorMap = {};
@@ -54,9 +61,9 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
     }
 
     this.chart = null;
-  },
+  }
 
-  resize: function(size) {
+  resize(size) {
     // Store the width/height for any subsequent renders
     this.width = size.width;
     this.height = size.height;
@@ -64,21 +71,21 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
     if (this.chart !== null) {
       this.chart.resize(size);
     }
-  },
+  }
 
-  destroy: function($super) {
-    $super();
+  destroy() {
+    super.destroy();
     // If we have a chart, destroy it
     if (this.chart !== null) {
       this.chart = this.chart.destroy();
     }
-  },
+  }
 
-  onRender: function () {
+  onRender() {
     this._updatePlot();
-  },
+  }
 
-  _shouldStack: function (k) {
+  _shouldStack(k) {
     // If there's stack following the area, set the area to stack
     if (this.model.series[k].type === "area") {
       var n = this.model.series.length;
@@ -89,17 +96,17 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
       }
     }
     return this.model.series[k].type === "stack";
-  },
+  }
 
-  _getDisplayName: function (name) {
+  _getDisplayName(name) {
     if (name === undefined || name === null) {
       return null;
     } else {
       return name;
     }
-  },
+  }
 
-  _getType: function (type, shouldStack) {
+  _getType(type, shouldStack) {
     var derivedType;
     if (shouldStack === true) {
       derivedType = "area";
@@ -116,13 +123,13 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
       }
     }
     return derivedType;
-  },
+  }
 
-  onBeforeQuery: function() {
+  onBeforeQuery() {
     this.showStatus('Loading...');
-  },
+  }
 
-  onQuerySuccess: function (results) {
+  onQuerySuccess(results) {
     if (!results || !results.columns) {
       return;
     }
@@ -175,14 +182,14 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
 
     this.hideStatus();
     this._updatePlot();
-  },
+  }
 
-  onQueryFailed: function($super, reason) {
-    $super(reason);
+  onQueryFailed(reason) {
+    super.onQueryFailed(reason);
     this.showStatus('Query failed.');
-  },
+  }
 
-  showStatus: function(statusText) {
+  showStatus(statusText) {
     var svg = d3.select(this.element).select('svg');
     if (svg) {
       var boundingRect = svg.node().getBoundingClientRect();
@@ -198,16 +205,16 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
           .text(statusText);
       }
     }
-  },
+  }
 
-  hideStatus: function() {
+  hideStatus() {
     var svg = d3.select(this.element).select('svg');
     if (svg) {
       svg.select("#chart-status-text").remove();
     }
-  },
+  }
 
-  _onToggleCsvExport: function(el) {
+  _onToggleCsvExport(el) {
     var iconColor = "black";
     if (this.clipboardPrimed) {
       window.backshift_c3_clipboard = undefined;
@@ -239,9 +246,9 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
       this.clipboardPrimed = true;
     }
     d3.select(el).style("fill", iconColor);
-  },
+  }
 
-  _onClipboardCopy: function(e) {
+  _onClipboardCopy(e) {
     if (window.backshift_c3_clipboard === undefined) {
       return;
     }
@@ -253,10 +260,10 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
       e.clipboardData.setData('text/plain', window.backshift_c3_clipboard);
     }
     e.preventDefault();
-  },
+  }
 
-  _onRendered: function() {
-    var self = this;
+  _onRendered() {
+    const self = this;
     var svg = d3.select(this.element).select("svg");
     var boundingRect = svg.node().getBoundingClientRect();
 
@@ -272,10 +279,10 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
         .text(function(d) { return '\uf0ce' })
         .on("click", function() { return self._onToggleCsvExport(this, self); });
     }
-  },
+  }
 
-  _updatePlot: function () {
-    var self = this;
+  _updatePlot() {
+    const self = this;
 
     var plotConfig = {
       bindto: d3.select(this.element),
@@ -375,4 +382,7 @@ Backshift.Graph.C3 = Backshift.Class.create(Backshift.Graph, {
 
     self.chart = c3.generate(plotConfig);
   }
-});
+}
+
+Backshift.Graph.C3 = C3;
+export default C3;

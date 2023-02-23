@@ -1,14 +1,26 @@
+import { jQuery } from 'jquery';
+
+import { d3 } from './d3';
+
+import 'flot';
+import 'jquery.flot.tooltip';
+import 'flot-datatable/jquery.flot.datatable';
+import 'flot-legend/jquery.flot.legend';
+import 'flot.navigate/jquery.flot.navigate';
+import 'flot.saveas/jquery.flot.saveas';
+
+import Backshift from './Backshift';
+import Graph from './Backshift.Graph';
+
 /**
  * Created by jwhite on 10/12/14.
  */
 
-Backshift.namespace('Backshift.Graph.Flot');
-
 /** Renders the graph using Flot */
-Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
+class Flot extends Graph {
 
-  defaults: function ($super) {
-    return Backshift.extend($super(), {
+  defaults() {
+    return Object.assign({}, super.defaults(), {
       width: '100%',
       height: '100%',
       title: undefined,
@@ -19,16 +31,16 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       legendFontSize: undefined, // font size (integer)
       ticks: undefined, // number of x-axis ticks, defaults to a value based on the width
     });
-  },
+  }
 
-  onInit: function () {
+  onInit() {
     var container = jQuery(this.element);
     // Set the container dimensions, Flot's canvas will use 100% of the container div
     container.width(this.width);
     container.height(this.height);
-  },
+  }
 
-  showStatus: function(text) {
+  showStatus(text) {
     if (this.chart) {
       var options = this.chart.getOptions(),
         canvas = this.chart.getCanvas();
@@ -42,9 +54,9 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
         }
       }
     }
-  },
+  }
 
-  hideStatus: function() {
+  hideStatus() {
     if (this.chart) {
       var options = this.chart.getOptions(),
         canvas = this.chart.getCanvas();
@@ -58,35 +70,35 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
         }
       }
     }
-  },
+  }
 
-  onBeforeQuery: function () {
+  onBeforeQuery() {
     this.showStatus('Loading...');
     this.doRender = true;
-  },
+  }
 
-  onQueryFailed: function () {
+  onQueryFailed() {
     this.showStatus('Query failed.');
-  },
+  }
 
-  onQuerySuccess: function (results) {
+  onQuerySuccess(results) {
     this.hideStatus();
     if (this.doRender) {
       this.drawChart(results);
     }
-  },
+  }
 
-  onRender: function() {
+  onRender() {
     this.doRender = true;
     this.drawChart();
-  },
+  }
 
-  onCancel: function() {
+  onCancel() {
     this.doRender = false;
     this.drawChart();
-  },
+  }
 
-  _shouldStack: function (k) {
+  _shouldStack(k) {
     // If there's stack following the area, set the area to stack
     if (this.model.series[k].type === "area") {
       var n = this.model.series.length;
@@ -97,10 +109,10 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       }
     }
     return this.model.series[k].type === "stack";
-  },
+  }
 
-  drawChart: function (results) {
-    var self = this;
+  drawChart(results) {
+    const self = this;
     var container = jQuery(this.element);
 
     var timestamps = [];
@@ -275,7 +287,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
         xaxis: {
           label: 'Date/Time',
           format: function(x) {
-            var format = d3.time.format("%c");
+            var format = d3.timeFormat("%c");
             return format(new Date(x));
           }
         },
@@ -320,9 +332,9 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
     this.chart.ranges = {
       yaxis: { panRange: [yaxis.min, yaxis.max], zoomRange: false}, xaxis: { panRange: [from,to], zoomRange: null }
     };
-  },
+  }
 
-  getFontSpec: function(fontSpec) {
+  getFontSpec(fontSpec) {
     var ret = {
       size: 'inherit',
       family: 'inherit',
@@ -352,16 +364,16 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       }
     }
     return ret;
-  },
+  }
 
-  drawHook: function(plot, canvascontext) {
+  drawHook(plot, canvascontext) {
     var cx = canvascontext.canvas.clientWidth / 2;
     canvascontext.font="15px sans-serif";
     canvascontext.textAlign = 'center';
     canvascontext.fillText(plot.getOptions().title, cx, 15);
-  },
+  }
 
-  addTimeAxis: function(options, from, to) {
+  addTimeAxis(options, from, to) {
     var elem = jQuery(this.element);
     var ticks = this.ticks || (elem.width() / 100);
 
@@ -374,9 +386,9 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       ticks: ticks,
       timeformat: this.time_format(ticks, from, to)
     };
-  },
+  }
 
-  time_format: function(ticks, min, max) {
+  time_format(ticks, min, max) {
     if (min && max && ticks) {
       var secPerTick = ((max - min) / ticks) / 1000;
 
@@ -396,12 +408,15 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
     }
 
     return "%H:%M";
-  },
+  }
 
-  onDestroy: function() {
+  onDestroy() {
     if (this.chart && this.chart.destroy) {
       this.chart.shutdown();
       this.chart.destroy();
     }
   }
-});
+}
+
+Backshift.Graph.Flot = Flot;
+export default Flot;

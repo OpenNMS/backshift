@@ -1,8 +1,8 @@
+import Backshift from './Backshift';
+
 /**
  * Created by jwhite on 5/22/14.
  */
-
-Backshift.namespace('Backshift.DataSource');
 
 /**
  * Abstract data-source used to retrieve time series data.
@@ -11,23 +11,17 @@ Backshift.namespace('Backshift.DataSource');
  * @param {object} args Dictionary of arguments.
  * @param          [args.metrics]
  */
-Backshift.DataSource = Backshift.Class.create(Backshift.Class.Configurable, {
+class DataSource extends Backshift {
+  constructor(args) {
+    super();
 
-  initialize: function (args) {
     if (args.metrics === undefined || args.metrics.length === 0) {
       Backshift.fail('DataSource needs one or more metrics.');
     }
-
     this.metrics = args.metrics;
-
     this.configure(args);
-
     this.onInit(args);
-  },
-
-  defaults: function () {
-    return {};
-  },
+  }
 
   /**
    * @param {number} [start] Milliseconds since the Unix epoch.
@@ -35,19 +29,22 @@ Backshift.DataSource = Backshift.Class.create(Backshift.Class.Configurable, {
    * @param {number} [resolution] Desired number of points.
    * @param {object} [args] Additional parameter that is passed to the callbacks.
    */
-  query: function (start, end, resolution, args) {
-    // Defined by subclasses
-  },
-
-  supportsQueries: function() {
-    return true;
-  },
-
-  supportsStreaming: function() {
-    return false;
-  },
-
-  onInit: function (args) {
+  query(start, end, resolution, args) {
     // Defined by subclasses
   }
-});
+
+  supportsQueries() {
+    return true;
+  }
+
+  supportsStreaming() {
+    return false;
+  }
+
+  onInit(args) {
+    // Defined by subclasses
+  }
+}
+
+Backshift.DataSource = DataSource;
+export default DataSource;

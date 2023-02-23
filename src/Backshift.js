@@ -1,71 +1,57 @@
-/* jshint -W079 */
+export default class Backshift {
+  configure(args) {
+    args = args || {};
 
-var Backshift = Backshift || {};
+    const defs = this.defaults();
 
-Backshift.namespace = function (ns_string) {
-  var parts = ns_string.split('.'),
-    parent = Backshift,
-    i;
-
-  // split redundant leading global
-  if (parts[0] === 'Backshift') {
-    parts = parts.slice(1);
+    Object.keys(defs).forEach((key) => {
+      if (defs[key] !== null && typeof defs[key] === 'object') {
+        Object.keys(defs[key]).forEach((subkey) => {
+          const match = [ args, this, defs ].find((obj) => obj !== undefined && obj[key] !== undefined && obj[key][subkey] !== undefined);
+          if (match) {
+            this[key][subkey] = match[key][subkey];
+          }
+        });
+      } else {
+        const match = [ args, this, defs ].find((obj) => obj !== undefined && obj[key] !== undefined);
+        if (match) {
+          this[key] = match[key];
+        }
+      }
+    });
   }
 
-  for (i = 0; i < parts.length; i += 1) {
-    // create a property if it doesn't exist
-    if (typeof parent[parts[i]] === "undefined") {
-      parent[parts[i]] = {};
+  defaults() {
+    return {};
+  }
+
+  rows(matrix) {
+    const ncols = matrix.length;
+    if (ncols === 0) {
+      return [];
     }
-    parent = parent[parts[i]];
-  }
-
-  return parent;
-};
-
-Backshift.keys = function (obj) {
-  var keys = [];
-  for (var key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      keys.push(key);
+    const nrows = matrix[0].length;
+  
+    const rows = new Array(nrows);
+    for (let i = 0; i < nrows; i++) {
+      const row = new Array(ncols);
+      for (let j = 0; j < ncols; j++) {
+        row[j] = matrix[j][i];
+      }
+      rows[i] = row;
     }
-  }
-  return keys;
-};
-
-Backshift.extend = function (destination, source) {
-  for (var property in source) {
-    if (source.hasOwnProperty(property)) {
-      destination[property] = source[property];
-    }
-  }
-  return destination;
-};
-
-Backshift.rows = function (matrix) {
-  var ncols = matrix.length;
-  if (ncols === 0) {
-    return [];
-  }
-  var nrows = matrix[0].length;
-
-  var rows = new Array(nrows);
-  for (var i = 0; i < nrows; i++) {
-    var row = new Array(ncols);
-    for (var j = 0; j < ncols; j++) {
-      row[j] = matrix[j][i];
-    }
-    rows[i] = row;
+  
+    return rows;      
   }
 
-  return rows;
-};
+  fail(msg) {
+    console.error(msg);
+    throw new Error(msg);
+  }
 
-Backshift.fail = function (msg) {
-  console.log("Error: " + msg);
-  throw "Error: " + msg;
-};
+  clone(obj) {
+    return JSON.parse(JSON.stringify(obj));
+  }
+}
 
-Backshift.clone = function (obj) {
-  return JSON.parse(JSON.stringify(obj));
-};
+window.Backshift = Backshift;

@@ -1,4 +1,5 @@
-Backshift.namespace('Backshift.Utilities.RpnToJexlConverter');
+import Backshift from './Backshift';
+import Utilities from './Backshift.Utilities';
 
 /**
  * References:
@@ -7,13 +8,14 @@ Backshift.namespace('Backshift.Utilities.RpnToJexlConverter');
  *
  * @author jesse
  */
-Backshift.Utilities.RpnToJexlConverter = Backshift.Class.create({
-  initialize: function () {
+class RpnToJexlConverter extends Utilities {
+  constructor() {
+    super();
     this.operators = {};
     this._buildOperators();
-  },
+  }
 
-  _buildOperators: function () {
+  _buildOperators() {
     var simpleOp = function (op) {
       return function (stack) {
         var b = stack.pop();
@@ -144,9 +146,9 @@ Backshift.Utilities.RpnToJexlConverter = Backshift.Class.create({
     this.operators['NEGINF'] = function() { return '__neg_inf'; };
     this.operators['{diffTime}'] = function() { return '(__diff_time / 1000)'; };
 
-  },
+  }
 
-  convert: function (rpn) {
+  convert(rpn) {
     var token, tokens, n, i, stack = [];
     tokens = rpn.split(",");
     n = tokens.length;
@@ -164,14 +166,17 @@ Backshift.Utilities.RpnToJexlConverter = Backshift.Class.create({
     } else {
       Backshift.fail('Too many input values in RPN express. RPN: ' + rpn + ' Stack: ' + JSON.stringify(stack));
     }
-  },
+  }
 
-  _isOperator: function (token) {
+  _isOperator(token) {
     return token in this.operators;
-  },
+  }
 
-  _toExpression: function (token, stack) {
+  _toExpression(token, stack) {
     return this.operators[token](stack);
   }
 
-});
+}
+
+Backshift.Utilities.RpnToJexlConverter = RpnToJexlConverter;
+export default RpnToJexlConverter;

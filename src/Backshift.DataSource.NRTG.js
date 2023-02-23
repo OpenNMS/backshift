@@ -1,3 +1,8 @@
+import 'jquery';
+
+import Backshift from './Backshift';
+import DataSource from './Backshift.DataSource';
+
 /**
  * Datasource for OpenNMS' Near Real-Time Graphing (NRTG) feature.
  *
@@ -5,22 +10,21 @@
  *
  * Created by jwhite on 11/29/2015.
  */
-Backshift.namespace('Backshift.DataSource.NRTG');
 
-Backshift.DataSource.NRTG = Backshift.Class.create(Backshift.DataSource, {
-  defaults: function ($super) {
-    return Backshift.extend($super(), {
+class NRTG extends DataSource {
+  defaults() {
+    return Object.assign({}, super.defaults(), {
       url: "http://127.0.0.1:8980/opennms/nrt/starter",
-      callback: function(){},
+      callback: () => {},
       username: null,
       password: null,
       getFunction: null,
       slidingWindow: 30,
       pollingInterval: 1000
     });
-  },
+  }
 
-  onInit: function(args) {
+  onInit(args) {
     if (!this.getFunction) {
       this.getFunction = this.get;
     }
@@ -35,18 +39,18 @@ Backshift.DataSource.NRTG = Backshift.Class.create(Backshift.DataSource, {
     this.rows = [];
     // Instance of the interval
     this.pollingIntervalId = null;
-  },
+  }
 
-  supportsQueries: function() {
+  supportsQueries() {
     return false;
-  },
+  }
 
-  supportsStreaming: function() {
+  supportsStreaming() {
     return true;
-  },
+  }
 
-  startStreaming: function() {
-    var self = this;
+  startStreaming() {
+    const self = this;
     var dfd = jQuery.Deferred();
 
     self.getFunction(this.url, {
@@ -60,34 +64,34 @@ Backshift.DataSource.NRTG = Backshift.Class.create(Backshift.DataSource, {
     });
 
     return dfd.promise();
-  },
+  }
 
-  stopStreaming: function () {
-    var self = this;
+  stopStreaming() {
+    const self = this;
     if (self.pollingIntervalId !== null) {
       clearInterval(self.pollingIntervalId);
       self.pollingIntervalId = null;
     }
-  },
+  }
 
-  updatePollingInterval: function(pollingInterval) {
-    var self = this;
+  updatePollingInterval(pollingInterval) {
+    const self = this;
     self.pollingInterval = pollingInterval;
     if (self.pollingIntervalId !== null) {
       clearInterval(self.pollingIntervalId);
       var poll = function() {self.poll();}.bind(self);
       self.pollingIntervalId = setInterval(poll, self.pollingInterval);
     }
-  },
+  }
 
-  updateSlidingWindow: function(slidingWindow) {
-    var self = this;
+  updateSlidingWindow(slidingWindow) {
+    const self = this;
     self.slidingWindow = slidingWindow;
     self._processRowsAndNotify();
-  },
+  }
 
-  handleCollectionDetails: function(nrtgCollectionDetails) {
-    var self = this;
+  handleCollectionDetails(nrtgCollectionDetails) {
+    const self = this;
 
     // Build a graph definition using the data from the collection details
     var graph = {
@@ -110,10 +114,10 @@ Backshift.DataSource.NRTG = Backshift.Class.create(Backshift.DataSource, {
     var poll = function() {self.poll();}.bind(self);
     poll();
     self.pollingIntervalId = setInterval(poll, self.pollingInterval);
-  },
+  }
 
-  poll: function() {
-    var self = this;
+  poll() {
+    const self = this;
     if (self.pollInProgress === true) {
       // If another poll is already in progress, then skip this one
       return;
@@ -136,14 +140,14 @@ Backshift.DataSource.NRTG = Backshift.Class.create(Backshift.DataSource, {
       self.pollInProgress = false;
       console.log("NRTG: Poll failed with '" + textStatus + "'.");
     });
-  },
+  }
 
-  _metricMappingsToColumns: function(metricsMapping) {
+  _metricMappingsToColumns(metricsMapping) {
     var columns = [];
     for (var i = 1, nmetrics = Object.keys(metricsMapping).length; i <= nmetrics; i++) {
       var found = false;
       for (var key in metricsMapping) {
-        if (metricsMapping.hasOwnProperty(key)) {
+        if (Object.hasOwn(metricsMapping, key)) {
           if (metricsMapping[key].indexOf("{rrd" + i + "}") > -1) {
             columns.push(key);
             found = true;
@@ -157,9 +161,9 @@ Backshift.DataSource.NRTG = Backshift.Class.create(Backshift.DataSource, {
       }
     }
     return columns;
-  },
+  }
 
-  _calculateRate: function(lastMetric, newMetric) {
+  _calculateRate(lastMetric, newMetric) {
     if (lastMetric === null || newMetric === null) {
       return NaN;
     } else if (isNaN(lastMetric.value) || isNaN(newMetric.value)) {
@@ -168,17 +172,17 @@ Backshift.DataSource.NRTG = Backshift.Class.create(Backshift.DataSource, {
     var valueDelta = newMetric.value - lastMetric.value;
     var timestampDeltaInMs = newMetric.timeStamp - lastMetric.timeStamp;
     return (valueDelta / timestampDeltaInMs) * 1000;
-  },
+  }
 
-  _calculateMeasurements: function(measurementSets) {
-    var self = this;
+  _calculateMeasurements(measurementSets) {
+    const self = this;
     for (var i = 0, nsets = measurementSets.length; i < nsets; i++) {
 
       // Index the metrics by metricId
       var metricsById = {};
       var timestamp = 0;
       for (var j = 0, nmetrics = measurementSets[i].length; j < nmetrics; j++) {
-        var metric = measurementSets[i][j];
+        let metric = measurementSets[i][j];
         metricsById[metric.metricId] = metric;
         timestamp = metric.timeStamp;
       }
@@ -195,7 +199,7 @@ Backshift.DataSource.NRTG = Backshift.Class.create(Backshift.DataSource, {
         var value = NaN;
         if (!isExpression) {
           if (modelMetric.attribute in metricsById) {
-            var metric = metricsById[modelMetric.attribute];
+            let metric = metricsById[modelMetric.attribute];
             value = metric.value;
 
             // Convert counters to rates
@@ -219,10 +223,10 @@ Backshift.DataSource.NRTG = Backshift.Class.create(Backshift.DataSource, {
       self.rows.push(row);
       self.lastMeasurementSet = metricsById;
     }
-  },
+  }
 
-  _processRowsAndNotify: function() {
-    var self = this;
+  _processRowsAndNotify() {
+    const self = this;
 
     // Limit the amount of rows processed if we're using a sliding window
     var indexOfFirstRow = 0;
@@ -239,7 +243,7 @@ Backshift.DataSource.NRTG = Backshift.Class.create(Backshift.DataSource, {
     for (var i = indexOfFirstRow, nrows = self.rows.length; i < nrows; i++) {
       var row = self.rows[i];
       for (var key in row) {
-        if (!row.hasOwnProperty(key)) {
+        if (!Object.hasOwn(row, key)) {
           continue;
         }
 
@@ -252,8 +256,8 @@ Backshift.DataSource.NRTG = Backshift.Class.create(Backshift.DataSource, {
     }
 
     // Drop any transient columns
-    for (j = 0, nmetrics = self.model.metrics.length; j < nmetrics; j++) {
-      var modelMetric = self.model.metrics[j];
+    for (let j = 0, nmetrics = self.model.metrics.length; j < nmetrics; j++) {
+      let modelMetric = self.model.metrics[j];
       if (modelMetric.transient) {
         delete columns[modelMetric.name];
       }
@@ -266,7 +270,7 @@ Backshift.DataSource.NRTG = Backshift.Class.create(Backshift.DataSource, {
       columnNameToIndex: {}
     };
 
-    $.each(columns, function (columnName, columnValues) {
+    jQuery.each(columns, function (columnName, columnValues) {
       results.columns.push(columnValues);
       results.columnNames.push(columnName);
       results.columnNameToIndex[columnName] = results.columns.length - 1;
@@ -274,16 +278,16 @@ Backshift.DataSource.NRTG = Backshift.Class.create(Backshift.DataSource, {
 
     // Issue the callback
     self.callback(results);
-  },
+  }
 
   /* An overridable GET method.
    *
    * @param {function} onSuccess A function to call on success.
    * @param {function} onFailure A function to call on failure.
    */
-  get: function(url,  data, onSuccess, onFailure) {
-    var self = this,
-        withCredentials = self.username !== null && self.password !== null,
+  get(url,  data, onSuccess, onFailure) {
+    const self = this;
+    var withCredentials = self.username !== null && self.password !== null,
         headers = {};
 
     if (withCredentials) {
@@ -304,4 +308,7 @@ Backshift.DataSource.NRTG = Backshift.Class.create(Backshift.DataSource, {
       error: onFailure
     });
   }
-});
+}
+
+Backshift.DataSource.NRTG = NRTG;
+export default NRTG;

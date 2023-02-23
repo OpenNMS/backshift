@@ -1,24 +1,34 @@
+import 'jquery';
+
+import Backshift from './Backshift';
+import DataSource from './Backshift.DataSource';
+
 /**
  * Created by jwhite on 6/6/14.
  */
 
-Backshift.namespace('Backshift.DataSource.OpenNMS');
+class OpenNMS extends DataSource {
+  constructor(args) {
+    super(args);
+    this._fetchFunction = this.post;
+  }
 
-Backshift.DataSource.OpenNMS = Backshift.Class.create(Backshift.DataSource, {
-  defaults: function ($super) {
-    return Backshift.extend($super(), {
+  defaults() {
+    return Object.assign({}, super.defaults(), {
       url: "http://127.0.0.1:8980/opennms/rest/measurements",
       username: null,
       password: null,
       fetchFunction: null,
     });
-  },
+  }
 
-  onInit: function(args) {
-    if (!this.fetchFunction) {
-      this.fetchFunction = this.post;
-    }
-  },
+  get fetchFunction() {
+    return this._fetchFunction || this.post;
+  }
+
+  set fetchFunction(func) {
+    this._fetchFunction = func; 
+  }
 
   /* An overridable post method.
    *
@@ -26,9 +36,9 @@ Backshift.DataSource.OpenNMS = Backshift.Class.create(Backshift.DataSource, {
    * @param {function} onSuccess A function to call on success.
    * @param {function} onFailure A function to call on failure.
    */
-  post: function(url, data, onSuccess, onFailure) {
-    var self = this,
-      withCredentials = self.username !== null && self.password !== null,
+  post(url, data, onSuccess, onFailure) {
+    const self = this;
+    let withCredentials = self.username !== null && self.password !== null,
       headers = {};
 
     if (withCredentials) {
@@ -49,34 +59,34 @@ Backshift.DataSource.OpenNMS = Backshift.Class.create(Backshift.DataSource, {
       error: onFailure
     });
 
-  },
+  }
 
-  query: function (start, end, resolution, args) {
-    var self = this;
-    var dfd = jQuery.Deferred();
+  query(start, end, resolution, args) {
+    const self = this;
 
-    var data = self._getQueryRequest(start, end, resolution),
-      success = function QuerySuccess(response) {
-        if (response === undefined) {
-          // This can happen if/when the server returns a 204
-          response = {
-            labels: [],
-            timestamps: [],
-            columns: []
-          }
+    const dfd = jQuery.Deferred();
+    const data = self._getQueryRequest(start, end, resolution);
+    let success = function QuerySuccess(response) {
+      if (response === undefined) {
+        // This can happen if/when the server returns a 204
+        response = {
+          labels: [],
+          timestamps: [],
+          columns: []
         }
-        dfd.resolve(self._parseResponse(response));
-      },
-      failure = function QueryFailure(jqXmr, textStatus) {
-        dfd.reject(textStatus);
-      };
+      }
+      dfd.resolve(self._parseResponse(response));
+    },
+    failure = function QueryFailure(jqXmr, textStatus) {
+      dfd.reject(textStatus);
+    };
 
-    self.fetchFunction(self.url, data, success, failure);
+    this.fetchFunction(self.url, data, success, failure);
 
     return dfd.promise();
-  },
+  }
 
-  _getQueryRequest: function (start, end, resolution) {
+  _getQueryRequest(start, end, resolution) {
     var queryRequest = {
       "start": start,
       "end": end,
@@ -89,7 +99,7 @@ Backshift.DataSource.OpenNMS = Backshift.Class.create(Backshift.DataSource, {
     var timeDeltaInSeconds = end - start;
 
     var qrSource;
-    Backshift.keys(this.metrics).forEach(function (key) {
+    Object.keys(this.metrics).forEach(function (key) {
       var metric = this.metrics[key];
       if (metric.resourceId !== undefined) {
         qrSource = {
@@ -134,9 +144,9 @@ Backshift.DataSource.OpenNMS = Backshift.Class.create(Backshift.DataSource, {
     }
 
     return queryRequest;
-  },
+  }
 
-  _parseResponse: function (json) {
+  _parseResponse(json) {
     var k, columns, columnNames, columnNameToIndex, constants, parts,
         numMetrics = json.labels.length;
 
@@ -178,4 +188,7 @@ Backshift.DataSource.OpenNMS = Backshift.Class.create(Backshift.DataSource, {
       constants: constants
     };
   }
-});
+}
+
+Backshift.DataSource.OpenNMS = OpenNMS;
+export default OpenNMS;

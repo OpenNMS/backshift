@@ -1,4 +1,5 @@
-Backshift.namespace('Backshift.Utilities.RpnEvaluator');
+import Backshift from './Backshift';
+import Utilities from './Backshift.Utilities';
 
 /**
  * References:
@@ -7,26 +8,27 @@ Backshift.namespace('Backshift.Utilities.RpnEvaluator');
  *
  * @author jesse
  */
-Backshift.Utilities.RpnEvaluator = Backshift.Class.create({
-  initialize: function () {
+class RpnEvaluator extends Utilities {
+  constructor() {
+    super();
     this.operators = {};
     this._buildOperators();
-  },
+  }
 
-  _valueOf: function(token, context) {
+  _valueOf(token, context) {
     // Attempt to retrieve the named value from the context
     if (token in context) {
-      if (context.hasOwnProperty(token)) {
+      if (Object.hasOwn(context, token)) {
          return context[token];
       }
     }
 
     // Otherwise, assume it's a number
     return parseFloat(token);
-  },
+  }
 
-  _buildOperators: function () {
-    var self = this;
+  _buildOperators() {
+    const self = this;
 
     var funcOp = function (op, numArgs) {
       return function (stack, context) {
@@ -109,9 +111,9 @@ Backshift.Utilities.RpnEvaluator = Backshift.Class.create({
     this.operators['UNKN'] = funcOp(function() { return NaN; }, 0);
     this.operators['INF'] = funcOp(function() { return Number.POSITIVE_INFINITY; }, 0);
     this.operators['NEGINF'] = funcOp(function() { return Number.NEGATIVE_INFINITY; }, 0);
-  },
+  }
 
-  evaluate: function(rpn, context) {
+  evaluate(rpn, context) {
     var token, tokens, n, i, stack = [];
     tokens = rpn.split(",");
     n = tokens.length;
@@ -129,14 +131,17 @@ Backshift.Utilities.RpnEvaluator = Backshift.Class.create({
     } else {
       Backshift.fail('Too many input values in RPN express. RPN: ' + rpn + ' Stack: ' + JSON.stringify(stack));
     }
-  },
+  }
 
-  _isOperator: function (token) {
+  _isOperator(token) {
     return token in this.operators;
-  },
+  }
 
-  _eval: function (token, stack, context) {
+  _eval(token, stack, context) {
     return this.operators[token](stack, context);
   }
 
-});
+}
+
+Backshift.Utilities.RpnEvaluator = RpnEvaluator;
+export default RpnEvaluator;

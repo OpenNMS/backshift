@@ -1,12 +1,16 @@
+import { d3 } from './d3';
+
+import Backshift from './Backshift';
+
 /**
  * Created by jwhite on 5/21/14.
  */
 
-Backshift.namespace('Backshift.Graph');
-
 /** The core graph implementation */
-Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
-  initialize: function (args) {
+class Graph extends Backshift {
+  constructor(args) {
+    super();
+
     if (args.dataSource === undefined) {
       Backshift.fail('Graph needs a data source.');
     }
@@ -43,9 +47,9 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
     this.timer = null;
 
     this.onInit(args);
-  },
+  }
 
-  defaults: function () {
+  defaults() {
     return {
       width: 400,
       height: 240,
@@ -58,9 +62,9 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
       stream: true,
       checkInterval: 15 * 1000 // 15 seconds
     };
-  },
+  }
 
-  render: function () {
+  render() {
     if (this.timer !== null) {
       clearInterval(this.timer);
       this.timer = null;
@@ -70,62 +74,62 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
     if (this.beginOnRender) {
       this.begin();
     }
-  },
+  }
 
-  begin: function () {
+  begin() {
     this.onBegin();
     this.refresh();
     this.createTimer();
     if (this.stream) {
       this.startStreaming();
     }
-  },
+  }
 
-  cancel: function () {
+  cancel() {
     this.destroyTimer();
     this.stopStreaming();
     this.onCancel();
-  },
+  }
 
-  resize: function(size) {
+  resize(size) {
     // Implemented by subclasses
-  },
+  }
 
-  destroy: function() {
+  destroy() {
     this.hideStatus();
     this.destroyTimer();
     this.onDestroy();
-  },
+  }
 
-  createTimer: function () {
-    var self = this;
+  createTimer() {
+    const self = this;
     self.destroyTimer();
     self.timer = setInterval(function () {
       if (self.shouldRefresh()) {
         self.refresh();
       }
     }, self.checkInterval);
-  },
+  }
 
-  destroyTimer: function () {
+  destroyTimer() {
     if (this.timer !== null) {
       clearInterval(this.timer);
       this.timer = null;
     }
-  },
+  }
 
-  setStart: function (start) {
+  setStart(start) {
     this.start = start;
     this.refresh();
-  },
+  }
 
-  setEnd: function (end) {
+  setEnd(end) {
     this.end = end;
     this.refresh();
-  },
+  }
 
-  refresh: function () {
-    var self = this;
+  refresh() {
+    const self = this;
 
     if (!self.dataSource || !self.dataSource.supportsQueries()) {
       return;
@@ -146,10 +150,10 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
       self.onQueryFailed(reason);
       self.onAfterQuery();
     });
-  },
+  }
 
-  startStreaming: function () {
-    var self = this;
+  startStreaming() {
+    const self = this;
     if (self.dataSource && self.dataSource.supportsStreaming() && !self.isStreaming) {
       self.isStreaming = true;
       self.dataSource.callback = function(results) {
@@ -159,19 +163,19 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
       };
       this.dataSource.startStreaming();
     }
-  },
+  }
 
-  stopStreaming: function() {
-    var self = this;
+  stopStreaming() {
+    const self = this;
     if (self.isStreaming) {
       self.isStreaming = false;
       if (self.dataSource && self.dataSource.supportsStreaming()) {
         self.dataSource.stopStreaming();
       }
     }
-  },
+  }
 
-  updateValues: function(results) {
+  updateValues(results) {
     this._values = {};
     for (var i = 0; i < this.model.values.length; i++) {
       var value = this.model.values[i];
@@ -183,10 +187,10 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
         value: value.expression.consolidate(results),
       };
     }
-  },
+  }
 
-  updateTextFields: function(results) {
-    var self = this;
+  updateTextFields(results) {
+    const self = this;
 
     var title = self._title,
       verticalLabel = self._verticalLabel,
@@ -212,9 +216,9 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
 
     self.title = title;
     self.verticalLabel = verticalLabel;
-  },
+  }
 
-  shouldRefresh: function () {
+  shouldRefresh() {
     // Don't refresh in another query is already in progress
     if (this.queryInProgress) {
       return false;
@@ -226,9 +230,9 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
     }
 
     return this.lastSuccessfulQuery <= Date.now() - this.refreshRate;
-  },
+  }
 
-  getTimeSpan: function () {
+  getTimeSpan() {
     if (this.start === 0 && this.end === 0 && this.last === 0) {
       Backshift.fail('Graph needs start and end, or last to be non-zero.');
     }
@@ -242,17 +246,17 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
       timeSpan.start = this.start;
     }
     return timeSpan;
-  },
+  }
 
-  getResolution: function () {
+  getResolution() {
     if (this.resolution > 0) {
       return this.resolution;
     } else {
       return this.width;
     }
-  },
+  }
 
-  showStatus: function (statusText) {
+  showStatus(statusText) {
     if (this.statusElement) {
       this.statusElement.text(statusText);
     } else if (this.element) {
@@ -263,47 +267,50 @@ Backshift.Graph = Backshift.Class.create(Backshift.Class.Configurable, {
         .attr('class', 'backshift-status')
         .text(statusText);
     }
-  },
+  }
 
-  hideStatus: function () {
+  hideStatus() {
     if (this.statusElement) {
       this.statusElement.remove();
     }
-  },
+  }
 
-  onInit: function (args) {
-    // Implemented by subclasses
-  },
-
-  onRender: function () {
-    // Implemented by subclasses
-  },
-
-  onBegin: function () {
-    // Implemented by subclasses
-  },
-
-  onCancel: function () {
-    // Implemented by subclasses
-  },
-
-  onBeforeQuery: function () {
-    // Implemented by subclasses
-  },
-
-  onQuerySuccess: function (results) {
-    // Implemented by subclasses
-  },
-
-  onQueryFailed: function (reason) {
-    console.log("Query failed with: " + reason);
-  },
-
-  onAfterQuery: function () {
-    // Implemented by subclasses
-  },
-
-  onDestroy: function () {
+  onInit(args) {
     // Implemented by subclasses
   }
-});
+
+  onRender() {
+    // Implemented by subclasses
+  }
+
+  onBegin() {
+    // Implemented by subclasses
+  }
+
+  onCancel() {
+    // Implemented by subclasses
+  }
+
+  onBeforeQuery() {
+    // Implemented by subclasses
+  }
+
+  onQuerySuccess(results) {
+    // Implemented by subclasses
+  }
+
+  onQueryFailed(reason) {
+    console.log("Query failed with: " + reason);
+  }
+
+  onAfterQuery() {
+    // Implemented by subclasses
+  }
+
+  onDestroy() {
+    // Implemented by subclasses
+  }
+}
+
+Backshift.Graph = Graph;
+export default Graph;

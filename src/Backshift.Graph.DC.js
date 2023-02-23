@@ -1,14 +1,21 @@
+import { crossfilter } from 'crossfilter';
+import { d3 } from './d3';
+import { dc } from 'dc/src/index';
+import { jQuery } from 'jquery';
+
+import 'dc/dist/style/dc.css';
+
+import Backshift from './Backshift';
+import Graph from './Backshift.Graph';
+
 /**
  * Created by jwhite on 5/23/14.
  */
 
-Backshift.namespace('Backshift.Graph.DC');
-
 /** Draws a table with all of the sources values. */
-Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
-
-  defaults: function ($super) {
-    return Backshift.extend($super(), {
+class DC extends Graph {
+  defaults() {
+    return Object.assign({}, super.defaults(), {
       width: undefined,
       height: undefined,
       title: undefined,
@@ -18,9 +25,9 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
       interpolate: 'linear', // if step is false, set the line interpolation
       tension: undefined, // if step is false, set the interpolation tension
     });
-  },
+  }
 
-  onInit: function () {
+  onInit() {
     // Used to hold a reference to the div that holds the status text
     this.statusBlock = null;
     this.idPrefix = new Date().getTime() + '' + Math.floor(Math.random() * 100000);
@@ -29,29 +36,29 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
       return d.timestamp;
     });
     this.renderGraphs();
-  },
+  }
 
-  onBeforeQuery: function() {
+  onBeforeQuery() {
     this.showStatus('Loading...');
-  },
+  }
 
-  onQuerySuccess: function (results) {
+  onQuerySuccess(results) {
     this.hideStatus();
     this.updateData(results);
-  },
+  }
 
-  onQueryFailed: function($super, reason) {
-    $super(reason);
+  onQueryFailed(reason) {
+    super.onQueryFailed(reason);
     this.showStatus('Query failed.');
     this.renderGraphs();
-  },
+  }
 
-  onCancel: function () {
+  onCancel() {
     this.crossfilter.groupAll();
     this.crossfilter.remove();
-  },
+  }
 
-  showStatus: function(statusText) {
+  showStatus(statusText) {
     var svg = this.chart.svg();
 
     if (svg) {
@@ -68,20 +75,21 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
           .text(statusText);
       }
     }
-  },
+  }
 
-  hideStatus: function() {
-    var svg = this.chart.svg();
+  hideStatus() {
+    const svg = this.chart.svg();
     svg.select("#chart-status-text").remove();
-  },
+  }
 
-  updateData: function (results) {
-    var self = this,
-      numRows = results.columns[0].length,
+  updateData(results) {
+    const self = this;
+    let numRows = results.columns[0].length,
       numColumns = results.columnNames.length,
       rows = [],
       i,
-      k, row;
+      k, row,
+      val;
 
     for (i = 0; i < numRows; i++) {
       row = {};
@@ -120,32 +128,33 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
 
     var xunits;
     if (difference < 90000000) {
-      xunits = d3.time.hours;
+      xunits = d3.timeHour;
     } else if (difference < 1209600000) {
-      xunits = d3.time.days;
+      xunits = d3.timeDay;
     } else if (difference < 7776000000) {
-      xunits = d3.time.months;
+      xunits = d3.timeMonth;
     } else {
-      xunits = d3.time.years;
+      xunits = d3.timeYear;
     }
 
     if (self.chart) {
       self.chart
         .elasticX(false)
         .elasticY(true)
-        .x(d3.time.scale().domain([minTime, maxTime]))
+        .x(d3.scaleTime().domain([minTime, maxTime]))
         .round(xunits.round)
         .xUnits(xunits)
         .render();
     }
 
     self.renderGraphs();
-  },
+  }
 
-  renderGraphs: function () {
-    var self = this, i, k;
+  renderGraphs() {
+    const self = this;
+    let i, k;
 
-    var timeFormat = d3.time.format('%Y-%m-%d %H:%M:%S');
+    var timeFormat = d3.timeFormat('%Y-%m-%d %H:%M:%S');
     var numberFormat = d3.format('.2s');
 
     /* make this element unique so we can refer to it when rendering */
@@ -309,7 +318,7 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
         ;
 
       chart
-        .x(d3.scale.ordinal())
+        .x(d3.scaleOrdinal())
         .yAxisLabel(self.verticalLabel, 14)
         .elasticY(true)
         ;
@@ -365,4 +374,7 @@ Backshift.Graph.DC = Backshift.Class.create(Backshift.Graph, {
       self.chart = chart;
     }
   }
-});
+}
+
+Backshift.Graph.DC = DC;
+export default DC;

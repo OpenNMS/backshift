@@ -1,8 +1,14 @@
-Backshift.namespace('Backshift.Utilities.RrdGraphConverter');
+import Backshift from './Backshift';
+import RrdGraphVisitor from './Backshift.Utilities.RrdGraphVisitor';
 
-Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utilities.RrdGraphVisitor, {
+const _expressionRegexp = new RegExp('\\{([^}]*)}', 'g');
 
-  onInit: function (args) {
+class RrdGraphConverter extends RrdGraphVisitor {
+  constructor() {
+    super();
+  }
+
+  onInit(args) {
     this.graphDef = args.graphDef;
     this.resourceId = args.resourceId;
     this.convertRpnToJexl = args.convertRpnToJexl === undefined ? true : args.convertRpnToJexl;
@@ -61,17 +67,17 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
       metric = this.model.metrics[i];
       metric.transient = !(metric.name in nonTransientMetrics);
     }
-  },
+  }
 
-  _onTitle: function (title) {
+  _onTitle(title) {
     this.model.title = title;
-  },
+  }
 
-  _onVerticalLabel: function (label) {
+  _onVerticalLabel(label) {
     this.model.verticalLabel = label;
-  },
+  }
 
-  _onDEF: function (name, path, dsName, consolFun) {
+  _onDEF(name, path, dsName, consolFun) {
     var columnIndex = parseInt(/\{rrd(\d+)}/.exec(path)[1]) - 1;
     var attribute = this.graphDef.columns[columnIndex];
 
@@ -83,32 +89,31 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
       datasource: dsName,
       aggregation: consolFun
     });
-  },
+  }
 
-  _expressionRegexp: new RegExp('\\{([^}]*)}', 'g'),
 
-  _onCDEF: function (name, rpnExpression) {
+  _onCDEF(name, rpnExpression) {
     var expression = rpnExpression;
     if(this.convertRpnToJexl) {
       expression = this.rpnConverter.convert(rpnExpression);
     }
     if (this.prefix) {
-      expression = expression.replace(this._expressionRegexp, this.prefix + '.$1');
+      expression = expression.replace(_expressionRegexp, this.prefix + '.$1');
     }
     this.model.metrics.push({
       name: name,
       expression: expression
     });
-  },
+  }
 
-  _onVDEF: function (name, rpnExpression) {
+  _onVDEF(name, rpnExpression) {
     this.model.values.push({
       name: name,
       expression:  this.consolidator.parse(rpnExpression),
     });
-  },
+  }
 
-  _onLine: function (srcName, color, legend, width) {
+  _onLine(srcName, color, legend, width) {
     var series = {
       name: this.displayString(legend),
       metric: srcName,
@@ -117,9 +122,9 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
     };
     this.maybeAddPrintStatementForSeries(srcName, legend);
     this.model.series.push(series);
-  },
+  }
 
-  _onArea: function (srcName, color, legend) {
+  _onArea(srcName, color, legend) {
     var series = {
       name: this.displayString(legend),
       metric: srcName,
@@ -128,9 +133,9 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
     };
     this.maybeAddPrintStatementForSeries(srcName, legend);
     this.model.series.push(series);
-  },
+  }
 
-  _onStack: function (srcName, color, legend) {
+  _onStack(srcName, color, legend) {
     var series = {
       name: this.displayString(legend),
       metric: srcName,
@@ -140,9 +145,9 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
     };
     this.maybeAddPrintStatementForSeries(srcName, legend);
     this.model.series.push(series);
-  },
+  }
 
-  _onGPrint: function (srcName, aggregation, format) {
+  _onGPrint(srcName, aggregation, format) {
     if (typeof aggregation === "undefined") {
       // Modern form
       this.model.printStatements.push({
@@ -164,15 +169,15 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
         format: format,
       });
     }
-  },
+  }
 
-  _onComment: function (format) {
+  _onComment(format) {
     this.model.printStatements.push({
       format: format
     });
-  },
+  }
 
-  maybeAddPrintStatementForSeries: function(series, legend) {
+  maybeAddPrintStatementForSeries(series, legend) {
     if (legend === undefined || legend === null || legend === "") {
       return;
     }
@@ -183,4 +188,7 @@ Backshift.Utilities.RrdGraphConverter = Backshift.Class.create(Backshift.Utiliti
       format: "%g " + legend
     });
  }
-});
+}
+
+Backshift.Utilities.RrdGraphConverter = RrdGraphConverter;
+export default RrdGraphConverter;

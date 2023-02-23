@@ -1,42 +1,45 @@
+import { d3 } from './d3';
+
+import Backshift from './Backshift';
+import Graph from './Backshift.Graph';
+
 /**
  * Created by jwhite on 5/23/14.
  */
 
-Backshift.namespace('Backshift.Graph.Matrix');
-
 /** Draws a table with all of the sources values. */
-Backshift.Graph.Matrix = Backshift.Class.create(Backshift.Graph, {
+class Matrix extends Graph {
 
-  onInit: function () {
+  onInit() {
     // Used to hold a reference to the div that holds the status text
     this.statusBlock = null;
-  },
+  }
 
-  onBeforeQuery: function () {
+  onBeforeQuery() {
     this.timeBeforeQuery = Date.now();
     this.updateStatus("Querying...");
-  },
+  }
 
-  onQuerySuccess: function (results) {
+  onQuerySuccess(results) {
     this.drawMatrix(results);
     var timeAfterQuery = Date.now();
     var queryDuration = Number((timeAfterQuery - this.timeBeforeQuery) / 1000).toFixed(2);
     this.updateStatus("Successfully retrieved data in " + queryDuration + " seconds.");
-  },
+  }
 
-  onQueryFailed: function () {
+  onQueryFailed() {
     this.updateStatus("Query failed.");
-  },
+  }
 
-  updateStatus: function (status) {
+  updateStatus(status) {
     if (this.statusBlock) {
       this.statusBlock.text(status);
     } else {
       this.statusBlock = d3.select(this.element).append("p").attr("align", "right").text(status);
     }
-  },
+  }
 
-  drawMatrix: function (results) {
+  drawMatrix(results) {
     var numRows = results.columns[0].length,
       numColumns = results.columnNames.length,
       rows = new Array(numRows),
@@ -80,12 +83,12 @@ Backshift.Graph.Matrix = Backshift.Class.create(Backshift.Graph, {
 
     d3.select(this.element)
       .attr("data-rendered-at", Date.now());
-  },
+  }
 
-  /** Builds an HTML table using D3.
+  /** Builds an HTML table using 
    *
    *  Shamelessly stolen from http://www.d3noob.org/2013/02/add-html-table-to-your-d3js-graph.html */
-  tabulate: function (element, data, columns) {
+  tabulate(element, data, columns) {
     var table = d3.select(element).append("table")
         .attr("style", "font-size: 10px"),
       thead = table.append("thead"),
@@ -124,4 +127,7 @@ Backshift.Graph.Matrix = Backshift.Class.create(Backshift.Graph, {
 
     return table;
   }
-});
+}
+
+Backshift.Graph.Matrix = Matrix;
+export default Matrix;
