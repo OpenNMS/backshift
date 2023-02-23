@@ -75,6 +75,7 @@ describe('Backshift.Utilities.RpnEvaluator', function () {
       eval("X,COS", {"X": 0}, 1);
       eval("X,LOG", {"X": Math.E}, 1);
       eval("X,SQRT", {"X": 1}, 1);
+      eval("X,Y,POW", {"X": 7, "Y": 3}, 343);
       eval("X,ATAN", {"X": 1}, Math.PI/4);
       eval("Y,X,ATAN2", {"X": 8, "Y": 4}, 1.3258176636680326);
       eval("X,FLOOR", {"X": 1.1}, 1);
