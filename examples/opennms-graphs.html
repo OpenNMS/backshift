@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script src="../node_modules/jquery/dist/jquery.min.js"></script>
-    <script src="../dist/backshift.js"></script>
+    <!-- <script src="../node_modules/jquery/dist/jquery.min.js"></script> -->
+    <script src="backshift.js"></script>
 
     <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
@@ -31,7 +31,7 @@
 
     <div class="row">
         <div class="col-md-6">
-            <div data-graph-report="mib2.traffic-inout" data-graph-resource="node[71].interfaceSnmp[wireless_0-18cf5ebc49b9]"
+            <div data-graph-report="mib2.traffic-inout" data-graph-resource="node[5].interfaceSnmp[eth1-788a20431fad]"
                  data-original-graph="rrda" data-graph-model="grapha"></div>
         </div>
         <div class="col-md-6">
@@ -39,6 +39,7 @@
         </div>
     </div>
 
+    <!--
     <div class="row">
         <div class="col-md-6">
             <div data-graph-report="lmsensors.fan" data-graph-resource="node[35].lmFanIndex[5]"
@@ -128,19 +129,20 @@
             <div id="rrd1"></div>
         </div>
     </div>
+    -->
 
 </div>
 
 <script type="text/javascript">
-    var onmsHost = "demo.opennms.org",
-            onmsPort = 443,
-            onmsUsername = 'demo',
-            onmsPassword = 'demo',
+    var onmsHost = "localhost",
+            onmsPort = 8980,
+            onmsUsername = 'admin',
+            onmsPassword = 'admin',
             end = Date.now(),
             start = end - (12*60*60*1000); // (30*24*60*60*1000); // 30 days ago
 
     function getBaseHref() {
-        return "https://" + onmsHost + ":" + onmsPort;
+        return "http://" + onmsHost + ":" + onmsPort;
     }
 
     $(document).ready(function () {
@@ -196,7 +198,7 @@
                 }, 1000);
 
                 // Pull in the RRD graph for comparison
-                var rrdGraphImageUrl = "https://" + onmsUsername + ":" + onmsPassword + "@" + onmsHost + ":" + onmsPort + "/opennms/graph/graph.png?resourceId=" + resource +
+                var rrdGraphImageUrl = "http://" + onmsUsername + ":" + onmsPassword + "@" + onmsHost + ":" + onmsPort + "/opennms/graph/graph.png?resourceId=" + resource +
                         "&report=" + encodeURIComponent(report) +
                         "&start=" + start +
                         "&end=" + end +
