@@ -638,6 +638,7 @@ Backshift.Utilities.RpnEvaluator = Backshift.Class.create({
     this.operators['ISINF'] = funcOp(function(a) { return (a === Number.POSITIVE_INFINITY || a === Number.NEGATIVE_INFINITY) ? 1 : 0; }, 1);
     this.operators['LIMIT'] = limitOp;
     this.operators['ADDNAN'] = addNanOp;
+    this.operators['POW'] = funcOp(function(a, b) { return Math.pow(a, b); }, 2);
     this.operators['SIN'] = funcOp(function(a) { return Math.sin(a); }, 1);
     this.operators['COS'] = funcOp(function(a) { return Math.cos(a); }, 1);
     this.operators['LOG'] = funcOp(function(a) { return Math.log(a); }, 1);
