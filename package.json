@@ -16,7 +16,7 @@
     "jquery.flot.tooltip": "~0.9.0",
     "flot-legend": "https://github.com/opennms/flot-legend.git#master",
     "flot-saveas": "https://github.com/j-white/flot-saveas.git#master",
-    "flot-datatable": "https://github.com/j-white/flot-datatable.git#master",
+    "flot-datatable": "https://github.com/OpenNMS/flot-datatable.git#master",
     "flot-navigate": "https://github.com/OpenNMS/flot-navigate.git#master"
   },
   "devDependencies": {
