@@ -28,8 +28,7 @@ Install the dependencies and build the minified scripts:
 
 ```
 npm install
-bower install
-grunt
+npx grunt
 ```
 
 ### Running the examples
