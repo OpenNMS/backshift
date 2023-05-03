@@ -51,6 +51,7 @@ describe('Backshift.Utilities.RpnToJexlConverter', function () {
       checkRpnConversion("X,LOG", "math:log(X)");
       checkRpnConversion("X,EXP", "math:exp(X)");
       checkRpnConversion("X,SQRT", "math:sqrt(X)");
+      checkRpnConversion("X,Y,POW", "math:pow(X,Y)");
       checkRpnConversion("X,ATAN", "math:atan(X)");
       checkRpnConversion("Y,X,ATAN2", "math:atan2(Y,X)");
       checkRpnConversion("Y,X,ATAN2,RAD2DEG", "math:toDegrees(math:atan2(Y,X))");
