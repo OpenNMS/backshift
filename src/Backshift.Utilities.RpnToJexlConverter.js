@@ -32,6 +32,16 @@ Backshift.Utilities.RpnToJexlConverter = Backshift.Class.create({
       };
     };
 
+    var funcOpReverse = function (op, numArgs) {
+      return function (stack) {
+        var i, ret = ")";
+        for (i=0; i < numArgs; i++) {
+          ret = ',' + stack.pop() + ret;
+        }
+        return op + '(' + ret.substring(1, ret.length);
+      };
+    };
+
     var ifOp = function (stack) {
       var c = stack.pop();
       var b = stack.pop();
@@ -127,6 +137,7 @@ Backshift.Utilities.RpnToJexlConverter = Backshift.Class.create({
     this.operators['ISINF'] = infOp;
     this.operators['LIMIT'] = limitOp;
     this.operators['ADDNAN'] = addNanOp;
+    this.operators['POW'] = funcOpReverse('math:pow', 2);
     this.operators['SIN'] = funcOp('math:sin', 1);
     this.operators['COS'] = funcOp('math:cos', 1);
     this.operators['LOG'] = funcOp('math:log', 1);
