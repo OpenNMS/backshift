@@ -172,6 +172,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
           fillColor: series.color
         },
         data: seriesValues,
+        originalY : values,
         id: columnName,
         metric: series.metric,
         nodatatable: (series.name === undefined || series.name === null || series.name === '')
