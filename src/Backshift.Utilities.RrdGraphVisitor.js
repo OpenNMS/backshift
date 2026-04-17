@@ -119,6 +119,11 @@ Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
      if (color === undefined || color === "") {
        return undefined;
      }
+     // RRD uses 8-digit hex with 00 alpha to mean "transparent" (e.g. #00000000).
+     // Normalize to undefined so the renderer's no-color path (no fill, no line) is taken.
+     if (color.length === 8 && color.slice(6).toLowerCase() === "00") {
+       return undefined;
+     }
      return '#' + color;
   },
   _onTitle: function (title) {
