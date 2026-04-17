@@ -96,9 +96,9 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
    * matching its loss range), causing Flot to render isolated segments instead of
    * a continuous colored line.
    *
-   * Only activates when 6+ overlay pairs are detected, to avoid false matches
-   * on graphs that use a single transparent-AREA + colored-STACK pair for an
-   * independent indicator overlay.
+   * Only activates when enough overlay pairs are detected — see the threshold
+   * check in step 1 — to avoid false matches on graphs that use a single
+   * transparent-AREA + colored-STACK pair for an independent indicator overlay.
    */
   _mergeOverlaySegments: function (timestamps) {
     var self = this;
@@ -141,6 +141,14 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
     // Require 6+ pairs to distinguish the loss-overlay pattern from
     // incidental single-pair matches on non-StrafePing graphs.
     if (overlayPairs.length < 6) return;
+
+    // Guard: step 2 accesses overlayPairs[i].stackSeries.data[j] for every
+    // j in [0, numValues). Every flotSeries built in drawChart has exactly
+    // numValues data points, so this should always hold — but if a caller ever
+    // hands us mismatched series lengths, bail out rather than read OOB.
+    for (i = 0; i < overlayPairs.length; i++) {
+      if (overlayPairs[i].stackSeries.data.length !== numValues) return;
+    }
 
     // Step 2: Build merged timeline — at each timestamp, find which STACK is active.
     var merged = new Array(numValues);
@@ -332,6 +340,13 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
           // If the color is not specified the resulting element should be transparent.
           // Hide the line too, otherwise Flot auto-assigns a palette color (e.g. #edc240)
           // and paints a visible line along the transparent series' data.
+          //
+          // BEHAVIOR CHANGE: this also suppresses LINE commands that declare no
+          // color (e.g. `LINE1:foo` with no `#color`). Those previously rendered
+          // with an auto-assigned palette color; they now render as nothing. No
+          // shipped OpenNMS graph definition uses that form, and an uncolored
+          // AREA/STACK — the only place colorless series appear in practice — is
+          // strictly a math placeholder for the stack below.
           shouldFill = 0.0; // No opacity
           shouldShowLine = false;
       }
@@ -340,7 +355,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       // layers because the top/bottom step transitions don't align across adjacent
       // stacks. Disable steps for stack-type series; lines, areas, and merged
       // overlay segments still honor the global step option.
-      var seriesSteps = self.step && this.model.series[i].type !== "stack";
+      var useStepRendering = self.step && this.model.series[i].type !== "stack";
 
       var flotSeries = {
         label: series.name,
@@ -350,7 +365,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
           show: shouldShowLine,
           fill: shouldFill,
           fillColor: series.color,
-          steps: seriesSteps ? true : false
+          steps: useStepRendering ? true : false
         },
         data: seriesValues,
         originalY : values,
