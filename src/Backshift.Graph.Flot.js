@@ -18,6 +18,7 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       yaxisFont: undefined, // flot "font" spec
       legendFontSize: undefined, // font size (integer)
       ticks: undefined, // number of x-axis ticks, defaults to a value based on the width
+      step: false, // treats points as segments (similar to rrdgraph)
     });
   },
 
@@ -84,6 +85,174 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
   onCancel: function() {
     this.doRender = false;
     this.drawChart();
+  },
+
+  /**
+   * Detects transparent-AREA + colored-STACK overlay pairs (the rrdtool method
+   * for loss-colored median lines) and merges them into per-color-run segments
+   * so that rendering is contiguous.
+   *
+   * Without this, each overlay series is mostly NaN (only valid at timestamps
+   * matching its loss range), causing Flot to render isolated segments instead of
+   * a continuous colored line.
+   *
+   * Only activates when 6+ overlay pairs are detected, to avoid false matches
+   * on graphs that use a single transparent-AREA + colored-STACK pair for an
+   * independent indicator overlay.
+   */
+  _mergeOverlaySegments: function (timestamps) {
+    var self = this;
+    var i, j, numValues = timestamps.length;
+    if (numValues === 0) return;
+
+    // Step 1: Find transparent-AREA + colored-STACK pairs in flotSeries.
+    var overlayPairs = [];
+    var overlayIndices = {};
+
+    for (i = 0; i < this.flotSeries.length - 1; i++) {
+      var curr = this.flotSeries[i];
+      var next = this.flotSeries[i + 1];
+
+      var isTransparentArea = curr.lines.fill === 0 && curr.color === undefined
+                              && curr._modelType === "area";
+      // Require a non-empty label on the STACK to distinguish loss-overlay pairs
+      // (which always carry a legend like "0", "1/20", ...) from transparent-base
+      // gray-diff band stacks (which have no legend and would otherwise match the
+      // same transparent-AREA + colored-STACK shape).
+      var stackHasLabel = next.label !== undefined && next.label !== null
+                          && String(next.label).trim() !== "";
+      var isColoredStack = next.color !== undefined
+                           && next.lines.fill !== 0.0
+                           && next.lines.fill !== 0
+                           && stackHasLabel;
+
+      if (isTransparentArea && isColoredStack) {
+        overlayPairs.push({
+          areaIdx: i,
+          stackIdx: i + 1,
+          stackSeries: next
+        });
+        overlayIndices[i] = true;
+        overlayIndices[i + 1] = true;
+        i++; // skip the STACK, already consumed
+      }
+    }
+
+    // Require 6+ pairs to distinguish the loss-overlay pattern from
+    // incidental single-pair matches on non-StrafePing graphs.
+    if (overlayPairs.length < 6) return;
+
+    // Step 2: Build merged timeline — at each timestamp, find which STACK is active.
+    var merged = new Array(numValues);
+    for (j = 0; j < numValues; j++) {
+      merged[j] = null;
+      for (i = 0; i < overlayPairs.length; i++) {
+        var stackData = overlayPairs[i].stackSeries.data;
+        var yVal = stackData[j][1];
+        if (yVal !== null && yVal !== undefined && !isNaN(yVal)) {
+          merged[j] = {
+            timestamp: timestamps[j],
+            yVal: yVal,
+            yOffset: stackData[j][2],
+            color: overlayPairs[i].stackSeries.color,
+            label: overlayPairs[i].stackSeries.label
+          };
+          break; // first match wins (only one should be active per timestamp)
+        }
+      }
+    }
+
+    // Step 3: Segment by consecutive color runs.
+    var segments = [];
+    var currentSegment = null;
+
+    for (j = 0; j < numValues; j++) {
+      if (merged[j] === null) {
+        // True data gap — close current segment
+        if (currentSegment !== null) {
+          currentSegment.endIdx = j;
+          segments.push(currentSegment);
+          currentSegment = null;
+        }
+        continue;
+      }
+
+      if (currentSegment === null || currentSegment.color !== merged[j].color) {
+        // Start a new segment (first, after a gap, or color changed)
+        if (currentSegment !== null) {
+          currentSegment.endIdx = j;
+          segments.push(currentSegment);
+        }
+        currentSegment = {
+          color: merged[j].color,
+          label: merged[j].label,
+          startIdx: j,
+          endIdx: null
+        };
+      }
+    }
+    if (currentSegment !== null) {
+      currentSegment.endIdx = numValues;
+      segments.push(currentSegment);
+    }
+
+    // Step 4: Create a flotSeries for each segment.
+    var segmentSeries = [];
+    for (i = 0; i < segments.length; i++) {
+      var seg = segments[i];
+      var segData = [];
+
+      for (j = seg.startIdx; j < seg.endIdx; j++) {
+        if (merged[j] !== null) {
+          segData.push([merged[j].timestamp, merged[j].yVal, merged[j].yOffset]);
+        }
+      }
+
+      // Boundary stitching: add a point at the next segment's first timestamp
+      // using the next segment's Y value so the overlay line slopes to match
+      // the median line at boundaries instead of holding flat.
+      if (seg.endIdx < numValues && merged[seg.endIdx] !== null) {
+        segData.push([merged[seg.endIdx].timestamp, merged[seg.endIdx].yVal, merged[seg.endIdx].yOffset]);
+      }
+
+      // Only the first segment of each color gets a legend label to avoid
+      // duplicate legend entries.
+      var isFirstOfColor = true;
+      for (var k = 0; k < i; k++) {
+        if (segments[k].color === seg.color) {
+          isFirstOfColor = false;
+          break;
+        }
+      }
+
+      segmentSeries.push({
+        label: isFirstOfColor ? seg.label : null,
+        color: seg.color,
+        lines: {
+          show: true,
+          fill: false,
+          lineWidth: 2,
+          steps: self.step ? true : false
+        },
+        data: segData,
+        id: "overlay_segment_" + i,
+        metric: null,
+        nodatatable: true
+      });
+    }
+
+    // Step 5: Hide original overlay pairs visually (keep them for the data
+    // table, which requires all series to have the same data length) and
+    // append merged segments for rendering.
+    for (i = 0; i < this.flotSeries.length; i++) {
+      if (overlayIndices[i]) {
+        this.flotSeries[i].lines.show = false;
+        this.flotSeries[i].lines.fill = 0;
+      }
+    }
+    for (i = 0; i < segmentSeries.length; i++) {
+      this.flotSeries.push(segmentSeries[i]);
+    }
   },
 
   _shouldStack: function (k) {
@@ -158,18 +327,30 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
         seriesValues.push([timestamps[j], yVal, yOffset]);
       }
 
+      var shouldShowLine = true;
       if (series.color === undefined) {
-          // If the color is not specified the resulting element should be transparent
+          // If the color is not specified the resulting element should be transparent.
+          // Hide the line too, otherwise Flot auto-assigns a palette color (e.g. #edc240)
+          // and paints a visible line along the transparent series' data.
           shouldFill = 0.0; // No opacity
+          shouldShowLine = false;
       }
+
+      // Stacked fills with step rendering produce triangular gap artifacts between
+      // layers because the top/bottom step transitions don't align across adjacent
+      // stacks. Disable steps for stack-type series; lines, areas, and merged
+      // overlay segments still honor the global step option.
+      var seriesSteps = self.step && this.model.series[i].type !== "stack";
 
       var flotSeries = {
         label: series.name,
         color: series.color,
+        _modelType: this.model.series[i].type,
         lines: {
-          show: true,
+          show: shouldShowLine,
           fill: shouldFill,
-          fillColor: series.color
+          fillColor: series.color,
+          steps: seriesSteps ? true : false
         },
         data: seriesValues,
         originalY : values,
@@ -187,6 +368,11 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       } else {
         this.hiddenFlotSeries.push(flotSeries);
       }
+    }
+
+    // Post-process: merge loss-color overlay pairs into contiguous segments
+    if (this.flotSeries.length > 0) {
+      this._mergeOverlaySegments(timestamps);
     }
 
     var yaxisTickFormat = d3.format(".3s");
