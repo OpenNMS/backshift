@@ -4,6 +4,12 @@
 
 Backshift.namespace('Backshift.Graph.Flot');
 
+// Minimum number of transparent-AREA + colored-STACK pairs required to activate
+// loss-overlay merging. StrafePing-style graphs always produce well over this
+// count; lower values risk false positives on graphs that use a single pair as
+// an independent indicator overlay.
+const OVERLAY_SEGMENT_COUNT_THRESHOLD = 6;
+
 /** Renders the graph using Flot */
 Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
 
@@ -138,9 +144,9 @@ Backshift.Graph.Flot = Backshift.Class.create(Backshift.Graph, {
       }
     }
 
-    // Require 6+ pairs to distinguish the loss-overlay pattern from
+    // Require enough pairs to distinguish the loss-overlay pattern from
     // incidental single-pair matches on non-StrafePing graphs.
-    if (overlayPairs.length < 6) return;
+    if (overlayPairs.length < OVERLAY_SEGMENT_COUNT_THRESHOLD) return;
 
     // Guard: step 2 accesses overlayPairs[i].stackSeries.data[j] for every
     // j in [0, numValues). Every flotSeries built in drawChart has exactly

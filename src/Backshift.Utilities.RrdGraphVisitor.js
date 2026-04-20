@@ -121,7 +121,7 @@ Backshift.Utilities.RrdGraphVisitor = Backshift.Class.create({
      }
      // Normalization scope: only 8-digit hex with an explicit 00 alpha channel
      // is treated as "transparent" (RRD convention, e.g. #00000000). 3-, 4-,
-     // and 6-digit values are passed through as-is; browsers parse 3-/6-digit
+     // and 6-digit values are passed through as-is; browsers parse 3-6-digit
      // natively, 4-digit support varies and callers shouldn't rely on it.
      if (color.length === 8 && color.slice(6).toLowerCase() === "00") {
        return undefined;
