@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/node:14
+      - image: cmig/node:14.21.3
       
     working_directory: ~/backshift
 
