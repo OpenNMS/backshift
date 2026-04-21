@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: cimg/node:14.21.3
+      - image: cimg/node:14
       
     working_directory: ~/backshift
 
