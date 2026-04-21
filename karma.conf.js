@@ -89,12 +89,12 @@ module.exports = function(config) {
 
         // start these browsers
         // available browser launchers: https://npmjs.org/browse/keyword/karma-launcher
-        browsers: ['PhantomJS'],
+        browsers: ['ChromeHeadlessNoSandbox'],
 
         customLaunchers: {
-          Chrome_Without_Security: {
-            base: 'Chrome',
-            flags: ['--disable-web-security'],
+          ChromeHeadlessNoSandbox: {
+            base: 'ChromeHeadless',
+            flags: ['--no-sandbox'],
           },
         },
 
